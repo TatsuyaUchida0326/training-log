@@ -94,6 +94,7 @@
 
 .selected {
   background: #dcfce7;
+  box-shadow: 0 0 0 2px #22c55e;
 }
 
 /* 日曜・祝日 → 赤 */

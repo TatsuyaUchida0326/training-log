@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { addMonths, subMonths } from 'date-fns'
+import { addMonths, subMonths, format } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
 import Calendar from '../components/Calendar/Calendar'
 import ContinuityGauge from '../components/ContinuityGauge/ContinuityGauge'
 import TrophyBadge from '../components/TrophyBadge/TrophyBadge'
@@ -23,6 +24,7 @@ const STAGE_SAMPLES = [
 
 export default function HomePage() {
   const { settings } = useSettings()
+  const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [previewGauge, setPreviewGauge] = useState(10)
@@ -30,7 +32,10 @@ export default function HomePage() {
   const handlePrevMonth = () => setCurrentDate((d) => subMonths(d, 1))
   const handleNextMonth = () => setCurrentDate((d) => addMonths(d, 1))
   const handleToday = () => setCurrentDate(new Date())
-  const handleDateSelect = (date: Date) => setSelectedDate(date)
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date)
+    navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
+  }
 
   return (
     <div>
