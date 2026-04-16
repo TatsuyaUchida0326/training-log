@@ -6,6 +6,15 @@ export interface Settings {
   weightUnit: 'kg' | 'lbs'
 }
 
+export type CategoryId = string
+
+export interface Exercise {
+  id: string
+  name: string
+  categoryId: CategoryId
+  isCustom: boolean
+}
+
 export interface CalendarProps {
   currentDate: Date
   onPrevMonth: () => void

@@ -80,8 +80,12 @@ export default function DateDetailPage() {
         )}
       </div>
 
-      {/* FAB（種目追加 - 記録機能実装後に接続） */}
-      <button className={styles.fab} aria-label="種目を追加">
+      {/* FAB: 種目選択画面へ */}
+      <button
+        className={styles.fab}
+        aria-label="種目を追加"
+        onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
+      >
         ＋
       </button>
     </div>
