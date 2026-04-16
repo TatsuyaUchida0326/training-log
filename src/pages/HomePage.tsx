@@ -4,6 +4,7 @@ import Calendar from '../components/Calendar/Calendar'
 import ContinuityGauge from '../components/ContinuityGauge/ContinuityGauge'
 import TrophyBadge from '../components/TrophyBadge/TrophyBadge'
 import type { TrophyRecord } from '../components/TrophyBadge/TrophyBadge'
+import { useSettings } from '../hooks/useSettings'
 
 // TODO: 記録機能実装後に実データに置き換える
 const MOCK_TROPHIES: TrophyRecord[] = [
@@ -21,6 +22,7 @@ const STAGE_SAMPLES = [
 ]
 
 export default function HomePage() {
+  const { settings } = useSettings()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [previewGauge, setPreviewGauge] = useState(10)
@@ -65,7 +67,7 @@ export default function HomePage() {
 
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <ContinuityGauge current={previewGauge} />
+          <ContinuityGauge current={previewGauge} requiredSets={settings.defaultSets} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <TrophyBadge trophies={MOCK_TROPHIES} />

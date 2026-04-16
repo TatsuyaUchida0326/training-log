@@ -1,5 +1,11 @@
 export type TabName = 'home' | 'history' | 'body' | 'settings'
 
+export interface Settings {
+  defaultSets: number          // 継続達成セット数（ContinuityGauge）
+  trainingDefaultSets: number  // トレーニング記録のデフォルトセット数
+  weightUnit: 'kg' | 'lbs'
+}
+
 export interface CalendarProps {
   currentDate: Date
   onPrevMonth: () => void
