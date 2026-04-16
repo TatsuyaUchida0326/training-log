@@ -1,0 +1,83 @@
+.page {
+  padding: 1.5rem 1rem;
+}
+
+.section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+}
+
+.row + .row {
+  border-top: 1px solid #f3f4f6;
+}
+
+.label {
+  font-size: 1rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.select {
+  appearance: none;
+  background-color: var(--color-bg);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.4rem 2rem 0.4rem 0.75rem;
+  font-size: 1rem;
+  font-family: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+}
+
+.select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.toggle {
+  display: flex;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.toggleButton {
+  padding: 0.4rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  border: none;
+  color: var(--color-gray);
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggleButton + .toggleButton {
+  border-left: 1px solid #e5e7eb;
+}
+
+.toggleButton.active {
+  background: var(--color-primary);
+  color: #fff;
+}
