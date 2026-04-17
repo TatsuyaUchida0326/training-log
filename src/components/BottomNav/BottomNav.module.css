@@ -6,8 +6,8 @@
   transform: translateX(-50%);
   width: 100%;
   max-width: 480px;
-  background: #fff;
-  border-top: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #0c1e3d 0%, #1565c0 100%);
+  border-top: 1px solid rgba(100, 181, 246, 0.25);
   z-index: 100;
 }
 
@@ -32,10 +32,18 @@
 
 .label {
   font-size: 0.65rem;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .tab[data-active='true'] .label {
-  color: #22c55e;
+  color: #90caf9;
   font-weight: 600;
+}
+
+.tabInner[data-active='true'] {
+  color: #90caf9;
+}
+
+.tabInner[data-active='false'] {
+  color: rgba(255, 255, 255, 0.45);
 }

@@ -13,9 +13,11 @@
   "dependencies": {
     "@holiday-jp/holiday_jp": "^2.5.1",
     "date-fns": "^4.1.0",
+    "lucide-react": "^1.8.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.14.1",
+    "recharts": "^3.8.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

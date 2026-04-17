@@ -1,8 +1,14 @@
+import { useEffect } from 'react'
 import { useSettings } from '../hooks/useSettings'
+import { usePageHeader } from '../contexts/PageHeaderContext'
 import styles from './SettingsPage.module.css'
 
 export default function SettingsPage() {
   const { settings, updateDefaultSets, updateTrainingDefaultSets, updateWeightUnit } = useSettings()
+  const { setHeader } = usePageHeader()
+  useEffect(() => {
+    setHeader({ title: '初期値設定', centered: true })
+  }, [setHeader])
 
   return (
     <div className={styles.page}>

@@ -1,0 +1,107 @@
+.page {
+  padding-bottom: 5rem;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 0.625rem 1rem;
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  flex-shrink: 0;
+}
+
+.barTitle {
+  flex: 1;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.registerButton {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem;
+  flex-shrink: 0;
+  min-width: 2.5rem;
+  text-align: right;
+}
+
+.registerButton:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ── フォーム ── */
+.form {
+  background: #fff;
+  margin: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.label {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  font-weight: 500;
+  width: 4rem;
+  flex-shrink: 0;
+}
+
+.select {
+  flex: 1;
+  border: none;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: transparent;
+  text-align: right;
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--color-text);
+  background: transparent;
+  text-align: right;
+}
+
+.input::placeholder {
+  color: #d1d5db;
+}
+
+.input:focus {
+  outline: none;
+}

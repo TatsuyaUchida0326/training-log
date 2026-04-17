@@ -4,6 +4,9 @@
   padding: 0.875rem;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .trophy-header {
@@ -29,6 +32,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .trophy-item {
