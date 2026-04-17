@@ -1,0 +1,118 @@
+.page {
+  padding-bottom: 5rem;
+}
+
+/* ゲージ行 */
+.gaugeRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.gaugeCol {
+  flex: 1;
+  min-width: 0;
+}
+
+/* サマリーセクション */
+.summary {
+  margin-top: 0.75rem;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.summaryDate {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.emptyText {
+  padding: 20px 14px;
+  color: #9ca3af;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* カテゴリーブロック */
+.categoryBlock {
+  border-top: 1px solid #f3f4f6;
+}
+
+.categoryBlock:first-of-type {
+  border-top: none;
+}
+
+.categoryLabel {
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 14px;
+  letter-spacing: 0.05em;
+}
+
+/* 種目カード */
+.exerciseCard {
+  padding: 10px 14px;
+  border-top: 1px solid #f9fafb;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.exerciseCard:hover {
+  background: #f9fafb;
+}
+
+.exerciseHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.exerciseName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.rmLabel {
+  font-size: 12px;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* セット行 */
+.setList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.setRow {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.setNum {
+  width: 14px;
+  text-align: right;
+  color: #9ca3af;
+}
+
+.setDetail {
+  flex: 1;
+}

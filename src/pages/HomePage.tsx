@@ -4,79 +4,142 @@ import { useNavigate } from 'react-router-dom'
 import Calendar from '../components/Calendar/Calendar'
 import ContinuityGauge from '../components/ContinuityGauge/ContinuityGauge'
 import TrophyBadge from '../components/TrophyBadge/TrophyBadge'
-import type { TrophyRecord } from '../components/TrophyBadge/TrophyBadge'
 import { useSettings } from '../hooks/useSettings'
-
-// TODO: 記録機能実装後に実データに置き換える
-const MOCK_TROPHIES: TrophyRecord[] = [
-  { exerciseName: 'ベンチプレス', rm: 192, date: '04/16' },
-  { exerciseName: 'スクワット', rm: 140, date: '04/14' },
-]
-
-const STAGE_SAMPLES = [
-  { label: '青 (10)', value: 10 },
-  { label: '緑 (30)', value: 30 },
-  { label: '黄 (50)', value: 50 },
-  { label: '紫 (70)', value: 70 },
-  { label: '赤 (85)', value: 85 },
-  { label: '🌈 (90)', value: 90 },
-]
+import { useTrainingRecords } from '../hooks/useTrainingRecords'
+import { useExercises } from '../hooks/useExercises'
+import { calcRM, displayWeight } from '../utils/training'
+import styles from './HomePage.module.css'
 
 export default function HomePage() {
   const { settings } = useSettings()
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const [previewGauge, setPreviewGauge] = useState(10)
 
-  const handlePrevMonth = () => setCurrentDate((d) => subMonths(d, 1))
-  const handleNextMonth = () => setCurrentDate((d) => addMonths(d, 1))
-  const handleToday = () => setCurrentDate(new Date())
-  const handleDateSelect = (date: Date) => {
-    setSelectedDate(date)
-    navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
+  const { records, getRecordsByDate } = useTrainingRecords()
+  const { exercises } = useExercises()
+
+  const unit = settings.weightUnit
+  const today = new Date()
+  const todayStr = format(today, 'yyyy-MM-dd')
+
+  // トレーニング記録がある日付（カレンダーのドット表示用）
+  const markedDates = [
+    ...new Set(records.filter((r) => r.sets.length > 0).map((r) => r.date)),
+  ]
+
+  // 今日の記録をサマリー表示
+  const todayRecords = getRecordsByDate(todayStr).filter((r) => r.sets.length > 0)
+
+  type GroupedExercise = {
+    exerciseId: string
+    name: string
+    categoryId: string
+    sets: { id: string; weight: number; reps: number; memo: string }[]
+    maxRM: number
   }
 
+  const grouped = new Map<string, GroupedExercise[]>()
+  todayRecords.forEach((record) => {
+    const ex = exercises.find((e) => e.id === record.exerciseId)
+    if (!ex) return
+    const maxRM = record.sets.reduce(
+      (max, s) => Math.max(max, calcRM(s.weight, s.reps)),
+      0
+    )
+    const entry: GroupedExercise = {
+      exerciseId: ex.id,
+      name: ex.name,
+      categoryId: ex.categoryId,
+      sets: record.sets,
+      maxRM,
+    }
+    if (!grouped.has(ex.categoryId)) grouped.set(ex.categoryId, [])
+    grouped.get(ex.categoryId)!.push(entry)
+  })
+
+  // TrophyBadge用: 今日の各種目の最高RM
+  const trophies = todayRecords
+    .map((r) => {
+      const ex = exercises.find((e) => e.id === r.exerciseId)
+      if (!ex) return null
+      const maxRM = r.sets.reduce(
+        (max, s) => Math.max(max, calcRM(s.weight, s.reps)),
+        0
+      )
+      return maxRM > 0
+        ? { exerciseName: ex.name, rm: maxRM, date: format(today, 'MM/dd') }
+        : null
+    })
+    .filter((t): t is NonNullable<typeof t> => t !== null)
+
   return (
-    <div>
+    <div className={styles.page}>
       <Calendar
         currentDate={currentDate}
-        onPrevMonth={handlePrevMonth}
-        onNextMonth={handleNextMonth}
-        onToday={handleToday}
+        onPrevMonth={() => setCurrentDate((d) => subMonths(d, 1))}
+        onNextMonth={() => setCurrentDate((d) => addMonths(d, 1))}
+        onToday={() => setCurrentDate(new Date())}
         selectedDate={selectedDate}
-        onDateSelect={handleDateSelect}
-        markedDates={[]}
+        onDateSelect={(date) => {
+          setSelectedDate(date)
+          navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
+        }}
+        markedDates={markedDates}
       />
-      {/* ▼ 確認用ボタン（実装完了後に削除） */}
-      <div style={{ display: 'flex', gap: '0.375rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-        {STAGE_SAMPLES.map((s) => (
-          <button
-            key={s.value}
-            onClick={() => setPreviewGauge(s.value)}
-            style={{
-              padding: '0.25rem 0.5rem',
-              fontSize: '0.7rem',
-              borderRadius: '6px',
-              border: '1px solid #d1d5db',
-              background: previewGauge === s.value ? '#22c55e' : '#f9fafb',
-              color: previewGauge === s.value ? '#fff' : '#374151',
-              cursor: 'pointer',
-            }}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
-      {/* ▲ 確認用ボタンここまで */}
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <ContinuityGauge current={previewGauge} requiredSets={settings.defaultSets} />
+      <div className={styles.gaugeRow}>
+        <div className={styles.gaugeCol}>
+          <ContinuityGauge current={0} requiredSets={settings.defaultSets} />
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <TrophyBadge trophies={MOCK_TROPHIES} />
+        <div className={styles.gaugeCol}>
+          <TrophyBadge trophies={trophies} />
         </div>
+      </div>
+
+      {/* 今日のトレーニングサマリー */}
+      <div className={styles.summary}>
+        <div className={styles.summaryHeader}>
+          <span className={styles.summaryDate}>今日のトレーニング</span>
+        </div>
+
+        {grouped.size === 0 ? (
+          <p className={styles.emptyText}>まだ記録がありません</p>
+        ) : (
+          Array.from(grouped.entries()).map(([categoryId, exList]) => (
+            <div key={categoryId} className={styles.categoryBlock}>
+              <div className={styles.categoryLabel}>{categoryId}</div>
+              {exList.map((ex) => (
+                <div
+                  key={ex.exerciseId}
+                  className={styles.exerciseCard}
+                  onClick={() =>
+                    navigate(`/date/${todayStr}/exercises/${ex.exerciseId}`)
+                  }
+                >
+                  <div className={styles.exerciseHeader}>
+                    <span className={styles.exerciseName}>{ex.name}</span>
+                    {ex.maxRM > 0 && (
+                      <span className={styles.rmLabel}>
+                        RM : {displayWeight(ex.maxRM, unit)}&nbsp;{unit}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.setList}>
+                    {ex.sets.map((s, idx) => (
+                      <div key={s.id} className={styles.setRow}>
+                        <span className={styles.setNum}>{idx + 1}</span>
+                        <span className={styles.setDetail}>
+                          {displayWeight(s.weight, unit)}&nbsp;{unit}&nbsp;×&nbsp;{s.reps}&nbsp;reps
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

@@ -74,7 +74,16 @@ export default function ExerciseSelectPage() {
               ) : (
                 <>
                   {visible.map((ex) => (
-                    <div key={ex.id} className={styles.exerciseRow}>
+                    <div
+                      key={ex.id}
+                      className={styles.exerciseRow}
+                      onClick={() => {
+                        if (!isEditMode) {
+                          navigate(`/date/${dateStr}/exercises/${ex.id}`)
+                        }
+                      }}
+                      style={{ cursor: isEditMode ? 'default' : 'pointer' }}
+                    >
                       {isEditMode && (
                         <button
                           className={styles.deleteButton}

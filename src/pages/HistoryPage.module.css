@@ -1,0 +1,120 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f9fafb;
+  overflow: hidden;
+}
+
+/* ── タブ行（横スクロール） ── */
+.tabRow {
+  display: flex;
+  overflow-x: auto;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabRow::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+
+.tab:hover {
+  color: #22c55e;
+}
+
+.tabActive {
+  color: #22c55e;
+  font-weight: 700;
+  border-bottom-color: #22c55e;
+}
+
+/* ── カレンダー / グラフ 切り替え ── */
+.toggleRow {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  flex-shrink: 0;
+}
+
+.toggle {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  padding: 6px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.toggleActive {
+  background: #fff;
+  color: #111827;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ── カレンダーラップ ── */
+.calendarWrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 80px;
+}
+
+/* ── グラフエリア ── */
+.graphArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 12px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyText {
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+  padding: 40px 0;
+}
+
+/* ── グラフブロック ── */
+.chartBlock {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 14px 8px 10px;
+}
+
+.chartTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  padding: 0 8px 10px;
+}
