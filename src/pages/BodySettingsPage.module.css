@@ -5,41 +5,6 @@
   background: #f3f4f6;
 }
 
-.bar {
-  display: flex;
-  align-items: center;
-  background: #22c55e;
-  color: #fff;
-  padding: 10px 12px;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.backButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-}
-
-.backButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.barTitle {
-  flex: 1;
-  font-weight: 700;
-  font-size: 16px;
-  text-align: center;
-}
-
-.barSpacer {
-  width: 40px;
-}
-
 .content {
   flex: 1;
   overflow-y: auto;

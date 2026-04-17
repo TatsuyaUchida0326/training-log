@@ -12,6 +12,9 @@
 .gaugeCol {
   flex: 1;
   min-width: 0;
+  max-height: 262px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* サマリーセクション */
@@ -19,8 +22,17 @@
   margin-top: 0.75rem;
   background: #fff;
   border-radius: 12px;
-  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.summaryScroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .summaryHeader {

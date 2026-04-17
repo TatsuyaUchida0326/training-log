@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { addMonths, subMonths, format } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
+import { usePageHeader } from '../contexts/PageHeaderContext'
 import {
   LineChart,
   Line,
@@ -7,7 +9,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts'
 import Calendar from '../components/Calendar/Calendar'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
@@ -21,11 +22,17 @@ type ViewMode = 'calendar' | 'graph'
 const ALL = 'ALL'
 
 export default function HistoryPage() {
+  const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL)
   const [selectedExercise, setSelectedExercise] = useState<string>(ALL)
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
+
+  const { setHeader } = usePageHeader()
+  useEffect(() => {
+    setHeader({ title: 'トレーニング記録', centered: true })
+  }, [setHeader])
 
   const { records } = useTrainingRecords()
   const { exercises } = useExercises()
@@ -122,7 +129,10 @@ export default function HistoryPage() {
             onNextMonth={() => setCurrentDate((d) => addMonths(d, 1))}
             onToday={() => setCurrentDate(new Date())}
             selectedDate={selectedDate}
-            onDateSelect={(date) => setSelectedDate(date)}
+            onDateSelect={(date) => {
+                setSelectedDate(date)
+                navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
+              }}
             markedDates={stats.trainedDates}
           />
         </div>
@@ -155,17 +165,27 @@ interface ChartBlockProps {
   color: string
 }
 
+// 1データ点あたりの幅（px）
+const PX_PER_POINT = 52
+
 function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
   const formatted = data.map((d) => ({
     date: format(new Date(d.date), 'M/d'),
     value: d.value,
   }))
 
+  const chartWidth = Math.max(formatted.length * PX_PER_POINT + 60, 300)
+
   return (
     <div className={styles.chartBlock}>
       <div className={styles.chartTitle}>{title}</div>
-      <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={formatted} margin={{ top: 8, right: 16, left: 0, bottom: 4 }}>
+      <div className={styles.chartScroll}>
+        <LineChart
+          width={chartWidth}
+          height={200}
+          data={formatted}
+          margin={{ top: 8, right: 24, left: 0, bottom: 4 }}
+        >
           <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
           <XAxis
             dataKey="date"
@@ -193,7 +213,7 @@ function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
             activeDot={{ r: 6 }}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </div>
     </div>
   )
 }

@@ -6,54 +6,6 @@
   overflow: hidden;
 }
 
-/* ── ヘッダー ── */
-.bar {
-  display: flex;
-  align-items: center;
-  background: #22c55e;
-  color: #fff;
-  padding: 10px 12px;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.navButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 6px;
-  line-height: 1;
-}
-
-.navButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.dateLabel {
-  flex: 1;
-  text-align: center;
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.gearButton {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  line-height: 1;
-  opacity: 0.9;
-}
-
-.gearButton:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
 /* ── スクロール領域 ── */
 .scrollArea {
   flex: 1;
@@ -70,6 +22,16 @@
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid #e5e7eb;
+}
+
+/* ── カードラベル ── */
+.cardLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 16px 4px;
 }
 
 /* ── 入力行 ── */

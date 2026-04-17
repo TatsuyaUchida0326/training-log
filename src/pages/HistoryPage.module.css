@@ -118,3 +118,13 @@
   color: #374151;
   padding: 0 8px 10px;
 }
+
+.chartScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.chartScroll::-webkit-scrollbar {
+  display: none;
+}

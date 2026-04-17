@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { addMonths, subMonths, format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import Calendar from '../components/Calendar/Calendar'
@@ -7,12 +7,18 @@ import TrophyBadge from '../components/TrophyBadge/TrophyBadge'
 import { useSettings } from '../hooks/useSettings'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
 import { useExercises } from '../hooks/useExercises'
+import { usePageHeader } from '../contexts/PageHeaderContext'
 import { calcRM, displayWeight } from '../utils/training'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
   const { settings } = useSettings()
   const navigate = useNavigate()
+  const { setHeader } = usePageHeader()
+
+  useEffect(() => {
+    setHeader({ title: 'Strength Log', centered: false })
+  }, [setHeader])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
@@ -103,43 +109,45 @@ export default function HomePage() {
           <span className={styles.summaryDate}>今日のトレーニング</span>
         </div>
 
-        {grouped.size === 0 ? (
-          <p className={styles.emptyText}>まだ記録がありません</p>
-        ) : (
-          Array.from(grouped.entries()).map(([categoryId, exList]) => (
-            <div key={categoryId} className={styles.categoryBlock}>
-              <div className={styles.categoryLabel}>{categoryId}</div>
-              {exList.map((ex) => (
-                <div
-                  key={ex.exerciseId}
-                  className={styles.exerciseCard}
-                  onClick={() =>
-                    navigate(`/date/${todayStr}/exercises/${ex.exerciseId}`)
-                  }
-                >
-                  <div className={styles.exerciseHeader}>
-                    <span className={styles.exerciseName}>{ex.name}</span>
-                    {ex.maxRM > 0 && (
-                      <span className={styles.rmLabel}>
-                        RM : {displayWeight(ex.maxRM, unit)}&nbsp;{unit}
-                      </span>
-                    )}
-                  </div>
-                  <div className={styles.setList}>
-                    {ex.sets.map((s, idx) => (
-                      <div key={s.id} className={styles.setRow}>
-                        <span className={styles.setNum}>{idx + 1}</span>
-                        <span className={styles.setDetail}>
-                          {displayWeight(s.weight, unit)}&nbsp;{unit}&nbsp;×&nbsp;{s.reps}&nbsp;reps
+        <div className={styles.summaryScroll}>
+          {grouped.size === 0 ? (
+            <p className={styles.emptyText}>まだ記録がありません</p>
+          ) : (
+            Array.from(grouped.entries()).map(([categoryId, exList]) => (
+              <div key={categoryId} className={styles.categoryBlock}>
+                <div className={styles.categoryLabel}>{categoryId}</div>
+                {exList.map((ex) => (
+                  <div
+                    key={ex.exerciseId}
+                    className={styles.exerciseCard}
+                    onClick={() =>
+                      navigate(`/date/${todayStr}/exercises/${ex.exerciseId}`)
+                    }
+                  >
+                    <div className={styles.exerciseHeader}>
+                      <span className={styles.exerciseName}>{ex.name}</span>
+                      {ex.maxRM > 0 && (
+                        <span className={styles.rmLabel}>
+                          RM : {displayWeight(ex.maxRM, unit)}&nbsp;{unit}
                         </span>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                    <div className={styles.setList}>
+                      {ex.sets.map((s, idx) => (
+                        <div key={s.id} className={styles.setRow}>
+                          <span className={styles.setNum}>{idx + 1}</span>
+                          <span className={styles.setDetail}>
+                            {displayWeight(s.weight, unit)}&nbsp;{unit}&nbsp;×&nbsp;{s.reps}&nbsp;reps
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ))
-        )}
+                ))}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )

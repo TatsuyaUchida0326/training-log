@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   format,
   startOfMonth,
@@ -72,7 +73,7 @@ export default function Calendar({
           aria-label="prev"
           onClick={onPrevMonth}
         >
-          ＜
+          <ChevronLeft size={18} />
         </button>
         <div className={styles.titleGroup}>
           <span className={styles.monthTitle}>
@@ -92,7 +93,7 @@ export default function Calendar({
           aria-label="next"
           onClick={onNextMonth}
         >
-          ＞
+          <ChevronRight size={18} />
         </button>
       </div>
 
@@ -150,8 +151,10 @@ export default function Calendar({
               {marked && (
                 <span
                   data-testid="marked-dot"
-                  className={styles.dot}
-                />
+                  className={styles.muscleIcon}
+                >
+                  💪
+                </span>
               )}
             </div>
           )

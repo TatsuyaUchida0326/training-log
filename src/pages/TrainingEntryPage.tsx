@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { ChevronLeft, X, Plus } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
@@ -114,7 +115,7 @@ export default function TrainingEntryPage() {
           onClick={() => navigate(`/date/${dateStr}`)}
           aria-label="戻る"
         >
-          ＜
+          <ChevronLeft size={20} />
         </button>
         <span className={styles.barTitle}>{exercise.name}</span>
         <div className={styles.unitToggle}>
@@ -205,7 +206,7 @@ export default function TrainingEntryPage() {
                       aria-label="セット削除"
                       onClick={() => handleDeleteSet(s.id)}
                     >
-                      ✕
+                      <X size={14} />
                     </button>
                   </div>
                   <div className={styles.memoRow}>
@@ -227,7 +228,7 @@ export default function TrainingEntryPage() {
 
         {/* ＋ セットを追加 */}
         <button className={styles.addSetButton} onClick={handleAddSet}>
-          ＋ セットを追加
+          <Plus size={16} /> セットを追加
         </button>
       </div>
     </div>

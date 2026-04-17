@@ -35,7 +35,8 @@
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: 0.25rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 0;
 }
 
 .weekday {
@@ -49,7 +50,12 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 0;
+}
+
+/* 2週目以降の各行に上線（週区切り） */
+.cell:nth-child(n + 8) {
+  border-top: 1px solid #f3f4f6;
 }
 
 .cell {
@@ -57,9 +63,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.25rem 0;
+  padding: 0.85rem 0;
   cursor: pointer;
   position: relative;
+  border-left: 1px solid #f3f4f6;
+}
+
+/* 各行の先頭列は左線なし */
+.cell:nth-child(7n + 1) {
+  border-left: none;
 }
 
 .dayCircle {
@@ -144,14 +156,10 @@
   background: #f3f4f6;
 }
 
-.dot {
-  width: 5px;
-  height: 5px;
-  background: #22c55e;
-  border-radius: 50%;
-  margin-top: 2px;
-}
-
-.today .dot {
-  background: #fff;
+.muscleIcon {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  font-size: 1rem;
+  line-height: 1;
 }

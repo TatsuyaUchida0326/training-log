@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../hooks/useExercises'
 import styles from './ExerciseAddPage.module.css'
@@ -28,7 +29,7 @@ export default function ExerciseAddPage() {
           onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
           aria-label="戻る"
         >
-          ＜
+          <ChevronLeft size={20} />
         </button>
         <span className={styles.barTitle}>種目を追加</span>
         <button

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ChevronLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../hooks/useExercises'
 import { CATEGORIES } from '../data/defaultExercises'
@@ -36,7 +37,7 @@ export default function ExerciseSelectPage() {
           onClick={() => navigate(`/date/${dateStr}`)}
           aria-label="戻る"
         >
-          ＜
+          <ChevronLeft size={20} />
         </button>
         <span className={styles.barTitle}>種目を選択</span>
         <button

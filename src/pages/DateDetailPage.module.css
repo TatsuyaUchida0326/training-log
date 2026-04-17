@@ -2,63 +2,42 @@
   padding: 0 0 5rem;
 }
 
-/* ── 日付ヘッダー ── */
-.dateBar {
+/* ── ヘッダー内統計（帯の subtitle として描画） ── */
+.headerStats {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-primary);
-  color: #fff;
+  align-items: stretch;
+  width: 100%;
+  padding: 0 4px 4px;
+  gap: 0;
 }
 
-.backButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.dateTitle {
+.headerStatCard {
   flex: 1;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
 }
 
-/* ── 統計バー ── */
-.statsBar {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--color-primary);
-}
-
-.statCard {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 0.4rem 0.25rem;
-  text-align: center;
-  color: #fff;
-}
-
-.statLabel {
-  font-size: 0.6rem;
+.headerStatLabel {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.8);
   font-weight: 500;
-  opacity: 0.9;
-  line-height: 1.3;
+  white-space: nowrap;
 }
 
-.statValue {
-  font-size: 1.25rem;
+.headerStatValue {
+  font-size: 18px;
   font-weight: 700;
-  line-height: 1.2;
-  margin-top: 0.1rem;
+  color: #fff;
+  line-height: 1;
+}
+
+.headerStatDivider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.3);
+  margin: 2px 0;
+  align-self: stretch;
 }
 
 /* ── コンテンツエリア ── */
@@ -183,24 +162,6 @@
   text-align: center;
 }
 
-/* カード内 ＋ボタン */
-.addSetInCard {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  border-top: 1px solid #f3f4f6;
-  color: #9ca3af;
-  font-size: 1.2rem;
-  padding: 8px;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-
-.addSetInCard:hover {
-  color: #22c55e;
-  background: #f0fdf4;
-}
 
 /* ── エラー ── */
 .errorText {

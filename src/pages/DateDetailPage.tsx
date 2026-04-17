@@ -1,8 +1,11 @@
+import { useEffect } from 'react'
+import { ChevronLeft, Plus } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { parseISO, isValid, format } from 'date-fns'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
 import { useExercises } from '../hooks/useExercises'
 import { useSettings } from '../hooks/useSettings'
+import { usePageHeader } from '../contexts/PageHeaderContext'
 import { displayWeight, calcRM } from '../utils/training'
 import styles from './DateDetailPage.module.css'
 
@@ -20,20 +23,13 @@ export default function DateDetailPage() {
   const { getRecordsByDate } = useTrainingRecords()
   const { exercises } = useExercises()
   const { settings } = useSettings()
+  const { setHeader } = usePageHeader()
   const unit = settings.weightUnit
 
   const date = dateStr ? parseISO(dateStr) : null
   const isValidDate = date && isValid(date)
 
-  if (!isValidDate) {
-    return (
-      <div className={styles.page}>
-        <p className={styles.errorText}>日付が正しくありません</p>
-      </div>
-    )
-  }
-
-  const records = getRecordsByDate(dateStr!)
+  const records = isValidDate ? getRecordsByDate(dateStr!) : []
   const filledRecords = records.filter((r) => r.sets.length > 0)
 
   const totalExercises = filledRecords.length
@@ -47,53 +43,75 @@ export default function DateDetailPage() {
       acc + r.sets.reduce((s, set) => s + set.weight * set.reps, 0),
     0
   )
-
   const displayVolume =
     unit === 'lbs'
       ? Math.round(totalVolume * 2.20462)
       : Math.round(totalVolume)
 
+  useEffect(() => {
+    if (!dateStr) return
+    const d = parseISO(dateStr)
+    if (!isValid(d)) return
+    setHeader({
+      title: formatDateJa(d),
+      centered: true,
+      leftElement: (
+        <button className="header-btn" onClick={() => navigate('/')} aria-label="戻る">
+          <ChevronLeft size={20} />
+        </button>
+      ),
+      rightElement: (
+        <button
+          className="header-btn"
+          onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
+          aria-label="種目を追加"
+        >
+          <Plus size={20} />
+        </button>
+      ),
+      subtitle: (
+        <div className={styles.headerStats}>
+          <div className={styles.headerStatCard}>
+            <span className={styles.headerStatLabel}>合計種目数</span>
+            <span className={styles.headerStatValue}>{totalExercises}</span>
+          </div>
+          <div className={styles.headerStatDivider} />
+          <div className={styles.headerStatCard}>
+            <span className={styles.headerStatLabel}>合計セット数</span>
+            <span className={styles.headerStatValue}>{totalSets}</span>
+          </div>
+          <div className={styles.headerStatDivider} />
+          <div className={styles.headerStatCard}>
+            <span className={styles.headerStatLabel}>合計レップ数</span>
+            <span className={styles.headerStatValue}>{totalReps}</span>
+          </div>
+          <div className={styles.headerStatDivider} />
+          <div className={styles.headerStatCard}>
+            <span className={styles.headerStatLabel}>合計負荷量({unit})</span>
+            <span className={styles.headerStatValue}>{displayVolume.toLocaleString()}</span>
+          </div>
+        </div>
+      ),
+    })
+  }, [dateStr, totalExercises, totalSets, totalReps, displayVolume, unit, setHeader, navigate])
+
+  if (!isValidDate) {
+    return (
+      <div className={styles.page}>
+        <p className={styles.errorText}>日付が正しくありません</p>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.page}>
-      {/* 日付バー */}
-      <div className={styles.dateBar}>
-        <button
-          className={styles.backButton}
-          onClick={() => navigate('/')}
-          aria-label="戻る"
-        >
-          ＜
-        </button>
-        <span className={styles.dateTitle}>{formatDateJa(date)}</span>
-      </div>
-
-      {/* 統計バー */}
-      <div className={styles.statsBar}>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>合計{'\n'}種目数</div>
-          <div className={styles.statValue}>{totalExercises}</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>合計{'\n'}セット数</div>
-          <div className={styles.statValue}>{totalSets}</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>合計{'\n'}レップ数</div>
-          <div className={styles.statValue}>{totalReps}</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>合計{'\n'}負荷量</div>
-          <div className={styles.statValue}>{displayVolume}</div>
-        </div>
-      </div>
-
       {/* コンテンツ */}
       <div className={styles.content}>
         {totalExercises === 0 ? (
           <div className={styles.emptyCard}>
             <div className={styles.emptyIcon}>🏋️</div>
             <p className={styles.emptyText}>
-              種目を追加してトレーニングを記録しましょう
+              右上の ＋ から種目を追加してトレーニングを記録しましょう
             </p>
           </div>
         ) : (
@@ -139,30 +157,12 @@ export default function DateDetailPage() {
                     })}
                   </div>
 
-                  {/* ＋ セット追加 → 入力画面へ */}
-                  <button
-                    className={styles.addSetInCard}
-                    onClick={() =>
-                      navigate(`/date/${dateStr}/exercises/${record.exerciseId}`)
-                    }
-                  >
-                    ＋
-                  </button>
                 </div>
               )
             })}
           </div>
         )}
       </div>
-
-      {/* FAB: 種目選択画面へ */}
-      <button
-        className={styles.fab}
-        aria-label="種目を追加"
-        onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
-      >
-        ＋
-      </button>
     </div>
   )
 }

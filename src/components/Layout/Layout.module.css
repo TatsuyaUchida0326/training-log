@@ -5,17 +5,79 @@
 }
 
 .header {
-  background: #22c55e;
-  padding: 1rem;
+  background:
+    /* 雲 左 */
+    radial-gradient(ellipse 48px 24px at  8% 92%, rgba(255,255,255,0.50) 0%, transparent 100%),
+    radial-gradient(ellipse 32px 18px at  4% 80%, rgba(255,255,255,0.40) 0%, transparent 100%),
+    radial-gradient(ellipse 38px 20px at 16% 86%, rgba(255,255,255,0.38) 0%, transparent 100%),
+    /* 雲 中央 */
+    radial-gradient(ellipse 42px 20px at 46% 95%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(ellipse 28px 16px at 40% 85%, rgba(255,255,255,0.30) 0%, transparent 100%),
+    radial-gradient(ellipse 34px 18px at 54% 88%, rgba(255,255,255,0.28) 0%, transparent 100%),
+    /* 雲 右 */
+    radial-gradient(ellipse 56px 28px at 82% 94%, rgba(255,255,255,0.45) 0%, transparent 100%),
+    radial-gradient(ellipse 38px 22px at 74% 84%, rgba(255,255,255,0.38) 0%, transparent 100%),
+    radial-gradient(ellipse 44px 24px at 90% 86%, rgba(255,255,255,0.32) 0%, transparent 100%),
+    /* 空グラデーション */
+    linear-gradient(180deg, #0c1e3d 0%, #1565c0 55%, #1e88e5 80%, #64b5f6 100%);
+  padding: 0.75rem 1rem;
   position: sticky;
   top: 0;
   z-index: 50;
+  box-shadow: 0 2px 12px rgba(21, 101, 192, 0.45);
+}
+
+.headerInner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerLeft,
+.headerRight {
+  display: flex;
+  align-items: center;
+  min-width: 48px;
+}
+
+.headerRight {
+  justify-content: flex-end;
 }
 
 .title {
+  flex: 1;
   color: #fff;
   font-size: 1.125rem;
   font-weight: 700;
+  text-align: left;
+}
+
+.titleCentered {
+  text-align: center;
+}
+
+.headerSubtitle {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 0 2px;
+}
+
+/* ヘッダー内ボタン共通 */
+:global(.header-btn) {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: background 0.15s;
+}
+
+:global(.header-btn:hover) {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .main {
