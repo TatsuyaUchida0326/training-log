@@ -1,3 +1,5 @@
+import type React from 'react'
+
 export type TabName = 'home' | 'history' | 'body' | 'settings'
 
 export interface TrainingSet {
@@ -18,6 +20,7 @@ export interface Settings {
   defaultSets: number          // 継続達成セット数（ContinuityGauge）
   trainingDefaultSets: number  // トレーニング記録のデフォルトセット数
   weightUnit: 'kg' | 'lbs'
+  requiredExercises: number    // 継続達成種目数（ContinuityGauge）
 }
 
 export type CategoryId = string
@@ -51,7 +54,9 @@ export interface CalendarProps {
   onToday: () => void
   selectedDate: Date | null
   onDateSelect: (date: Date) => void
-  markedDates?: string[] // 'YYYY-MM-DD' 形式
+  markedDates?: string[]          // 記録あり日（条件未達含む）'YYYY-MM-DD' 形式
+  achievedDates?: string[]        // 条件達成日（フルカラー表示）'YYYY-MM-DD' 形式
+  markIcon?: React.ReactNode      // マークアイコンの上書き（デフォルト 💪）
 }
 
 export interface BottomNavProps {

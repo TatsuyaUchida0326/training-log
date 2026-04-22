@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useCallback } from 'react'
 import type { ReactNode } from 'react'
 
 interface HeaderConfig {
-  title: string
+  title: ReactNode
   centered?: boolean
   leftElement?: ReactNode
   rightElement?: ReactNode

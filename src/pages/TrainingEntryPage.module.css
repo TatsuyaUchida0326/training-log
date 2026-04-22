@@ -10,26 +10,11 @@
 .bar {
   display: flex;
   align-items: center;
-  background: #22c55e;
+  background: #1e3a6e;
   color: #fff;
   padding: 10px 12px;
   gap: 8px;
   flex-shrink: 0;
-}
-
-.backButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  line-height: 1;
-}
-
-.backButton:hover {
-  background: rgba(255, 255, 255, 0.2);
 }
 
 .barTitle {
@@ -271,4 +256,144 @@
   padding: 16px;
   color: #6b7280;
   text-align: center;
+}
+
+/* ── 1RM更新アニメーション ────────────────────── */
+
+/* オーバーレイ: 背景をグレースケール＋暗転 */
+@keyframes overlayAnim {
+  0%        { opacity: 0; }
+  8%        { opacity: 1; }
+  80%       { opacity: 1; }
+  100%      { opacity: 0; }
+}
+
+/* ポップアップ: バウンス登場 */
+@keyframes popupAnim {
+  0%        { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(-6deg); }
+  9%        { opacity: 1; transform: translate(-50%, -50%) scale(1.08) rotate(2deg); }
+  14%       { transform: translate(-50%, -50%) scale(0.95) rotate(-1deg); }
+  19%       { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  80%       { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100%      { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+/* 🏆アイコン: 回転してスケールアップ */
+@keyframes trophySpin {
+  0%        { transform: scale(0) rotate(-180deg); }
+  40%       { transform: scale(1.3) rotate(10deg); }
+  60%       { transform: scale(0.9) rotate(-4deg); }
+  75%       { transform: scale(1) rotate(0deg); }
+  100%      { transform: scale(1) rotate(0deg); }
+}
+
+/* グロー: パルス発光 */
+@keyframes glowPulse {
+  0%, 100%  { box-shadow: 0 0 24px rgba(251,191,36,0.6), 0 0 48px rgba(251,191,36,0.3), 0 8px 32px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 40px rgba(251,191,36,0.9), 0 0 80px rgba(251,191,36,0.5), 0 8px 32px rgba(0,0,0,0.5); }
+}
+
+/* シマー: テキストの光沢 */
+@keyframes shimmer {
+  0%        { background-position: -300% center; }
+  100%      { background-position: 300% center; }
+}
+
+.rmOverlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: grayscale(1) brightness(0.45);
+  -webkit-backdrop-filter: grayscale(1) brightness(0.45);
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 98;
+  pointer-events: none;
+  animation: overlayAnim 4s ease forwards;
+}
+
+.rmPopup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(145deg, #0f0f1a, #1a1a2e);
+  border: 2px solid #fbbf24;
+  border-radius: 24px;
+  padding: 36px 48px;
+  text-align: center;
+  z-index: 99;
+  pointer-events: none;
+  min-width: 260px;
+  animation: popupAnim 4s ease forwards, glowPulse 0.9s ease-in-out 0.3s 3 alternate;
+}
+
+.rmPopupIcon {
+  font-size: 3.2rem;
+  display: block;
+  margin-bottom: 12px;
+  animation: trophySpin 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+
+.rmPopupLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #fbbf24, #fff, #fbbf24, #fff, #fbbf24);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 2s linear 0.3s infinite;
+}
+
+.rmPopupValue {
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.rmPopupUnit {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fbbf24;
+  margin-left: 4px;
+}
+
+.rmPopupSub {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 10px;
+  letter-spacing: 0.05em;
+}
+
+/* ── FAB: 左下の戻るボタン（DateDetailPage・ExerciseSelectPage と同仕様） ── */
+.fabBack {
+  position: fixed;
+  bottom: calc(4rem + 1.25rem);
+  left: 1.25rem;
+  width: 78px;
+  height: 52px;
+  clip-path: path('M 4 31 Q 0 26 4 21 L 19 5 Q 22 0 28 0 L 70 0 Q 78 0 78 8 L 78 44 Q 78 52 70 52 L 28 52 Q 22 52 19 47 L 4 31 Z');
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  filter: drop-shadow(0 3px 6px rgba(59, 130, 246, 0.45));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: filter 0.15s, background 0.15s;
+}
+
+.fabBack:hover {
+  background: #2563eb;
+  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.55));
 }

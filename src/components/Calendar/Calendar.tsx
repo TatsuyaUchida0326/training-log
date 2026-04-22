@@ -29,6 +29,8 @@ export default function Calendar({
   selectedDate,
   onDateSelect,
   markedDates = [],
+  achievedDates = [],
+  markIcon,
 }: CalendarProps) {
   const today = new Date()
   const isCurrentMonth = isSameYearMonth(currentDate, today)
@@ -50,9 +52,10 @@ export default function Calendar({
 
   const allDays = [...prevMonthDays, ...daysInMonth, ...nextMonthDays]
 
-  // markedDatesをSetに変換してO(1)ルックアップ
   const markedSet = useMemo(() => new Set(markedDates), [markedDates])
+  const achievedSet = useMemo(() => new Set(achievedDates), [achievedDates])
   const isMarked = (date: Date): boolean => markedSet.has(format(date, 'yyyy-MM-dd'))
+  const isAchieved = (date: Date): boolean => achievedSet.has(format(date, 'yyyy-MM-dd'))
 
   // 当月の祝日をMapに変換（'yyyy-MM-dd' → 祝日名）
   const holidayMap = useMemo(() => {
@@ -68,33 +71,33 @@ export default function Calendar({
     <div className={styles.calendar}>
       {/* ヘッダー */}
       <div className={styles.header}>
-        <button
-          className={styles.navButton}
-          aria-label="prev"
-          onClick={onPrevMonth}
-        >
-          <ChevronLeft size={18} />
-        </button>
         <div className={styles.titleGroup}>
+          <button
+            className={styles.navButton}
+            aria-label="prev"
+            onClick={onPrevMonth}
+          >
+            <ChevronLeft size={18} />
+          </button>
           <span className={styles.monthTitle}>
             {format(currentDate, 'yyyy年M月')}
           </span>
-          {!isCurrentMonth && (
-            <button
-              className={styles.todayButton}
-              onClick={onToday}
-            >
-              今日
-            </button>
-          )}
+          <button
+            className={styles.navButton}
+            aria-label="next"
+            onClick={onNextMonth}
+          >
+            <ChevronRight size={18} />
+          </button>
         </div>
-        <button
-          className={styles.navButton}
-          aria-label="next"
-          onClick={onNextMonth}
-        >
-          <ChevronRight size={18} />
-        </button>
+        {!isCurrentMonth && (
+          <button
+            className={styles.todayButton}
+            onClick={onToday}
+          >
+            今日
+          </button>
+        )}
       </div>
 
       {/* 曜日ヘッダー */}
@@ -113,6 +116,7 @@ export default function Calendar({
           const isToday = isSameDay(date, today)
           const isSelected = selectedDate ? isSameDay(date, selectedDate) : false
           const marked = isMarked(date)
+          const achieved = isAchieved(date)
           const dayOfWeek = getDay(date)
           const isSunday = dayOfWeek === 0
           const isSaturday = dayOfWeek === 6
@@ -148,12 +152,12 @@ export default function Calendar({
               {holidayName && (
                 <span className={styles.holidayName}>{holidayName}</span>
               )}
-              {marked && (
+              {(marked || achieved) && (
                 <span
                   data-testid="marked-dot"
-                  className={styles.muscleIcon}
+                  className={achieved ? styles.muscleIcon : styles.muscleIconGray}
                 >
-                  💪
+                  {markIcon ?? '💪'}
                 </span>
               )}
             </div>

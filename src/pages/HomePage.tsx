@@ -8,7 +8,8 @@ import { useSettings } from '../hooks/useSettings'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
 import { useExercises } from '../hooks/useExercises'
 import { usePageHeader } from '../contexts/PageHeaderContext'
-import { calcRM, displayWeight } from '../utils/training'
+import { calcRM, displayWeight, getBest1RMs } from '../utils/training'
+import { calcContinuityStreak, getQualifyingDates } from '../utils/continuity'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
@@ -64,20 +65,25 @@ export default function HomePage() {
     grouped.get(ex.categoryId)!.push(entry)
   })
 
-  // TrophyBadge用: 今日の各種目の最高RM
-  const trophies = todayRecords
-    .map((r) => {
-      const ex = exercises.find((e) => e.id === r.exerciseId)
-      if (!ex) return null
-      const maxRM = r.sets.reduce(
-        (max, s) => Math.max(max, calcRM(s.weight, s.reps)),
-        0
-      )
-      return maxRM > 0
-        ? { exerciseName: ex.name, rm: maxRM, date: format(today, 'MM/dd') }
-        : null
-    })
-    .filter((t): t is NonNullable<typeof t> => t !== null)
+  // 継続力ストリーク計算
+  const continuityStreak = calcContinuityStreak(
+    records,
+    settings.requiredExercises,
+    settings.defaultSets,
+  )
+
+  // カレンダー用: 条件達成日（フルカラー）
+  const achievedDates = getQualifyingDates(
+    records,
+    settings.requiredExercises,
+    settings.defaultSets,
+  )
+
+  // TrophyBadge用: 全記録から種目別の歴代最高RM（日付は M/d 形式で表示）
+  const trophies = getBest1RMs(records, exercises).map((t) => ({
+    ...t,
+    date: format(new Date(t.date), 'M/d'),
+  }))
 
   return (
     <div className={styles.page}>
@@ -92,11 +98,16 @@ export default function HomePage() {
           navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
         }}
         markedDates={markedDates}
+        achievedDates={achievedDates}
       />
 
       <div className={styles.gaugeRow}>
         <div className={styles.gaugeCol}>
-          <ContinuityGauge current={0} requiredSets={settings.defaultSets} />
+          <ContinuityGauge
+            current={continuityStreak}
+            requiredExercises={settings.requiredExercises}
+            requiredSets={settings.defaultSets}
+          />
         </div>
         <div className={styles.gaugeCol}>
           <TrophyBadge trophies={trophies} />

@@ -1,7 +1,7 @@
-import { useState } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../hooks/useExercises'
+import { usePageHeader } from '../contexts/PageHeaderContext'
 import { CATEGORIES } from '../data/defaultExercises'
 import styles from './ExerciseSelectPage.module.css'
 
@@ -11,9 +11,14 @@ export default function ExerciseSelectPage() {
   const { dateStr } = useParams<{ dateStr: string }>()
   const navigate = useNavigate()
   const { exercises, getCategoryExercises, deleteExercise } = useExercises()
+  const { setHeader } = usePageHeader()
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    setHeader({ title: '種目を選択', centered: true })
+  }, [setHeader])
 
   // デフォルト順 + カスタムカテゴリー（CATEGORIES にないもの）を末尾に追加
   const customCategories = [...new Set(exercises.map((e) => e.categoryId))]
@@ -30,26 +35,14 @@ export default function ExerciseSelectPage() {
 
   return (
     <div className={styles.page}>
-      {/* ヘッダーバー */}
-      <div className={styles.bar}>
+      {/* 部位・種目を追加 + Edit */}
+      <div className={styles.addArea}>
         <button
-          className={styles.backButton}
-          onClick={() => navigate(`/date/${dateStr}`)}
-          aria-label="戻る"
-        >
-          <ChevronLeft size={20} />
-        </button>
-        <span className={styles.barTitle}>種目を選択</span>
-        <button
-          className={styles.editButton}
+          className={`${styles.editButton} ${isEditMode ? styles.editActive : ''}`}
           onClick={() => setIsEditMode((v) => !v)}
         >
           {isEditMode ? 'End' : 'Edit'}
         </button>
-      </div>
-
-      {/* 部位・種目を追加 */}
-      <div className={styles.addArea}>
         <button
           className={styles.addButton}
           onClick={() => navigate(`/date/${dateStr}/exercises/add`)}
@@ -117,6 +110,15 @@ export default function ExerciseSelectPage() {
           )
         })}
       </div>
+
+      {/* FAB: 左下の戻るボタン */}
+      <button
+        className={styles.fabBack}
+        onClick={() => navigate(-1)}
+        aria-label="戻る"
+      >
+        戻る
+      </button>
     </div>
   )
 }

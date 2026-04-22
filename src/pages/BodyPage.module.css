@@ -1,3 +1,20 @@
+/* 日付ナビゲーショングループ（カレンダーと同仕様） */
+.dateNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.dateNavTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+  min-width: 6.5em;
+  text-align: center;
+}
+
 .page {
   display: flex;
   flex-direction: column;

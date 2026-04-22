@@ -12,7 +12,7 @@ function toDateStr(date: Date): string {
 }
 
 function formatDisplay(date: Date): string {
-  return format(date, 'yyyy/MM/dd')
+  return format(date, 'yyyy年M月d日')
 }
 
 export default function BodyPage() {
@@ -29,26 +29,26 @@ export default function BodyPage() {
 
   useEffect(() => {
     setHeader({
-      title: formatDisplay(currentDate),
+      title: (
+        <div className={styles.dateNav}>
+          <button
+            className="header-nav-btn"
+            onClick={() => setCurrentDate((d) => subDays(d, 1))}
+            aria-label="前の日"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className={styles.dateNavTitle}>{formatDisplay(currentDate)}</span>
+          <button
+            className="header-nav-btn"
+            onClick={() => setCurrentDate((d) => addDays(d, 1))}
+            aria-label="次の日"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
+      ),
       centered: true,
-      leftElement: (
-        <button
-          className="header-btn"
-          onClick={() => setCurrentDate((d) => subDays(d, 1))}
-          aria-label="前の日"
-        >
-          <ChevronLeft size={20} />
-        </button>
-      ),
-      rightElement: (
-        <button
-          className="header-btn"
-          onClick={() => setCurrentDate((d) => addDays(d, 1))}
-          aria-label="次の日"
-        >
-          <ChevronRight size={20} />
-        </button>
-      ),
     })
   }, [currentDate, setHeader])
 

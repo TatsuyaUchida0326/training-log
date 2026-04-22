@@ -116,9 +116,33 @@ describe('Calendar', () => {
     const markedDates = ['2026-04-10', '2026-04-20']
     render(<Calendar {...defaultProps} markedDates={markedDates} />)
 
-    // ドットは data-testid="marked-dot" または role/aria でマークされることを期待
-    // 実装でどちらかを使うことを前提に両方チェック
     const dots = document.querySelectorAll('[data-testid="marked-dot"]')
     expect(dots.length).toBe(2)
+  })
+
+  // テスト10: achievedDates に含まれる日付にドットが表示される
+  it('achievedDates に含まれる日付にドットが表示される', () => {
+    const achievedDates = ['2026-04-10', '2026-04-20']
+    render(<Calendar {...defaultProps} achievedDates={achievedDates} />)
+
+    const dots = document.querySelectorAll('[data-testid="marked-dot"]')
+    expect(dots.length).toBe(2)
+  })
+
+  // テスト11: markedDates のみの日はグレー、achievedDates の日はフルカラー
+  it('achievedDates の日はフルカラー、markedDates のみの日はグレー表示になる', () => {
+    render(
+      <Calendar
+        {...defaultProps}
+        markedDates={['2026-04-10', '2026-04-15']}
+        achievedDates={['2026-04-15']}
+      />
+    )
+    const dots = document.querySelectorAll('[data-testid="marked-dot"]')
+    expect(dots.length).toBe(2)
+    // 達成日（15日）はフルカラークラス、記録のみ（10日）はグレークラス
+    const dotClasses = Array.from(dots).map((d) => d.className)
+    expect(dotClasses.some((c) => c.includes('muscleIconGray'))).toBe(true)
+    expect(dotClasses.some((c) => c.includes('muscleIcon') && !c.includes('Gray'))).toBe(true)
   })
 })
