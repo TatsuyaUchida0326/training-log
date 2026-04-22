@@ -158,22 +158,31 @@ Strength Log アプリの UI/UX を改善し、各ページの使い勝手を向
 - 青（#3b82f6）背景、`filter: drop-shadow` で影付き
 
 ### 7. カレンダーナビボタン刷新
-- 円形 → 角丸四角（`border-radius: 8px`）
+- ボタン位置をヘッダー両端 → 年月テキストの直左右に移動（titleGroup 内に収納）
+- 円形（border-radius: 50%）→ 角丸四角（border-radius: 8px）に変更
+- 矢印の先端を `Q 0 26` ベジェコントロールで軽く丸め
 - ホバー色をグリーン → 青（#3b82f6）に統一
-- 年月テキストと gap 0.75rem、`min-width` 固定でぶれ防止
+- 年月テキストとの gap を 0.75rem に設定、`min-width` 固定でぶれ防止
 
-### 8. ヘッダーナビ統一（BodyPage）
-- `header-nav-btn` グローバルクラスを Layout.module.css に追加
+### 8. ヘッダーの ‹ ボタン廃止・FAB「戻る」への統一
+- DateDetailPage：ヘッダー `leftElement` の ‹ を削除
+- TrainingEntryPage：inner bar の ‹ ボタンを削除
+- ExerciseSelectPage：inner bar（タイトル帯）ごと廃止 → `usePageHeader` でタイトル表示
+- 3ページ共通で左下に青い矢印型 FAB「戻る」を配置
+  - `clip-path: path(...)` ベジェ曲線で角丸の左向き矢印シェイプ（先端も丸め）
+  - 青（#3b82f6）、`filter: drop-shadow` で shadow 付き
+
+### 9. BodyPage 日付ナビ統一
+- `header-nav-btn` グローバルクラスを Layout.module.css に追加（角丸四角・青ホバー）
 - `HeaderConfig.title` を `string → ReactNode` に拡張
-- BodyPage の ‹日付› をひとつの flex グループとして title に渡す
+- BodyPage の ‹日付› をひとつの flex グループとして `title` に渡し、中央寄せ
 - 日付フォーマットを `yyyy/MM/dd` → `yyyy年M月d日` に変更
 
-### 9. その他デザイン
-- 種目カードタイトル帯（DateDetailPage・TrainingEntryPage・ExerciseSelectPage）を緑 → 紺（#1e3a6e）
-- CATEGORIES から「その他」削除
-- DateDetailPage の種目カード `›` シェブロン削除
-- ExerciseSelectPage の内側バーを廃止し `usePageHeader` でタイトル表示
-- ExerciseSelectPage の Edit ボタンを「部位・種目を追加」左隣に再配置
+### 10. その他デザイン細部
+- 種目カードタイトル帯（DateDetailPage・TrainingEntryPage・ExerciseSelectPage）を緑 → 紺（#1e3a6e）に変更
+- CATEGORIES から「その他」削除（カスタム追加で代替可能なため不要と判断）
+- DateDetailPage の種目カード `›` シェブロン削除（タイトル押下で遷移できるため重複）
+- ExerciseSelectPage の Edit ボタンを「部位・種目を追加」左隣に再配置（アウトラインピル型、アクティブ時塗りつぶし）
 
 ---
 
