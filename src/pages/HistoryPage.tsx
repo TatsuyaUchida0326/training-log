@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { Dumbbell } from 'lucide-react'
 import { addMonths, subMonths, format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { usePageHeader } from '../contexts/PageHeaderContext'
@@ -133,7 +134,8 @@ export default function HistoryPage() {
                 setSelectedDate(date)
                 navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
               }}
-            markedDates={stats.trainedDates}
+            achievedDates={stats.trainedDates}
+            markIcon={<Dumbbell size={16} strokeWidth={2.5} />}
           />
         </div>
       )}

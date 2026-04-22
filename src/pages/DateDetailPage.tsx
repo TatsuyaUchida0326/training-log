@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ChevronLeft, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { parseISO, isValid, format } from 'date-fns'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
@@ -55,20 +55,6 @@ export default function DateDetailPage() {
     setHeader({
       title: formatDateJa(d),
       centered: true,
-      leftElement: (
-        <button className="header-btn" onClick={() => navigate('/')} aria-label="戻る">
-          <ChevronLeft size={20} />
-        </button>
-      ),
-      rightElement: (
-        <button
-          className="header-btn"
-          onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
-          aria-label="種目を追加"
-        >
-          <Plus size={20} />
-        </button>
-      ),
       subtitle: (
         <div className={styles.headerStats}>
           <div className={styles.headerStatCard}>
@@ -111,7 +97,7 @@ export default function DateDetailPage() {
           <div className={styles.emptyCard}>
             <div className={styles.emptyIcon}>🏋️</div>
             <p className={styles.emptyText}>
-              右上の ＋ から種目を追加してトレーニングを記録しましょう
+              右下の ＋ から種目を追加してトレーニングを記録しましょう
             </p>
           </div>
         ) : (
@@ -129,7 +115,6 @@ export default function DateDetailPage() {
                     }
                   >
                     <span className={styles.exerciseName}>{ex.name}</span>
-                    <span className={styles.exerciseChevron}>›</span>
                   </button>
 
                   {/* セット一覧 */}
@@ -163,6 +148,24 @@ export default function DateDetailPage() {
           </div>
         )}
       </div>
+
+      {/* FAB: 左下の戻るボタン */}
+      <button
+        className={styles.fabBack}
+        onClick={() => navigate(-1)}
+        aria-label="戻る"
+      >
+        戻る
+      </button>
+
+      {/* FAB: 右下の種目追加ボタン */}
+      <button
+        className={styles.fab}
+        onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
+        aria-label="種目を追加"
+      >
+        <Plus size={24} />
+      </button>
     </div>
   )
 }

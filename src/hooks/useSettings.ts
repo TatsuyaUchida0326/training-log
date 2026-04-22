@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS: Settings = {
   defaultSets: 3,
   trainingDefaultSets: 3,
   weightUnit: 'kg',
+  requiredExercises: 3,
 }
 
 function loadSettings(): Settings {
@@ -42,6 +43,14 @@ export function useSettings() {
     })
   }
 
+  function updateRequiredExercises(n: number) {
+    setSettings((prev) => {
+      const next = { ...prev, requiredExercises: n }
+      saveSettings(next)
+      return next
+    })
+  }
+
   function updateWeightUnit(unit: 'kg' | 'lbs') {
     setSettings((prev) => {
       const next = { ...prev, weightUnit: unit }
@@ -50,5 +59,5 @@ export function useSettings() {
     })
   }
 
-  return { settings, updateDefaultSets, updateTrainingDefaultSets, updateWeightUnit }
+  return { settings, updateDefaultSets, updateTrainingDefaultSets, updateRequiredExercises, updateWeightUnit }
 }

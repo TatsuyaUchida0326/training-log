@@ -1,7 +1,7 @@
 import type { Exercise, CategoryId } from '../types'
 
 export const CATEGORIES: CategoryId[] = [
-  '胸', '背中', '脚', '肩', '腕', 'お尻', '腹筋', '有酸素運動', 'その他',
+  '胸', '背中', '脚', '肩', '腕', 'お尻', '腹筋', '有酸素運動',
 ]
 
 const raw: { name: string; categoryId: CategoryId }[] = [

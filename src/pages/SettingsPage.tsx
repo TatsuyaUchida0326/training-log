@@ -4,7 +4,7 @@ import { usePageHeader } from '../contexts/PageHeaderContext'
 import styles from './SettingsPage.module.css'
 
 export default function SettingsPage() {
-  const { settings, updateDefaultSets, updateTrainingDefaultSets, updateWeightUnit } = useSettings()
+  const { settings, updateDefaultSets, updateTrainingDefaultSets, updateRequiredExercises, updateWeightUnit } = useSettings()
   const { setHeader } = usePageHeader()
   useEffect(() => {
     setHeader({ title: '初期値設定', centered: true })
@@ -16,13 +16,28 @@ export default function SettingsPage() {
         <p className={styles.sectionTitle}>記録設定</p>
 
         <div className={styles.row}>
+          <span className={styles.label}>継続達成種目数</span>
+          <select
+            className={styles.select}
+            value={settings.requiredExercises}
+            onChange={(e) => updateRequiredExercises(Number(e.target.value))}
+          >
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.row}>
           <span className={styles.label}>継続達成セット数</span>
           <select
             className={styles.select}
             value={settings.defaultSets}
             onChange={(e) => updateDefaultSets(Number(e.target.value))}
           >
-            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+            {Array.from({ length: 8 }, (_, i) => i + 3).map((n) => (
               <option key={n} value={n}>
                 {n}
               </option>

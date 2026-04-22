@@ -3,6 +3,12 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ExerciseSelectPage from './ExerciseSelectPage'
+import { PageHeaderProvider, usePageHeader } from '../contexts/PageHeaderContext'
+
+function HeaderSpy() {
+  const { header } = usePageHeader()
+  return <div data-testid="page-title">{header.title}</div>
+}
 
 const mockDeleteExercise = vi.fn()
 
@@ -29,13 +35,16 @@ vi.mock('../hooks/useExercises', () => ({
 
 function renderPage() {
   return render(
-    <MemoryRouter initialEntries={['/date/2026-04-16/exercises/select']}>
-      <Routes>
-        <Route path="/date/:dateStr/exercises/select" element={<ExerciseSelectPage />} />
-        <Route path="/date/:dateStr/exercises/add" element={<div data-testid="add-page" />} />
-        <Route path="/date/:dateStr" element={<div data-testid="detail-page" />} />
-      </Routes>
-    </MemoryRouter>
+    <PageHeaderProvider>
+      <HeaderSpy />
+      <MemoryRouter initialEntries={['/date/2026-04-16/exercises/select']}>
+        <Routes>
+          <Route path="/date/:dateStr/exercises/select" element={<ExerciseSelectPage />} />
+          <Route path="/date/:dateStr/exercises/add" element={<div data-testid="add-page" />} />
+          <Route path="/date/:dateStr" element={<div data-testid="detail-page" />} />
+        </Routes>
+      </MemoryRouter>
+    </PageHeaderProvider>
   )
 }
 
@@ -46,7 +55,7 @@ describe('ExerciseSelectPage', () => {
 
   it('「種目を選択」タイトルが表示される', () => {
     renderPage()
-    expect(screen.getByText('種目を選択')).toBeInTheDocument()
+    expect(screen.getByTestId('page-title')).toHaveTextContent('種目を選択')
   })
 
   it('「胸」カテゴリーヘッダーが表示される', () => {

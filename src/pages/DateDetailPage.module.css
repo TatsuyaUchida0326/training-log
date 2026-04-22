@@ -89,6 +89,34 @@
   background: var(--color-primary-dark);
 }
 
+.fabBack {
+  position: fixed;
+  bottom: calc(4rem + 1.25rem);
+  left: 1.25rem;
+  width: 78px;
+  height: 52px;
+  /* 左向き矢印シェイプ（角丸） */
+  clip-path: path('M 4 31 Q 0 26 4 21 L 19 5 Q 22 0 28 0 L 70 0 Q 78 0 78 8 L 78 44 Q 78 52 70 52 L 28 52 Q 22 52 19 47 L 4 31 Z');
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  filter: drop-shadow(0 3px 6px rgba(59, 130, 246, 0.45));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 16px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: filter 0.15s, background 0.15s;
+}
+
+.fabBack:hover {
+  background: #2563eb;
+  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.55));
+}
+
 /* ── 種目カードリスト ── */
 .exerciseList {
   display: flex;
@@ -107,7 +135,7 @@
   display: flex;
   align-items: center;
   width: 100%;
-  background: var(--color-primary);
+  background: #1e3a6e;
   color: #fff;
   border: none;
   padding: 10px 14px;
