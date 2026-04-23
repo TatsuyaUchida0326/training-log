@@ -7,11 +7,12 @@ describe('useBodySettings', () => {
     localStorage.clear()
   })
 
-  it('初期値は height=0, targetWeight=0, muscleMassUnit=%', () => {
+  it('初期値は height=0, targetWeight=0, muscleMassUnit=%, targetBodyFat=0', () => {
     const { result } = renderHook(() => useBodySettings())
     expect(result.current.settings.height).toBe(0)
     expect(result.current.settings.targetWeight).toBe(0)
     expect(result.current.settings.muscleMassUnit).toBe('%')
+    expect(result.current.settings.targetBodyFat).toBe(0)
   })
 
   it('updateSettings で身長を更新できる', () => {
@@ -34,5 +35,18 @@ describe('useBodySettings', () => {
     const { result: r2 } = renderHook(() => useBodySettings())
     expect(r2.current.settings.height).toBe(169)
     expect(r2.current.settings.targetWeight).toBe(75)
+  })
+
+  it('updateSettings で targetBodyFat を更新できる', () => {
+    const { result } = renderHook(() => useBodySettings())
+    act(() => { result.current.updateSettings({ targetBodyFat: 20 }) })
+    expect(result.current.settings.targetBodyFat).toBe(20)
+  })
+
+  it('localStorage に targetBodyFat が保存・復元できる', () => {
+    const { result: r1 } = renderHook(() => useBodySettings())
+    act(() => { r1.current.updateSettings({ targetBodyFat: 18 }) })
+    const { result: r2 } = renderHook(() => useBodySettings())
+    expect(r2.current.settings.targetBodyFat).toBe(18)
   })
 })
