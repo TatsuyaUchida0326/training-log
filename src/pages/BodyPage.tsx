@@ -68,7 +68,7 @@ export default function BodyPage() {
     updateField(dateStr, 'memo', memo)
   }
 
-  function handleSettingBlur(field: 'height' | 'targetWeight', raw: string) {
+  function handleSettingBlur(field: 'height' | 'targetWeight' | 'targetBodyFat', raw: string) {
     const val = parseFloat(raw)
     updateSettings({ [field]: !isNaN(val) && val > 0 ? val : 0 })
   }
@@ -100,6 +100,17 @@ export default function BodyPage() {
                 onBlur={(e) => handleSettingBlur('targetWeight', e.target.value)}
                 key={`tw-${settings.targetWeight}`} />
               <span className={styles.unitLabel}>kg</span>
+            </div>
+          </div>
+          <div className={styles.inputRow}>
+            <span className={styles.inputLabel}>目標体脂肪率</span>
+            <div className={styles.inputRight}>
+              <input className={styles.numInput} type="number" min="0" step="0.1"
+                defaultValue={settings.targetBodyFat > 0 ? settings.targetBodyFat : ''}
+                placeholder="———"
+                onBlur={(e) => handleSettingBlur('targetBodyFat', e.target.value)}
+                key={`tbf-${settings.targetBodyFat}`} />
+              <span className={styles.unitLabel}>%</span>
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ const DEFAULT_SETTINGS: BodySettings = {
   height: 0,
   targetWeight: 0,
   muscleMassUnit: '%',
+  targetBodyFat: 0,
 }
 
 function load(): BodySettings {

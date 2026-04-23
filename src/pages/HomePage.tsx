@@ -4,9 +4,12 @@ import { useNavigate } from 'react-router-dom'
 import Calendar from '../components/Calendar/Calendar'
 import ContinuityGauge from '../components/ContinuityGauge/ContinuityGauge'
 import TrophyBadge from '../components/TrophyBadge/TrophyBadge'
+import BodyTrendChart from '../components/BodyTrendChart/BodyTrendChart'
 import { useSettings } from '../hooks/useSettings'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
 import { useExercises } from '../hooks/useExercises'
+import { useBodyRecords } from '../hooks/useBodyRecords'
+import { useBodySettings } from '../hooks/useBodySettings'
 import { usePageHeader } from '../contexts/PageHeaderContext'
 import { calcRM, displayWeight, getBest1RMs } from '../utils/training'
 import { calcContinuityStreak, getQualifyingDates } from '../utils/continuity'
@@ -25,6 +28,8 @@ export default function HomePage() {
 
   const { records, getRecordsByDate } = useTrainingRecords()
   const { exercises } = useExercises()
+  const { records: bodyRecords } = useBodyRecords()
+  const { settings: bodySettings } = useBodySettings()
 
   const unit = settings.weightUnit
   const today = new Date()
@@ -113,6 +118,12 @@ export default function HomePage() {
           <TrophyBadge trophies={trophies} />
         </div>
       </div>
+
+      <BodyTrendChart
+        records={bodyRecords}
+        targetWeight={bodySettings.targetWeight}
+        targetBodyFat={bodySettings.targetBodyFat}
+      />
 
       {/* 今日のトレーニングサマリー */}
       <div className={styles.summary}>

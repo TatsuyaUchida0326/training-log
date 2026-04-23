@@ -1,0 +1,37 @@
+.wrap {
+  padding: 0 12px 8px;
+}
+
+.chartBlock {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 10px 4px 6px;
+  margin-bottom: 8px;
+}
+
+.chartTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  padding: 0 8px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.targetLabel {
+  font-size: 10px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+.chartScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.chartScroll::-webkit-scrollbar {
+  display: none;
+}
