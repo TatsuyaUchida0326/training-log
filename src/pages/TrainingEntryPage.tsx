@@ -57,14 +57,14 @@ export default function TrainingEntryPage() {
   const exercise = exercises.find((e) => e.id === exerciseId)
   const date = dateStr ?? ''
 
-  // 過去の歴代最高RM（当日を除く）
-  const historicalBestRM = useMemo(() => {
+  // 全時最高RM（今日のセットを含む。比較はupdateSet前の旧stateで行われるため正確）
+  const bestRM = useMemo(() => {
     if (!exerciseId) return 0
     return records
-      .filter((r) => r.exerciseId === exerciseId && r.date !== date)
+      .filter((r) => r.exerciseId === exerciseId)
       .flatMap((r) => r.sets.map((s) => calcRM(s.weight, s.reps)))
       .reduce((max, rm) => Math.max(max, rm), 0)
-  }, [records, exerciseId, date])
+  }, [records, exerciseId])
 
   // 1RM更新トースト通知
   const [rmToast, setRmToast] = useState<{ rm: number; key: number } | null>(null)
@@ -124,7 +124,7 @@ export default function TrainingEntryPage() {
     const currentSet = record.sets.find((s) => s.id === setId)
     if (currentSet && currentSet.reps > 0) {
       const newRM = calcRM(weightKg, currentSet.reps)
-      if (newRM > historicalBestRM) showRMToast(newRM)
+      if (newRM > bestRM) showRMToast(newRM)
     }
   }
 
@@ -137,7 +137,7 @@ export default function TrainingEntryPage() {
     const currentSet = record.sets.find((s) => s.id === setId)
     if (currentSet && currentSet.weight > 0 && val > 0) {
       const newRM = calcRM(currentSet.weight, val)
-      if (newRM > historicalBestRM) showRMToast(newRM)
+      if (newRM > bestRM) showRMToast(newRM)
     }
   }
 
