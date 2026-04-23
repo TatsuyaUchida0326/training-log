@@ -1,6 +1,16 @@
 import type { TrainingRecord } from '../types'
 
-/** 条件を満たした達成日の一覧を返す（カレンダーの色分けに使用）。 */
+/**
+ * 指定した達成条件（種目数・セット数）を満たした日付の一覧を昇順で返す。
+ *
+ * ContinuityGauge のカラー判定（達成日のハイライト）と
+ * calcContinuityStreak のインプットとして使用する。
+ *
+ * @param records - 全トレーニング記録
+ * @param requiredExercises - 達成とみなす最低種目数（SettingsPage で変更可能）
+ * @param requiredSets - 達成とみなす最低セット数（SettingsPage で変更可能）
+ * @returns 条件を満たした日付の配列（'YYYY-MM-DD' 形式・昇順）
+ */
 export function getQualifyingDates(
   records: TrainingRecord[],
   requiredExercises: number,
@@ -24,9 +34,23 @@ export function getQualifyingDates(
 /**
  * トレーニング記録から継続力ストリーク（連続達成日数）を計算する。
  *
- * 達成条件: 1日に requiredSets セット以上こなした種目が requiredExercises 種目以上。
- * リセット条件: 達成日が resetDays 日以上途切れるとストリークを 0 にリセット。
- * 1日の上限は +1（同日に何セット追加しても当日分は1カウント）。
+ * 継続力ゲージ（ContinuityGauge）の数値として使用するコア関数。
+ * ユーザーのモチベーション維持を目的に、連続して目標を達成した日数を可視化する。
+ *
+ * ### 達成条件
+ * 1日に `requiredSets` セット以上こなした種目が `requiredExercises` 種目以上あること。
+ * どちらも SettingsPage から変更可能で、ユーザーの目標強度に合わせて調整できる。
+ *
+ * ### カウントルール
+ * - 同日に何種目追加しても +1 まで（1日の上限 = 1）
+ * - 達成日同士の間隔が `resetDays` 日以上空くとストリークを 0 にリセット
+ * - デフォルトの resetDays は 10（週1〜2回ペースでも維持できる設計）
+ *
+ * @param records - 全トレーニング記録
+ * @param requiredExercises - 達成とみなす最低種目数
+ * @param requiredSets - 達成とみなす最低セット数
+ * @param resetDays - この日数以上空いたらリセット（デフォルト 10）
+ * @returns 現在の継続力ストリーク日数
  */
 export function calcContinuityStreak(
   records: TrainingRecord[],

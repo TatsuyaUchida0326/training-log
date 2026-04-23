@@ -1,3 +1,10 @@
+/**
+ * continuity.ts のユニットテスト
+ *
+ * 継続力ストリーク計算は ContinuityGauge の核心ロジックであり、
+ * 「達成条件」「リセット条件」「設定変更への対応」の3軸で網羅的に検証する。
+ * 日付依存の処理があるため vi.useFakeTimers() で今日の日付を固定してテストする。
+ */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { calcContinuityStreak, getQualifyingDates } from './continuity'
 import type { TrainingRecord } from '../types'
