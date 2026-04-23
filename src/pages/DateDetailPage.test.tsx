@@ -44,4 +44,25 @@ describe('DateDetailPage', () => {
     renderWithRoute('invalid-date')
     expect(screen.getByText('日付が正しくありません')).toBeInTheDocument()
   })
+
+  it('記録がある種目名が表示される', () => {
+    const dateStr = '2026-04-23'
+    localStorage.setItem(
+      'strength-log-exercises',
+      JSON.stringify([{ id: 'ex-bench', name: 'ベンチプレス', categoryId: '胸', isCustom: false }])
+    )
+    localStorage.setItem(
+      'strength-log-records',
+      JSON.stringify([
+        {
+          id: 'rec-1',
+          date: dateStr,
+          exerciseId: 'ex-bench',
+          sets: [{ id: 's1', weight: 80, reps: 5, memo: '' }],
+        },
+      ])
+    )
+    renderWithRoute(dateStr)
+    expect(screen.getByText('ベンチプレス')).toBeInTheDocument()
+  })
 })

@@ -37,17 +37,20 @@
 
 .addButton {
   background: #fff;
-  border: 1px solid #d1d5db;
+  border: 1.5px solid #1e3a6e;
   border-radius: 20px;
   padding: 0.35rem 0.875rem;
   font-size: 0.85rem;
+  font-weight: 700;
   font-family: inherit;
-  color: var(--color-text);
+  color: #1e3a6e;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
 .addButton:hover {
-  background: #f3f4f6;
+  background: #1e3a6e;
+  color: #fff;
 }
 
 /* ── アコーディオン ── */
@@ -126,7 +129,7 @@
   background: none;
   border: none;
   font-size: 0.8rem;
-  color: var(--color-primary);
+  color: #1e3a6e;
   cursor: pointer;
   font-family: inherit;
   padding: 0.2rem 0.4rem;
@@ -135,8 +138,8 @@
 }
 
 .showAllButton:hover {
-  background: #dcfce7;
-  color: var(--color-primary-dark);
+  background: #e8edf5;
+  color: #1e3a6e;
 }
 
 /* 空カテゴリー */

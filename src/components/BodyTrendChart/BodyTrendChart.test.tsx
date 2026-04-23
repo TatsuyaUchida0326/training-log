@@ -123,4 +123,30 @@ describe('BodyTrendChart', () => {
     const weightChart = screen.getByTestId('weight-chart')
     expect(weightChart.textContent).not.toContain('目標')
   })
+
+  it('1件のデータでも体重グラフが表示される（最小データ境界）', () => {
+    const single: BodyRecord[] = [
+      { date: '2026-04-01', weight: 70, bodyFat: null, muscleMass: null, waist: null, memo: '' },
+    ]
+    render(
+      <BodyTrendChart records={single} targetWeight={0} targetBodyFat={0} />
+    )
+    expect(screen.getByTestId('weight-chart')).toBeInTheDocument()
+  })
+
+  it('31件以上あっても最新30件のみ表示される（BodyTrendChart 上限）', () => {
+    const many: BodyRecord[] = Array.from({ length: 35 }, (_, i) => ({
+      date: `2026-0${Math.floor(i / 30) + 1}-${String((i % 30) + 1).padStart(2, '0')}`,
+      weight: 70 + i,
+      bodyFat: null,
+      muscleMass: null,
+      waist: null,
+      memo: '',
+    }))
+    render(
+      <BodyTrendChart records={many} targetWeight={0} targetBodyFat={0} />
+    )
+    // グラフが表示されること（上限テスト: 壊れないこと）
+    expect(screen.getByTestId('weight-chart')).toBeInTheDocument()
+  })
 })

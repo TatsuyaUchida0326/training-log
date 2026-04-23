@@ -55,7 +55,7 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               margin={{ top: 4, right: 28, left: -16, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.max(0, Math.ceil(weightPoints.length / 6) - 1)} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={0} />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} />
               <Tooltip />
               {targetWeight > 0 && (
@@ -68,6 +68,7 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               <Line
                 type="monotone"
                 dataKey="value"
+                name="体重"
                 stroke="#3b82f6"
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
@@ -93,7 +94,7 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               margin={{ top: 4, right: 28, left: -16, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.max(0, Math.ceil(bodyFatPoints.length / 6) - 1)} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={0} />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} />
               <Tooltip />
               {targetBodyFat > 0 && (
@@ -106,6 +107,7 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               <Line
                 type="monotone"
                 dataKey="value"
+                name="脂肪率"
                 stroke="#f59e0b"
                 dot={{ r: 3 }}
                 activeDot={{ r: 5 }}
