@@ -34,8 +34,8 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
     return null
   }
 
-  const weightChartWidth = Math.max(weightPoints.length * 52 + 60, 260)
-  const bodyFatChartWidth = Math.max(bodyFatPoints.length * 52 + 60, 260)
+  const weightChartWidth = Math.max(weightPoints.length * 36 + 50, 160)
+  const bodyFatChartWidth = Math.max(bodyFatPoints.length * 36 + 50, 160)
 
   return (
     <div className={styles.wrap}>
@@ -50,13 +50,13 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
           <div className={styles.chartScroll} role="img" aria-label="体重の推移グラフ">
             <LineChart
               width={weightChartWidth}
-              height={130}
+              height={110}
               data={weightPoints}
-              margin={{ top: 6, right: 12, left: -16, bottom: 0 }}
+              margin={{ top: 4, right: 28, left: -16, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.max(0, Math.ceil(weightPoints.length / 6) - 1)} />
+              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} />
               <Tooltip />
               {targetWeight > 0 && (
                 <ReferenceLine
@@ -88,13 +88,13 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
           <div className={styles.chartScroll} role="img" aria-label="体脂肪率の推移グラフ">
             <LineChart
               width={bodyFatChartWidth}
-              height={130}
+              height={110}
               data={bodyFatPoints}
-              margin={{ top: 6, right: 12, left: -16, bottom: 0 }}
+              margin={{ top: 4, right: 28, left: -16, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 10 }} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={Math.max(0, Math.ceil(bodyFatPoints.length / 6) - 1)} />
+              <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} />
               <Tooltip />
               {targetBodyFat > 0 && (
                 <ReferenceLine

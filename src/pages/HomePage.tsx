@@ -106,24 +106,23 @@ export default function HomePage() {
         achievedDates={achievedDates}
       />
 
-      <div className={styles.gaugeRow}>
-        <div className={styles.gaugeCol}>
+      <div className={styles.mainRow}>
+        <div className={styles.leftCol}>
           <ContinuityGauge
             current={continuityStreak}
             requiredExercises={settings.requiredExercises}
             requiredSets={settings.defaultSets}
           />
+          <BodyTrendChart
+            records={bodyRecords}
+            targetWeight={bodySettings.targetWeight}
+            targetBodyFat={bodySettings.targetBodyFat}
+          />
         </div>
-        <div className={styles.gaugeCol}>
+        <div className={styles.rightCol}>
           <TrophyBadge trophies={trophies} />
         </div>
       </div>
-
-      <BodyTrendChart
-        records={bodyRecords}
-        targetWeight={bodySettings.targetWeight}
-        targetBodyFat={bodySettings.targetBodyFat}
-      />
 
       {/* 今日のトレーニングサマリー */}
       <div className={styles.summary}>

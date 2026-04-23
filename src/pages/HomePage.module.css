@@ -2,19 +2,29 @@
   padding-bottom: 5rem;
 }
 
-/* ゲージ行 */
-.gaugeRow {
-  display: flex;
-  gap: 0.5rem;
+/* メイン2カラム行 */
+.mainRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
   margin-top: 0.5rem;
+  padding: 0 12px;
 }
 
-.gaugeCol {
-  flex: 1;
-  min-width: 0;
-  max-height: 262px;
+.leftCol {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* height: gauge(72) + gap(6) + chartBlock(145) + gap(6) + chartBlock(145) = 374px */
+.rightCol {
+  height: 374px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* サマリーセクション */
