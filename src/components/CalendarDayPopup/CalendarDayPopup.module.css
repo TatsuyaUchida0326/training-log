@@ -1,0 +1,127 @@
+/* オーバーレイ */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* カード */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  width: 300px;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  animation: popIn 200ms ease-out;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ヘッダー */
+.header {
+  padding: 16px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.dateText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.closeButton:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* ボディ */
+.body {
+  padding: 12px 16px;
+}
+
+/* 部位ラベル */
+.categoryLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1e3a6e;
+  padding: 8px 0 4px;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.categoryLabelFirst {
+  padding-top: 0;
+}
+
+/* 種目行 */
+.exerciseRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #f9fafb;
+}
+
+.exerciseName {
+  font-size: 14px;
+  color: #374151;
+}
+
+.setCount {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* フッター */
+.footer {
+  padding: 12px 16px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.navigateButton {
+  width: 100%;
+  padding: 12px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.navigateButton:hover {
+  background: #2563eb;
+}
