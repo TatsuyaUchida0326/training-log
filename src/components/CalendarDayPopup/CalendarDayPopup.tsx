@@ -44,7 +44,7 @@ function groupByCategory(
       categoryOrder.push(categoryId)
     }
 
-    const items = categoryMap.get(categoryId)!
+    const items = categoryMap.get(categoryId) ?? []
     const existing = items.find((item) => item.name === name)
     if (existing) {
       existing.setCount += record.sets.length
@@ -55,7 +55,7 @@ function groupByCategory(
 
   return categoryOrder.map((categoryId) => ({
     categoryId,
-    items: categoryMap.get(categoryId)!,
+    items: categoryMap.get(categoryId) ?? [],
   }))
 }
 
