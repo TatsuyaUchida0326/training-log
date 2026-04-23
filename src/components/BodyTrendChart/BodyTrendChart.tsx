@@ -47,7 +47,7 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               <span className={styles.targetLabel}>目標 {targetWeight} kg</span>
             )}
           </div>
-          <div className={styles.chartScroll}>
+          <div className={styles.chartScroll} role="img" aria-label="体重の推移グラフ">
             <LineChart
               width={weightChartWidth}
               height={130}
@@ -85,7 +85,7 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               <span className={styles.targetLabel}>目標 {targetBodyFat} %</span>
             )}
           </div>
-          <div className={styles.chartScroll}>
+          <div className={styles.chartScroll} role="img" aria-label="体脂肪率の推移グラフ">
             <LineChart
               width={bodyFatChartWidth}
               height={130}
