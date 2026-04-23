@@ -6,7 +6,7 @@ import type { TrainingRecord, Exercise } from '../../types'
 
 // ── フィクスチャ ──────────────────────────────────────────────────────────────
 
-const DATE = '2026-04-22' // 火曜日
+const DATE = '2026-04-22' // 水曜日
 
 const EXERCISES: Exercise[] = [
   { id: 'ex-chest-1', name: 'ベンチプレス',   categoryId: '胸',  isCustom: false },
@@ -76,7 +76,7 @@ describe('CalendarDayPopup', () => {
   // テスト1: 日付ヘッダー形式
   it('日付が「4月22日（火）」形式で表示される', () => {
     renderPopup()
-    expect(screen.getByText('4月22日（火）')).toBeInTheDocument()
+    expect(screen.getByText('4月22日（水）')).toBeInTheDocument()
   })
 
   // テスト2: 部位ごとのグループ表示
@@ -140,7 +140,7 @@ describe('CalendarDayPopup', () => {
     renderPopup({ onClose })
 
     // 日付ヘッダーをクリック（カード内要素）
-    await user.click(screen.getByText('4月22日（火）'))
+    await user.click(screen.getByText('4月22日（水）'))
     expect(onClose).not.toHaveBeenCalled()
   })
 
