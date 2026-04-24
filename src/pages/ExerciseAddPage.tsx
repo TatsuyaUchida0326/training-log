@@ -11,10 +11,12 @@ export default function ExerciseAddPage() {
 
   const [categoryId, setCategoryId] = useState('')
   const [name, setName] = useState('')
+  // 筋肉はカンマ区切り入力（例: "大胸筋, 上腕三頭筋"）→ 保存時に配列へ変換
   const [musclesInput, setMusclesInput] = useState('')
   const [musclesSecondaryInput, setMusclesSecondaryInput] = useState('')
   const [descriptionInput, setDescriptionInput] = useState('')
 
+  // 部位と種目名が入力されている場合のみ登録ボタンを有効化
   const canRegister = name.trim().length > 0 && categoryId.trim().length > 0
 
   function handleRegister() {
@@ -22,6 +24,7 @@ export default function ExerciseAddPage() {
     addExercise({
       name: name.trim(),
       categoryId: categoryId.trim(),
+      // 入力がある場合のみフィールドを含める（空文字入力は「情報なし」扱いにしない）
       muscles: musclesInput ? musclesInput.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
       musclesSecondary: musclesSecondaryInput
         ? musclesSecondaryInput.split(',').map((s) => s.trim()).filter(Boolean)
@@ -52,7 +55,7 @@ export default function ExerciseAddPage() {
         </button>
       </div>
 
-      {/* フォーム */}
+      {/* フォーム：部位・種目名は必須、筋肉・補助筋・説明は任意 */}
       <div className={styles.form}>
         <div className={styles.row}>
           <span className={styles.label}>部位</span>

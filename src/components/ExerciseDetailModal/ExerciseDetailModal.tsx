@@ -10,21 +10,25 @@ interface Props {
 }
 
 export default function ExerciseDetailModal({ exercise, onClose }: Props) {
-  // カスタム種目で保存済みデータがある場合はAPIスキップ
+  // カスタム種目かつ筋肉または説明が保存されている場合 → APIスキップしてローカルデータを表示
   const hasCustomData =
     exercise.isCustom &&
     ((exercise.muscles?.length ?? 0) > 0 || !!exercise.description)
 
+  // カスタム種目だが追加時に情報を入力しなかった場合 → 「入力すると表示されます」と案内
   const isCustomWithoutData = exercise.isCustom && !hasCustomData
 
+  // jaName を空文字にすることで useWgerExercise 内のフェッチをスキップさせる
   const { status, data, fetch } = useWgerExercise(
     hasCustomData || isCustomWithoutData ? '' : exercise.name,
   )
 
   useEffect(() => {
+    // デフォルト種目のみAPIを呼び出す（カスタム種目はスキップ）
     if (!hasCustomData && !isCustomWithoutData) fetch()
   }, [fetch, hasCustomData, isCustomWithoutData])
 
+  // カスタム種目の保存データをAPI応答と同じ形に揃える（表示ロジックを統一するため）
   const effectiveData: WgerExerciseData | null = hasCustomData
     ? {
         muscles: exercise.muscles ?? [],
@@ -33,6 +37,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
       }
     : data
 
+  // カスタム種目はAPI待ち不要なので常に 'ok' として扱い、ローディング表示を出さない
   const effectiveStatus = hasCustomData || isCustomWithoutData ? 'ok' : status
 
   return (
@@ -46,6 +51,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
         {effectiveStatus === 'ok' && (
           <>
             {isCustomWithoutData ? (
+              // 情報なしのカスタム種目：次回の入力を促すガイドメッセージ
               <p className={styles.description}>種目追加時に情報を入力すると表示されます</p>
             ) : effectiveData && (
               <>
@@ -73,6 +79,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
                   </div>
                 )}
 
+                {/* Wikipedia説明文が空（記事なし）の場合はセクション自体を非表示 */}
                 {effectiveData.descriptionJa && (
                   <div className={styles.section}>
                     <div className={styles.sectionLabel}>説明</div>

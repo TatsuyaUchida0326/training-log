@@ -35,6 +35,7 @@ export function useExercises() {
       name: params.name,
       categoryId: params.categoryId,
       isCustom: true,
+      // undefined のフィールドはオブジェクトに含めない（localStorage の肥大化を防ぐ）
       ...(params.muscles !== undefined && { muscles: params.muscles }),
       ...(params.musclesSecondary !== undefined && { musclesSecondary: params.musclesSecondary }),
       ...(params.description !== undefined && { description: params.description }),
