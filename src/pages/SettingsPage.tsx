@@ -10,10 +10,12 @@ export default function SettingsPage() {
     setHeader({ title: '初期値設定', centered: true })
   }, [setHeader])
 
+  // 全データを削除してアプリを初期状態に戻す処理
   function handleResetAllData() {
+    // ネイティブダイアログで削除前にユーザーへ確認を求める
     if (window.confirm('本当にすべてのデータを削除しますか？\nこの操作は元に戻せません。')) {
-      localStorage.clear()
-      window.location.reload()
+      localStorage.clear() // トレーニング記録・種目リスト・体組成・設定の全データを削除
+      window.location.reload() // ページをリロードしてアプリを初期状態で再起動
     }
   }
 
@@ -86,10 +88,13 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* データ管理セクション：他の設定セクションと視覚的に分離して配置 */}
       <div className={`${styles.section} ${styles.dangerSection}`}>
         <p className={styles.sectionTitle}>データ管理</p>
         <div className={styles.row}>
+          {/* ラベルとリセットボタンを左右に配置 */}
           <span className={styles.label}>全データをリセット</span>
+          {/* クリックで handleResetAllData を呼び出す破壊的操作ボタン */}
           <button className={styles.resetButton} onClick={handleResetAllData}>
             全データをリセット
           </button>

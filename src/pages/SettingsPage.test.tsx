@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest' // afterEach をリセットボタンのスパイ後処理に追加
 import SettingsPage from './SettingsPage'
 
 const mockUpdateDefaultSets = vi.fn()
@@ -130,15 +130,18 @@ describe('SettingsPage', () => {
   })
 })
 
+// データ管理セクション（全データをリセットボタン）のテスト群
 describe('SettingsPage — データ管理セクション', () => {
-  let confirmSpy: ReturnType<typeof vi.spyOn>
-  let localStorageClearSpy: ReturnType<typeof vi.spyOn>
-  let reloadMock: ReturnType<typeof vi.fn>
+  let confirmSpy: ReturnType<typeof vi.spyOn>      // window.confirm のスパイ
+  let localStorageClearSpy: ReturnType<typeof vi.spyOn> // localStorage.clear のスパイ
+  let reloadMock: ReturnType<typeof vi.fn>          // window.location.reload のモック
 
   beforeEach(() => {
-    confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false) // デフォルトはキャンセル（false）
+    // jsdom ではインスタンスメソッドのスパイが効かないため Storage.prototype を対象にする
     localStorageClearSpy = vi.spyOn(Storage.prototype, 'clear').mockImplementation(() => {})
     reloadMock = vi.fn()
+    // window.location は読み取り専用のため Object.defineProperty で上書きする
     Object.defineProperty(window, 'location', {
       configurable: true,
       value: { ...window.location, reload: reloadMock },
@@ -146,7 +149,7 @@ describe('SettingsPage — データ管理セクション', () => {
   })
 
   afterEach(() => {
-    confirmSpy.mockRestore()
+    confirmSpy.mockRestore()         // テスト間の汚染を防ぐためスパイを元に戻す
     localStorageClearSpy.mockRestore()
   })
 
@@ -164,28 +167,28 @@ describe('SettingsPage — データ管理セクション', () => {
   })
 
   it('confirm が true を返したとき localStorage.clear が呼ばれる', async () => {
-    confirmSpy.mockReturnValue(true)
+    confirmSpy.mockReturnValue(true) // OK ボタンが押された状態をシミュレート
     render(<SettingsPage />)
     await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
     expect(localStorageClearSpy).toHaveBeenCalledTimes(1)
   })
 
   it('confirm が true を返したとき window.location.reload が呼ばれる', async () => {
-    confirmSpy.mockReturnValue(true)
+    confirmSpy.mockReturnValue(true) // OK ボタンが押された状態をシミュレート
     render(<SettingsPage />)
     await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
     expect(reloadMock).toHaveBeenCalledTimes(1)
   })
 
   it('confirm が false を返したとき localStorage.clear が呼ばれない', async () => {
-    confirmSpy.mockReturnValue(false)
+    confirmSpy.mockReturnValue(false) // キャンセルが押された状態をシミュレート
     render(<SettingsPage />)
     await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
     expect(localStorageClearSpy).not.toHaveBeenCalled()
   })
 
   it('confirm が false を返したとき window.location.reload が呼ばれない', async () => {
-    confirmSpy.mockReturnValue(false)
+    confirmSpy.mockReturnValue(false) // キャンセルが押された状態をシミュレート
     render(<SettingsPage />)
     await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
     expect(reloadMock).not.toHaveBeenCalled()
