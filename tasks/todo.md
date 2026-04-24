@@ -1,99 +1,72 @@
-# Strength Log — feat/add-training-entry
+# feat/body-trend-chart
 
-## Step 1: 計画策定
+## Step 1: Plan
 
 ### 概要
-種目選択画面・種目追加画面を実装する。
-DateDetailPage の FAB から種目選択へ遷移し、種目の一覧表示・追加・削除ができる。
+① BodySettings に目標体脂肪率を追加
+② ホームに体組成トレンドグラフ（体重・体脂肪率）を追加
 
-### ルート構造
-```
-/date/:dateStr/exercises/select   → ExerciseSelectPage
-/date/:dateStr/exercises/add      → ExerciseAddPage
-```
-
-### データモデル
+### インターフェース定義
 ```typescript
-type CategoryId = '胸'|'背中'|'脚'|'肩'|'腕'|'お尻'|'腹筋'|'有酸素運動'|'その他'
+// BodySettings 型に追加
+targetBodyFat: number  // % (0 = 未設定)
 
-interface Exercise {
-  id: string
-  name: string
-  categoryId: CategoryId
-  isCustom: boolean
+// 新規 BodyTrendChart props
+interface BodyTrendChartProps {
+  records: BodyRecord[]      // 全体組成記録
+  targetWeight: number       // 目標体重 kg (0=未設定)
+  targetBodyFat: number      // 目標体脂肪率 % (0=未設定)
 }
 ```
 
-### ファイル構成
-```
-src/data/defaultExercises.ts        - デフォルト種目マスター
-src/types/index.ts                  - CategoryId / Exercise 型追加
-src/hooks/useExercises.ts           - 種目CRUD（localStorage）
-src/hooks/useExercises.test.ts
-src/pages/ExerciseSelectPage.tsx    - 種目選択画面
-src/pages/ExerciseSelectPage.module.css
-src/pages/ExerciseSelectPage.test.tsx
-src/pages/ExerciseAddPage.tsx       - 種目追加画面
-src/pages/ExerciseAddPage.module.css
-src/pages/ExerciseAddPage.test.tsx
-src/App.tsx                         - ルート追加
-src/pages/DateDetailPage.tsx        - FAB navigate 先を更新
-```
+### グラフ仕様
+- recharts 使用（既存ライブラリ）
+- 体重グラフ（上）: weight ライン + targetWeight ReferenceLine（点線）
+- 体脂肪率グラフ（下）: bodyFat ライン + targetBodyFat ReferenceLine（点線）
+- 直近30件（記録あり日のみ）、各高さ130px
+- データなし時は非表示
+- 配置: HomePage の gaugeRow 下・summary 上
 
-### UI仕様（スクショ準拠）
-- ExerciseSelectPage:
-  - ページ内ヘッダーバー: ＜戻る | 種目を選択 | Edit/End
-  - 「部位・種目を追加」ボタン（右寄せ）
-  - アコーディオン: カテゴリーヘッダー（緑）+ 種目行
-  - 初期3件表示、4件以上は「すべて表示」リンク
-  - Editモード: 各種目左に「−」削除ボタン
-- ExerciseAddPage:
-  - ページ内ヘッダーバー: ＜戻る | 種目を追加 | 登録
-  - 部位: カテゴリーをselectで選択
-  - 種目名: テキスト入力
-  - 登録 → useExercises.addExercise → 選択画面に戻る
-
-### Codexセカンドオピニオン
-localStorageによる単純CRUD。スキップ可と判断。
+### Codexセカンドオピニオン → スキップ（明確な実装）
 
 ---
 
-## Step 2: 影響範囲分析
+## Step 2: Assess
 
 ### 変更対象
-- `src/App.tsx` — ルート2件追加
-- `src/pages/DateDetailPage.tsx` — FAB navigate先変更（1行）
-- `src/types/index.ts` — 型追加
+- NEW: src/components/BodyTrendChart/BodyTrendChart.tsx
+- NEW: src/components/BodyTrendChart/BodyTrendChart.module.css
+- NEW: src/components/BodyTrendChart/BodyTrendChart.test.tsx
+- MOD: src/types/index.ts — targetBodyFat 追加
+- MOD: src/hooks/useBodySettings.ts — DEFAULT_SETTINGS 更新
+- MOD: src/hooks/useBodySettings.test.ts — テスト更新
+- MOD: src/pages/BodyPage.tsx — 目標体脂肪率入力欄追加
+- MOD: src/pages/HomePage.tsx — BodyTrendChart 追加
 
 ### リスク評価
-- 既存テスト40件: 影響なし
-- API互換性: なし
-- DB変更: なし（localStorage）
+- localStorage 後方互換: load() の spread で targetBodyFat:0 がデフォルト補完 → OK
+- 既存テスト: useBodySettings.test.ts の「初期値」テストを更新が必要
 
 ---
 
 ## 実装チェックリスト
 
 ### テスト（Step 3）
-- [ ] useExercises: 初回ロードでデフォルト種目が返る
-- [ ] useExercises: addExercise でカスタム種目を追加できる
-- [ ] useExercises: deleteExercise で種目を削除できる
-- [ ] useExercises: localStorage に永続化される
-- [ ] ExerciseSelectPage: カテゴリーヘッダーが表示される
-- [ ] ExerciseSelectPage: 種目が表示される
-- [ ] ExerciseSelectPage: 4件以上で「すべて表示」が表示される
-- [ ] ExerciseSelectPage: Editボタンで削除ボタンが表示される
-- [ ] ExerciseAddPage: 部位selectと種目名inputが表示される
-- [ ] ExerciseAddPage: 登録ボタンでaddExerciseが呼ばれる
+- [ ] BodyTrendChart: 体重データがある場合にグラフが表示される
+- [ ] BodyTrendChart: 体脂肪率データがある場合にグラフが表示される
+- [ ] BodyTrendChart: targetWeight>0 の場合に基準線ラベル「目標」が表示される
+- [ ] BodyTrendChart: targetBodyFat>0 の場合に基準線ラベル「目標」が表示される
+- [ ] BodyTrendChart: 全データが空の場合は何も表示しない
+- [ ] useBodySettings: 初期値に targetBodyFat=0 が含まれる
+- [ ] useBodySettings: targetBodyFat を更新できる
 
 ### 実装（Step 4）
-- [ ] src/data/defaultExercises.ts
-- [ ] src/types/index.ts
-- [ ] src/hooks/useExercises.ts
-- [ ] src/pages/ExerciseSelectPage.tsx + css
-- [ ] src/pages/ExerciseAddPage.tsx + css
-- [ ] src/App.tsx
-- [ ] src/pages/DateDetailPage.tsx
+- [ ] types/index.ts: targetBodyFat 追加
+- [ ] useBodySettings: DEFAULT_SETTINGS 更新
+- [ ] BodyPage: 目標体脂肪率入力欄追加
+- [ ] BodyTrendChart コンポーネント
+- [ ] HomePage: BodyTrendChart 組み込み
 
 ### 品質ゲート（Step 5）
-- [ ] npm test 全件PASS
+- [ ] npm test 全件 PASS
+- [ ] npm run build 成功

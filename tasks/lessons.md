@@ -216,3 +216,166 @@ Strength Log アプリの UI/UX を改善し、各ページの使い勝手を向
 - グラフボタン（TrendingUp）の有効化（体組成グラフ）
 - 外部 API 連携（wger API）
 - PWA 対応（オフライン動作）
+
+---
+
+---
+
+## セッション概要（2026-04-23）
+
+---
+
+## Plan（計画）
+
+### 目標
+GitHub リポジトリ `TatsuyaUchida0326/training-log` の全PR（オープン3件 + クローズ4件 計7件）の Files Changed タブにある追加行（`+` 行）すべてに、ポートフォリオ閲覧者向けの簡潔な日本語解説コメントを追加する。
+
+### 主要テーマ
+1. オープンPR（#5・#6・#7）の全追加行へのインラインコメント追加
+2. クローズPR（#1・#2・#3・#4）の全追加行へのインラインコメント追加
+3. GitHub Pull Request Review Comments API の安定した呼び出し手法の確立
+
+---
+
+## Do（実施内容）
+
+### 1. GitHub API 呼び出し手法の確立
+- `gh api repos/{REPO}/pulls/{PR}/comments` に `body / commit_id / path / line / side=RIGHT` を渡す形式を採用
+- 初期はbash配列 + `%%:*` / `#*:` 展開でパースしようとしたが、配列内の `#` がコメントトークンとして扱われ一部呼び出しが無音でスキップされる問題を発見
+- **根本修正**: インライン関数 `c()` に位置引数3つ（body / path / line）を渡す形式に変更。配列パース不要で確実に動作
+
+```bash
+c() { gh api repos/$REPO/pulls/$PR/comments -f body="$1" -f commit_id="$SHA" -f path="$2" -F line=$3 -f side="RIGHT" --jq '.id'; echo "$2:$3"; }
+```
+
+- `--jq '.id'` の出力がある = 成功、出力なし = 失敗 という即時フィードバックで確認
+
+### 2. オープンPRへのコメント追加
+- **PR #5**（feat/1rm-history）: 4コメント追加
+- **PR #6**（feat/calendar-date-popup）: 30コメント追加
+  - CalendarDayPopup.tsx / .module.css / .test.tsx、HistoryPage.tsx / .test.tsx
+- **PR #7**（feat/body-trend-chart）: 30コメント追加
+  - BodyTrendChart.tsx / .module.css / .test.tsx、ContinuityGauge.css / .test.tsx、TrophyBadge.test.tsx、useBodySettings.ts / .test.ts、BodyPage.tsx / .test.tsx / .module.css、HomePage.tsx / .module.css / .test.tsx、TrainingEntryPage.tsx / .test.tsx、DateDetailPage.test.tsx、SettingsPage.test.tsx、HistoryPage.test.tsx、Routing.test.tsx、localStorage.test.ts、continuity.ts / .test.ts、ExerciseSelectPage.module.css、devSeed.ts、types/index.ts、body.test.ts
+
+### 3. クローズPRへのコメント追加
+- **PR #1**（初期構築）: 30コメント追加
+  - App.tsx、types/index.ts、BottomNav.tsx、Layout.tsx、Calendar.tsx、ContinuityGauge.tsx、TrophyBadge.tsx、HomePage.tsx、BottomNav.module.css、Layout.module.css、index.css
+- **PR #2**（設定ページ）: 19コメント追加
+  - types/index.ts、useSettings.ts、SettingsPage.tsx、useSettings.test.ts
+- **PR #3**（DateDetailPage導入）: 19コメント追加
+  - App.tsx、DateDetailPage.tsx / .test.tsx、HomePage.tsx / .test.tsx、Calendar.module.css
+- **PR #4**（hooks・ページ全面追加）: 30コメント追加
+  - PageHeaderContext.tsx、defaultExercises.ts、useTrainingRecords.ts / .test.ts、useExercises.ts / .test.ts、useBodyRecords.ts / .test.ts、useBodySettings.ts / .test.ts、ExerciseAddPage.tsx / .test.tsx、BodyPage.tsx、DateDetailPage.tsx、App.tsx、Layout.tsx、main.tsx、BodySettingsPage.tsx、BottomNav.tsx、Calendar.tsx
+
+### 4. テストコメントの削除
+- PR #1 `App.tsx:1` に投稿したテスト確認コメント（ID: 3134269682）を `DELETE` APIで削除
+- PR #3 `DateDetailPage.tsx:5` に残っていた旧テストコメント（ID: 3131123983）を削除
+
+---
+
+## Check（検証）
+
+### コメント追加結果
+| PR | 件数 |
+|----|------|
+| #1 | 30 |
+| #2 | 19 |
+| #3 | 19 |
+| #4 | 30 |
+| #5 | 4 |
+| #6 | 30 |
+| #7 | 30 |
+| **合計** | **162** |
+
+### よかった点
+- `c()` 関数パターンにより各コメントの成功・失敗をIDで即座に確認できた
+- クローズ済みPRでも Review Comments API が有効なことを確認できた
+- セッション分割（コンテキスト上限）をまたいでも作業継続できた
+
+### 反省点
+- **bash配列の`#`トークン問題**: 配列リテラル内にインラインコメントを書いたことで一部の呼び出しがスキップされた。bash配列内ではコメントが書けない仕様を見落としていた
+- **PR番号のハードコード**: `c()` 関数内に別PRのPR番号が残っていたことで誤ったエンドポイントへの呼び出しが発生した
+- **コンテキスト分割**: 大量API呼び出しによりコンテキストが肥大化し、複数セッションにわたる作業になった
+
+---
+
+## Act（次回への改善）
+
+### 大量API呼び出し時のルール
+1. **bash配列内にコメントを書かない**: `#` はトークンとして扱われるため、説明はヒアドキュメントや変数名で代替する
+2. **関数内の変数を明示的にパラメータ化**: PR番号・SHAを関数外で定義し、関数は純粋に引数のみを使う
+3. **呼び出しごとにIDを確認**: `--jq '.id'` で返値を確認し、空の場合は即座に原因調査する
+
+---
+
+---
+
+## セッション概要（2026-04-24）
+
+---
+
+## Plan（計画）
+
+### 目標
+ポートフォリオ要件「API を1つ以上使用」を満たすため、wger REST API + MyMemory翻訳APIを統合し、種目選択画面にℹボタン→詳細モーダルを追加する。既存機能を一切破壊しないことが最重要要件。
+
+### 主要テーマ
+1. wger REST API 検索→詳細取得→筋肉名取得の3ステップフロー実装
+2. MyMemory 翻訳API で英語の筋肉名・説明文を日本語化
+3. ExerciseSelectPage にℹボタン追加→ ExerciseDetailModal 表示
+
+---
+
+## Do（実施内容）
+
+### 1. exerciseEnMap.ts（日本語→英語マップ）
+- 39種目の日本語名→英語検索語スタティックマップを作成
+- wger API は日本語検索に対応していないため、英語変換レイヤーを前置
+
+### 2. useWgerExercise.ts（カスタムフック）
+- wger search → exerciseinfo → muscle names → MyMemory 翻訳の非同期フロー
+- モジュールレベルキャッシュ（Map）でブラウザセッション内の重複API呼び出しを防止
+- status: idle/loading/ok/error の4状態管理
+- `clearCache()` をテスト用にエクスポート
+
+### 3. ExerciseDetailModal
+- loading/error/ok の3状態に応じた UI 表示
+- オーバーレイクリックで閉じる、「閉じる」ボタンで閉じる
+- 筋肉タグ（#e8edf5 背景）、補助筋セクション、日本語説明文
+
+### 4. ExerciseSelectPage 変更
+- 各種目行にℹボタンを追加（編集モード時は非表示）
+- `detailExerciseName` state で選択した種目名を管理
+- `.infoButton` CSS: color: #64748b（情報ボタンとして視覚的に抑制）
+
+---
+
+## Check（検証）
+
+### テスト結果
+- 167テスト全件パス（18ファイル）
+- useWgerExercise: 8テスト（キャッシュ・エラーハンドリング・翻訳成功含む）
+- ExerciseDetailModal: 7テスト
+
+### レビュー指摘（全3件修正）
+1. `role="button"` 冗長削除
+2. `useEffect` deps を eslint-disable → `[fetch]` に明示
+3. `translateToJa` / `fetchMuscleName` に `res.ok` チェック追加
+
+### よかった点
+- 既存167テストが全件維持され、既存機能への影響ゼロを確認
+- モジュールレベルキャッシュにより同一種目の重複API呼び出しを防止
+- wger + MyMemory の組み合わせで完全無料・クレジットカード不要のAPI統合を実現
+
+### 反省点
+- **モジュールキャッシュのテスト間汚染**: モジュールレベルの `Map` が beforeEach でリセットされず、テスト3の成功キャッシュがテスト6（エラーテスト）に漏洩して失敗。`clearCache()` エクスポートで対処したが、設計当初から `clearCache` を用意すべきだった
+- **worktreeへのテストファイルコピー漏れ**: メイン src にテストファイルを作成したが worktree に反映しておらず、テスト実行後にコピーが必要になった。テストファイルは最初から worktree に作成する
+- **main ブランチの未コミットスタブファイル**: Step 3 でスタブファイルをメイン src に作成したまま未コミットで残っており、マージ時に "untracked files would be overwritten" エラーが発生。スタブは worktree 内に作成する
+
+---
+
+## Act（次回への改善）
+
+### コーディング規約に追加すべき事項
+1. **モジュールレベルキャッシュ設計**: テスト可能性のため、モジュールレベルの可変状態（Map/Set等）を持つ場合は最初から `clearCache()` / `resetState()` をエクスポートする
+2. **TDDのファイル配置**: テストファイルと実装ファイルは最初から worktree 内に作成する。メイン src へのスタブ配置は混乱の元になる
