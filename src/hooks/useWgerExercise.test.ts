@@ -107,4 +107,14 @@ describe('useWgerExercise', () => {
     expect(result.current.status).toBe('idle')
     expect(fetchMock).not.toHaveBeenCalled()
   })
+
+  it('静的 description がある種目（ランニング）は Wikipedia API を呼ばずに status="ok" になる', async () => {
+    const { result } = renderHook(() => useWgerExercise('ランニング'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(result.current.data!.descriptionJa).toContain('有酸素運動')
+    expect(result.current.data!.muscles).toEqual([])
+  })
 })

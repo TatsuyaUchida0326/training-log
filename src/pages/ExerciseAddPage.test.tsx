@@ -69,10 +69,12 @@ describe('ExerciseAddPage', () => {
     await userEvent.type(inputs[0], '胸')
     await userEvent.type(inputs[1], 'テスト種目')
     await userEvent.click(screen.getByText('登録'))
-    expect(mockAddExercise).toHaveBeenCalledWith({
-      name: 'テスト種目',
-      categoryId: '胸',
-    })
+    expect(mockAddExercise).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'テスト種目',
+        categoryId: '胸',
+      })
+    )
   })
 
   it('登録後に選択画面に戻る', async () => {

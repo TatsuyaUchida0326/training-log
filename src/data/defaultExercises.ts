@@ -52,7 +52,6 @@ const raw: { name: string; categoryId: CategoryId }[] = [
   { name: 'ランニング', categoryId: '有酸素運動' },
   { name: 'ウォーキング', categoryId: '有酸素運動' },
   { name: 'サイクリング', categoryId: '有酸素運動' },
-  { name: 'ロープジャンプ', categoryId: '有酸素運動' },
 ]
 
 export const DEFAULT_EXERCISES: Exercise[] = raw.map((e, i) => ({

@@ -30,6 +30,9 @@ export interface Exercise {
   name: string
   categoryId: CategoryId
   isCustom: boolean
+  muscles?: string[]
+  musclesSecondary?: string[]
+  description?: string
 }
 
 export interface BodyRecord {
