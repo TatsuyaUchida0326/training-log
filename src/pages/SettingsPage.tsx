@@ -10,6 +10,13 @@ export default function SettingsPage() {
     setHeader({ title: '初期値設定', centered: true })
   }, [setHeader])
 
+  function handleResetAllData() {
+    if (window.confirm('本当にすべてのデータを削除しますか？\nこの操作は元に戻せません。')) {
+      localStorage.clear()
+      window.location.reload()
+    }
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.section}>
@@ -76,6 +83,16 @@ export default function SettingsPage() {
               lbs
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className={`${styles.section} ${styles.dangerSection}`}>
+        <p className={styles.sectionTitle}>データ管理</p>
+        <div className={styles.row}>
+          <span className={styles.label}>全データをリセット</span>
+          <button className={styles.resetButton} onClick={handleResetAllData}>
+            全データをリセット
+          </button>
         </div>
       </div>
     </div>

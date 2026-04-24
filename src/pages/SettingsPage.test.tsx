@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import SettingsPage from './SettingsPage'
 
 const mockUpdateDefaultSets = vi.fn()
@@ -127,5 +127,67 @@ describe('SettingsPage', () => {
     const selects = screen.getAllByRole('combobox')
     await userEvent.selectOptions(selects[2], '5')
     expect(mockUpdateTrainingDefaultSets).toHaveBeenCalledWith(5)
+  })
+})
+
+describe('SettingsPage — データ管理セクション', () => {
+  let confirmSpy: ReturnType<typeof vi.spyOn>
+  let localStorageClearSpy: ReturnType<typeof vi.spyOn>
+  let reloadMock: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    localStorageClearSpy = vi.spyOn(Storage.prototype, 'clear').mockImplementation(() => {})
+    reloadMock = vi.fn()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, reload: reloadMock },
+    })
+  })
+
+  afterEach(() => {
+    confirmSpy.mockRestore()
+    localStorageClearSpy.mockRestore()
+  })
+
+  it('「全データをリセット」ボタンが表示される', () => {
+    render(<SettingsPage />)
+    expect(screen.getByRole('button', { name: '全データをリセット' })).toBeInTheDocument()
+  })
+
+  it('ボタンクリックで window.confirm が呼ばれる（メッセージ内容を検証）', async () => {
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
+    expect(confirmSpy).toHaveBeenCalledWith(
+      '本当にすべてのデータを削除しますか？\nこの操作は元に戻せません。'
+    )
+  })
+
+  it('confirm が true を返したとき localStorage.clear が呼ばれる', async () => {
+    confirmSpy.mockReturnValue(true)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
+    expect(localStorageClearSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('confirm が true を返したとき window.location.reload が呼ばれる', async () => {
+    confirmSpy.mockReturnValue(true)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
+    expect(reloadMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('confirm が false を返したとき localStorage.clear が呼ばれない', async () => {
+    confirmSpy.mockReturnValue(false)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
+    expect(localStorageClearSpy).not.toHaveBeenCalled()
+  })
+
+  it('confirm が false を返したとき window.location.reload が呼ばれない', async () => {
+    confirmSpy.mockReturnValue(false)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
+    expect(reloadMock).not.toHaveBeenCalled()
   })
 })

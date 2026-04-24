@@ -81,3 +81,25 @@
   background: var(--color-primary);
   color: #fff;
 }
+
+.dangerSection {
+  margin-top: 1rem;
+}
+
+.resetButton {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  background: #fff;
+  border: 1.5px solid #ef4444;
+  border-radius: 8px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.resetButton:hover {
+  background: #ef4444;
+  color: #fff;
+}
