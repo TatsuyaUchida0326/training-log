@@ -81,3 +81,28 @@
   background: var(--color-primary);
   color: #fff;
 }
+
+/* データ管理セクションを記録設定セクションから間隔を空けて配置 */
+.dangerSection {
+  margin-top: 1rem;
+}
+
+/* 破壊的操作であることを赤いアウトラインで示すリセットボタン */
+.resetButton {
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: 600;
+  background: #fff;
+  border: 1.5px solid #ef4444; /* 赤枠でアウトラインスタイルに */
+  border-radius: 8px;
+  color: #ef4444; /* テキストも赤で危険操作を明示 */
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+/* ホバー時に赤く塗りつぶしてインタラクションを強調 */
+.resetButton:hover {
+  background: #ef4444;
+  color: #fff;
+}
