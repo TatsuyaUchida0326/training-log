@@ -25,7 +25,8 @@ async function fetchDescription(jaName: string): Promise<string> {
 
 async function loadExerciseData(jaName: string): Promise<WgerExerciseData> {
   const muscleData = EXERCISE_MUSCLE_MAP[jaName] ?? { muscles: [], musclesSecondary: [] }
-  const descriptionJa = await fetchDescription(jaName)
+  // 静的説明文がある場合は Wikipedia フェッチをスキップ
+  const descriptionJa = muscleData.description ?? await fetchDescription(jaName)
   return {
     muscles: muscleData.muscles,
     musclesSecondary: muscleData.musclesSecondary,

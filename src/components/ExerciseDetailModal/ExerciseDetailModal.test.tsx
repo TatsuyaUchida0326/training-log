@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ExerciseDetailModal from './ExerciseDetailModal'
 import type { WgerStatus, WgerExerciseData } from '../../hooks/useWgerExercise'
+import type { Exercise } from '../../types'
 
 // ---------- useWgerExercise モック ----------
 
@@ -20,9 +21,19 @@ vi.mock('../../hooks/useWgerExercise', () => ({
 
 // ---------- ヘルパー ----------
 
-function renderModal(exerciseName = 'ベンチプレス', onClose = vi.fn()) {
+function makeExercise(overrides: Partial<Exercise> = {}): Exercise {
+  return {
+    id: 'default-0',
+    name: 'ベンチプレス',
+    categoryId: '胸',
+    isCustom: false,
+    ...overrides,
+  }
+}
+
+function renderModal(exerciseOverrides: Partial<Exercise> = {}, onClose = vi.fn()) {
   return render(
-    <ExerciseDetailModal exerciseName={exerciseName} onClose={onClose} />
+    <ExerciseDetailModal exercise={makeExercise(exerciseOverrides)} onClose={onClose} />
   )
 }
 
@@ -53,7 +64,7 @@ describe('ExerciseDetailModal', () => {
       descriptionJa: 'バーベルを使った胸のトレーニング。',
     }
 
-    renderModal('ベンチプレス')
+    renderModal()
 
     expect(screen.getByText('ベンチプレス')).toBeInTheDocument()
   })
@@ -107,21 +118,43 @@ describe('ExerciseDetailModal', () => {
     }
     const onClose = vi.fn()
 
-    renderModal('ベンチプレス', onClose)
+    renderModal({}, onClose)
 
-    // 「閉じる」または × など、role="button" で onClose を発火するボタンを探す
     const closeButton = screen.getByRole('button', { name: /閉じる|×|close/i })
     await userEvent.click(closeButton)
 
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  // ---- 7. マウント時に fetch() が自動で呼ばれる ----
-  it('マウント時に fetch() が自動で呼ばれる', () => {
+  // ---- 7. マウント時に fetch() が自動で呼ばれる（デフォルト種目の場合）----
+  it('デフォルト種目のとき、マウント時に fetch() が自動で呼ばれる', () => {
     mockStatus = 'loading'
 
-    renderModal()
+    renderModal({ isCustom: false })
 
     expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+
+  // ---- 8. カスタム種目で muscles が保存されている場合は API を呼ばずに表示 ----
+  it('カスタム種目で muscles が保存されている場合は API を呼ばずに筋肉名が表示される', () => {
+    // mockStatus は idle のまま、fetch は呼ばれないはず
+    renderModal({
+      isCustom: true,
+      muscles: ['大胸筋'],
+      musclesSecondary: ['三角筋前部'],
+      description: 'カスタム種目の説明文。',
+    })
+
+    expect(mockFetch).not.toHaveBeenCalled()
+    expect(screen.getByText(/大胸筋/)).toBeInTheDocument()
+    expect(screen.getByText(/三角筋前部/)).toBeInTheDocument()
+    expect(screen.getByText(/カスタム種目の説明文/)).toBeInTheDocument()
+  })
+
+  // ---- 9. カスタム種目でデータがない場合は案内メッセージが表示される ----
+  it('カスタム種目でデータがない場合は「種目追加時に情報を入力すると表示されます」が表示される', () => {
+    renderModal({ isCustom: true })
+
+    expect(screen.getByText(/種目追加時に情報を入力すると表示されます/)).toBeInTheDocument()
   })
 })

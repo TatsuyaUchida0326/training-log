@@ -23,12 +23,21 @@ function save(exercises: Exercise[]): void {
 export function useExercises() {
   const [exercises, setExercises] = useState<Exercise[]>(loadExercises)
 
-  function addExercise(params: { name: string; categoryId: CategoryId }) {
+  function addExercise(params: {
+    name: string
+    categoryId: CategoryId
+    muscles?: string[]
+    musclesSecondary?: string[]
+    description?: string
+  }) {
     const newExercise: Exercise = {
       id: `custom-${Date.now()}`,
       name: params.name,
       categoryId: params.categoryId,
       isCustom: true,
+      ...(params.muscles !== undefined && { muscles: params.muscles }),
+      ...(params.musclesSecondary !== undefined && { musclesSecondary: params.musclesSecondary }),
+      ...(params.description !== undefined && { description: params.description }),
     }
     setExercises((prev) => {
       const next = [...prev, newExercise]

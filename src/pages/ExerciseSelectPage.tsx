@@ -4,6 +4,7 @@ import { useExercises } from '../hooks/useExercises'
 import { usePageHeader } from '../contexts/PageHeaderContext'
 import { CATEGORIES } from '../data/defaultExercises'
 import ExerciseDetailModal from '../components/ExerciseDetailModal/ExerciseDetailModal'
+import type { Exercise } from '../types'
 import styles from './ExerciseSelectPage.module.css'
 
 const INITIAL_SHOW = 3
@@ -16,7 +17,7 @@ export default function ExerciseSelectPage() {
 
   const [isEditMode, setIsEditMode] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
-  const [detailExerciseName, setDetailExerciseName] = useState<string | null>(null)
+  const [detailExercise, setDetailExercise] = useState<Exercise | null>(null)
 
   useEffect(() => {
     setHeader({ title: '種目を選択', centered: true })
@@ -99,7 +100,7 @@ export default function ExerciseSelectPage() {
                           aria-label="詳細を見る"
                           onClick={(e) => {
                             e.stopPropagation()
-                            setDetailExerciseName(ex.name)
+                            setDetailExercise(ex)
                           }}
                         >
                           ℹ
@@ -134,10 +135,10 @@ export default function ExerciseSelectPage() {
         戻る
       </button>
 
-      {detailExerciseName && (
+      {detailExercise && (
         <ExerciseDetailModal
-          exerciseName={detailExerciseName}
-          onClose={() => setDetailExerciseName(null)}
+          exercise={detailExercise}
+          onClose={() => setDetailExercise(null)}
         />
       )}
     </div>
