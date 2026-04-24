@@ -12,8 +12,7 @@ export default function ExerciseDetailModal({ exerciseName, onClose }: Props) {
 
   useEffect(() => {
     fetch()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [fetch])
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -59,7 +58,6 @@ export default function ExerciseDetailModal({ exerciseName, onClose }: Props) {
 
         <button
           className={styles.closeButton}
-          role="button"
           aria-label="閉じる"
           onClick={onClose}
         >

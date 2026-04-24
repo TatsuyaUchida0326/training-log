@@ -25,12 +25,14 @@ async function translateToJa(text: string): Promise<string> {
   const res = await fetch(
     `https://api.mymemory.translated.net/get?q=${encoded}&langpair=en|ja`
   )
+  if (!res.ok) throw new Error(`MyMemory API error: ${res.status}`)
   const json = await res.json()
   return (json as { responseData: { translatedText: string } }).responseData.translatedText
 }
 
 async function fetchMuscleName(muscleId: number): Promise<string> {
   const res = await fetch(`https://wger.de/api/v2/muscle/${muscleId}/?format=json`)
+  if (!res.ok) throw new Error(`wger muscle API error: ${res.status}`)
   const json = await res.json()
   return (json as { name_en: string }).name_en
 }
