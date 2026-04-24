@@ -12,6 +12,7 @@ import {
   Tooltip,
 } from 'recharts'
 import Calendar from '../components/Calendar/Calendar'
+import CalendarDayPopup from '../components/CalendarDayPopup/CalendarDayPopup'
 import { useTrainingRecords } from '../hooks/useTrainingRecords'
 import { useExercises } from '../hooks/useExercises'
 import { CATEGORIES } from '../data/defaultExercises'
@@ -29,6 +30,7 @@ export default function HistoryPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>(ALL)
   const [selectedExercise, setSelectedExercise] = useState<string>(ALL)
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
+  const [popupDate, setPopupDate] = useState<string | null>(null)
 
   const { setHeader } = usePageHeader()
   useEffect(() => {
@@ -131,8 +133,14 @@ export default function HistoryPage() {
             onToday={() => setCurrentDate(new Date())}
             selectedDate={selectedDate}
             onDateSelect={(date) => {
-                setSelectedDate(date)
-                navigate(`/date/${format(date, 'yyyy-MM-dd')}`)
+                const dateStr = format(date, 'yyyy-MM-dd')
+                const hasRecords = records.some((r) => r.date === dateStr)
+                if (hasRecords) {
+                  setPopupDate(dateStr)
+                } else {
+                  setSelectedDate(date)
+                  navigate(`/date/${dateStr}`)
+                }
               }}
             achievedDates={stats.trainedDates}
             markIcon={<Dumbbell size={16} strokeWidth={2.5} />}
@@ -154,6 +162,18 @@ export default function HistoryPage() {
             </>
           )}
         </div>
+      )}
+      {popupDate && (
+        <CalendarDayPopup
+          date={popupDate}
+          records={records.filter((r) => r.date === popupDate)}
+          exercises={exercises}
+          onClose={() => setPopupDate(null)}
+          onNavigate={(date) => {
+            setPopupDate(null)
+            navigate(`/date/${date}`)
+          }}
+        />
       )}
     </div>
   )
