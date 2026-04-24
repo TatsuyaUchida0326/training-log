@@ -127,20 +127,6 @@
   color: #b91c1c;
 }
 
-.graphButton {
-  background: none;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 3px 4px;
-  border-radius: 4px;
-  opacity: 0.5;
-}
-
-.graphButton:disabled {
-  cursor: default;
-}
-
 /* ── メモ行 ── */
 .memoRow {
   display: flex;

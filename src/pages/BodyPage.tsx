@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, X, TrendingUp } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addDays, subDays } from 'date-fns'
 import { useBodyRecords } from '../hooks/useBodyRecords'
 import { useBodySettings } from '../hooks/useBodySettings'
@@ -68,7 +68,7 @@ export default function BodyPage() {
     updateField(dateStr, 'memo', memo)
   }
 
-  function handleSettingBlur(field: 'height' | 'targetWeight', raw: string) {
+  function handleSettingBlur(field: 'height' | 'targetWeight' | 'targetBodyFat', raw: string) {
     const val = parseFloat(raw)
     updateSettings({ [field]: !isNaN(val) && val > 0 ? val : 0 })
   }
@@ -102,6 +102,17 @@ export default function BodyPage() {
               <span className={styles.unitLabel}>kg</span>
             </div>
           </div>
+          <div className={styles.inputRow}>
+            <span className={styles.inputLabel}>目標体脂肪率</span>
+            <div className={styles.inputRight}>
+              <input className={styles.numInput} type="number" min="0" step="0.1"
+                defaultValue={settings.targetBodyFat > 0 ? settings.targetBodyFat : ''}
+                placeholder="———"
+                onBlur={(e) => handleSettingBlur('targetBodyFat', e.target.value)}
+                key={`tbf-${settings.targetBodyFat}`} />
+              <span className={styles.unitLabel}>%</span>
+            </div>
+          </div>
         </div>
 
         {/* 計測値入力カード */}
@@ -127,9 +138,9 @@ export default function BodyPage() {
         <div className={styles.card}>
           <div className={styles.cardLabel}>計算値</div>
           <CalcRow label="BMI" value={calc.bmi !== null ? String(calc.bmi) : null} />
-          <CalcRow label="体脂肪量" value={calc.bodyFatMass !== null ? `${calc.bodyFatMass} kg` : null} showGraph />
-          <CalcRow label="除脂肪体重" value={calc.leanBodyMass !== null ? `${calc.leanBodyMass} kg` : null} showGraph />
-          <CalcRow label="筋重量" value={calc.muscleMassKg !== null ? `${calc.muscleMassKg} kg` : null} showGraph />
+          <CalcRow label="体脂肪量" value={calc.bodyFatMass !== null ? `${calc.bodyFatMass} kg` : null} />
+          <CalcRow label="除脂肪体重" value={calc.leanBodyMass !== null ? `${calc.leanBodyMass} kg` : null} />
+          <CalcRow label="筋重量" value={calc.muscleMassKg !== null ? `${calc.muscleMassKg} kg` : null} />
         </div>
 
       </div>
@@ -152,17 +163,16 @@ function InputRow({ label, unit, value, onBlur, onClear }: InputRowProps) {
           onBlur={(e) => onBlur(e.target.value)} key={`${label}-${value}`} />
         <span className={styles.unitLabel}>{unit}</span>
         <button className={styles.clearButton} aria-label="クリア" onClick={onClear}><X size={13} /></button>
-        <button className={styles.graphButton} aria-label="グラフ" disabled><TrendingUp size={16} /></button>
       </div>
     </div>
   )
 }
 
 interface CalcRowProps {
-  label: string; value: string | null; showGraph?: boolean
+  label: string; value: string | null
 }
 
-function CalcRow({ label, value, showGraph }: CalcRowProps) {
+function CalcRow({ label, value }: CalcRowProps) {
   return (
     <div className={styles.calcRow}>
       <span className={styles.calcLabel}>{label}</span>
@@ -170,9 +180,6 @@ function CalcRow({ label, value, showGraph }: CalcRowProps) {
         <span className={`${styles.calcValue} ${value === null ? styles.calcEmpty : ''}`}>
           {value ?? '———'}
         </span>
-        {showGraph && (
-          <button className={styles.graphButton} aria-label="グラフ" disabled><TrendingUp size={16} /></button>
-        )}
       </div>
     </div>
   )

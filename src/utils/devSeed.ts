@@ -4,7 +4,7 @@
  */
 export function injectDevSeed() {
   if (!import.meta.env.DEV) return
-  if (localStorage.getItem('strength-log-dev-seeded') === 'v3') return
+  if (localStorage.getItem('strength-log-dev-seeded') === 'v4') return
 
   const exercises = (() => {
     try { return JSON.parse(localStorage.getItem('strength-log-exercises') ?? '[]') } catch { return [] }
@@ -79,6 +79,56 @@ export function injectDevSeed() {
   ]
 
   localStorage.setItem('strength-log-records', JSON.stringify(merged))
-  localStorage.setItem('strength-log-dev-seeded', 'v3')
-  console.log(`[devSeed] ${merged.length - (existing.filter((r: {id:string}) => !r.id.startsWith('seed-')).length)} 件追加`)
+
+  // 体組成データ: 2026-03-24 〜 2026-04-22（30日・一部欠損あり）
+  const bodyData: { date: string; weight: number; bodyFat: number }[] = [
+    { date: '2026-03-24', weight: 76.2, bodyFat: 22.8 },
+    { date: '2026-03-25', weight: 76.0, bodyFat: 22.7 },
+    { date: '2026-03-27', weight: 75.8, bodyFat: 22.5 },
+    { date: '2026-03-28', weight: 75.9, bodyFat: 22.6 },
+    { date: '2026-03-29', weight: 75.6, bodyFat: 22.4 },
+    { date: '2026-03-31', weight: 75.4, bodyFat: 22.3 },
+    { date: '2026-04-01', weight: 75.5, bodyFat: 22.2 },
+    { date: '2026-04-02', weight: 75.2, bodyFat: 22.1 },
+    { date: '2026-04-03', weight: 75.0, bodyFat: 22.0 },
+    { date: '2026-04-04', weight: 75.1, bodyFat: 21.9 },
+    { date: '2026-04-05', weight: 74.9, bodyFat: 21.8 },
+    { date: '2026-04-07', weight: 74.7, bodyFat: 21.7 },
+    { date: '2026-04-08', weight: 74.8, bodyFat: 21.6 },
+    { date: '2026-04-09', weight: 74.5, bodyFat: 21.5 },
+    { date: '2026-04-10', weight: 74.3, bodyFat: 21.4 },
+    { date: '2026-04-11', weight: 74.4, bodyFat: 21.3 },
+    { date: '2026-04-12', weight: 74.2, bodyFat: 21.2 },
+    { date: '2026-04-14', weight: 74.0, bodyFat: 21.1 },
+    { date: '2026-04-15', weight: 74.1, bodyFat: 21.0 },
+    { date: '2026-04-16', weight: 73.9, bodyFat: 20.9 },
+    { date: '2026-04-17', weight: 73.8, bodyFat: 20.8 },
+    { date: '2026-04-18', weight: 73.7, bodyFat: 20.7 },
+    { date: '2026-04-19', weight: 73.9, bodyFat: 20.8 },
+    { date: '2026-04-21', weight: 73.6, bodyFat: 20.6 },
+    { date: '2026-04-22', weight: 73.5, bodyFat: 20.5 },
+  ]
+
+  const bodyRecords = bodyData.map(({ date, weight, bodyFat }) => ({
+    date,
+    weight,
+    bodyFat,
+    muscleMass: null,
+    waist: null,
+    memo: '',
+  }))
+
+  const existingBody = (() => {
+    try { return JSON.parse(localStorage.getItem('strength-log-body-records') ?? '[]') } catch { return [] }
+  })()
+  const mergedBody = [
+    ...existingBody.filter((r: { date: string }) =>
+      !bodyData.some((d) => d.date === r.date)
+    ),
+    ...bodyRecords,
+  ]
+  localStorage.setItem('strength-log-body-records', JSON.stringify(mergedBody))
+
+  localStorage.setItem('strength-log-dev-seeded', 'v4')
+  console.log(`[devSeed] 体組成 ${bodyRecords.length} 件追加`)
 }

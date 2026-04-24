@@ -45,6 +45,7 @@ export interface BodySettings {
   height: number        // cm（0 = 未設定）
   targetWeight: number  // kg（0 = 未設定）
   muscleMassUnit: '%' | 'kg'
+  targetBodyFat: number // %（0 = 未設定）
 }
 
 export interface CalendarProps {

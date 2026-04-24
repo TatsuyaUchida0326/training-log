@@ -42,4 +42,20 @@ describe('HomePage', () => {
     renderHomePage()
     expect(screen.getByText('今日のトレーニング')).toBeInTheDocument()
   })
+
+  it('体組成データがない場合 BodyTrendChart は表示されない', () => {
+    renderHomePage()
+    expect(screen.queryByTestId('weight-chart')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('bodyfat-chart')).not.toBeInTheDocument()
+  })
+
+  it('体重データがある場合 BodyTrendChart の体重グラフが表示される', () => {
+    const today = new Date().toISOString().slice(0, 10)
+    localStorage.setItem(
+      'strength-log-body-records',
+      JSON.stringify([{ date: today, weight: 70, bodyFat: null, muscleMass: null, waist: null, memo: '' }])
+    )
+    renderHomePage()
+    expect(screen.getByTestId('weight-chart')).toBeInTheDocument()
+  })
 })

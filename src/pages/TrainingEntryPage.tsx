@@ -57,14 +57,14 @@ export default function TrainingEntryPage() {
   const exercise = exercises.find((e) => e.id === exerciseId)
   const date = dateStr ?? ''
 
-  // 過去の歴代最高RM（当日を除く）
+  // 歴代最高RM（当日を含む全記録）
   const historicalBestRM = useMemo(() => {
     if (!exerciseId) return 0
     return records
-      .filter((r) => r.exerciseId === exerciseId && r.date !== date)
+      .filter((r) => r.exerciseId === exerciseId)
       .flatMap((r) => r.sets.map((s) => calcRM(s.weight, s.reps)))
       .reduce((max, rm) => Math.max(max, rm), 0)
-  }, [records, exerciseId, date])
+  }, [records, exerciseId])
 
   // 1RM更新トースト通知
   const [rmToast, setRmToast] = useState<{ rm: number; key: number } | null>(null)

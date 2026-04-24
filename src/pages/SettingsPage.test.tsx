@@ -114,4 +114,18 @@ describe('SettingsPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'lbs' }))
     expect(mockUpdateWeightUnit).toHaveBeenCalledWith('lbs')
   })
+
+  it('継続達成種目数を変更すると更新関数が呼ばれる', async () => {
+    render(<SettingsPage />)
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[0], '7')
+    expect(mockUpdateRequiredExercises).toHaveBeenCalledWith(7)
+  })
+
+  it('デフォルトセット数を変更すると更新関数が呼ばれる', async () => {
+    render(<SettingsPage />)
+    const selects = screen.getAllByRole('combobox')
+    await userEvent.selectOptions(selects[2], '5')
+    expect(mockUpdateTrainingDefaultSets).toHaveBeenCalledWith(5)
+  })
 })

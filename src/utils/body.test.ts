@@ -15,6 +15,7 @@ const baseSettings: BodySettings = {
   height: 169,
   targetWeight: 75,
   muscleMassUnit: '%',
+  targetBodyFat: 0,
 }
 
 describe('calcBody', () => {
