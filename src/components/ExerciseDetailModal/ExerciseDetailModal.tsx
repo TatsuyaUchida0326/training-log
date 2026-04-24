@@ -49,10 +49,12 @@ export default function ExerciseDetailModal({ exerciseName, onClose }: Props) {
               </div>
             )}
 
-            <div className={styles.section}>
-              <div className={styles.sectionLabel}>説明</div>
-              <p className={styles.description}>{data.descriptionJa}</p>
-            </div>
+            {data.descriptionJa && (
+              <div className={styles.section}>
+                <div className={styles.sectionLabel}>説明</div>
+                <p className={styles.description}>{data.descriptionJa}</p>
+              </div>
+            )}
           </>
         )}
 
