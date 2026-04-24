@@ -30,9 +30,10 @@ export interface Exercise {
   name: string
   categoryId: CategoryId
   isCustom: boolean
-  muscles?: string[]
-  musclesSecondary?: string[]
-  description?: string
+  // 以下3フィールドはカスタム種目追加時に任意入力。デフォルト種目は exerciseMuscleMap.ts で管理
+  muscles?: string[]          // 対象筋肉（主動筋）
+  musclesSecondary?: string[] // 補助筋（協働筋）
+  description?: string        // 種目の説明文
 }
 
 export interface BodyRecord {
