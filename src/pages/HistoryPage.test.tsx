@@ -102,8 +102,10 @@ describe('HistoryPage - ビュー切り替え', () => {
     expect(screen.queryByText('日')).not.toBeInTheDocument()
   })
 
-  it('「グラフ」ビューで記録がない場合「記録がありません」が表示される', async () => {
+  it('記録がない部位を選択してグラフビューにすると「記録がありません」が表示される', async () => {
     renderHistoryPage()
+    // 腹筋はMOCK_RECORDSに記録がないのでグラフが空になる
+    await userEvent.click(screen.getByRole('button', { name: '腹筋' }))
     await userEvent.click(screen.getByRole('button', { name: 'グラフ' }))
     expect(screen.getByText('記録がありません')).toBeInTheDocument()
   })
