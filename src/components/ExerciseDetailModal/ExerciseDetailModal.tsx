@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useWgerExercise } from '../../hooks/useWgerExercise'
 import type { Exercise } from '../../types'
 import type { WgerExerciseData } from '../../hooks/useWgerExercise'
+import { EXERCISE_VIDEO_MAP } from '../../data/exerciseVideoMap'
 import styles from './ExerciseDetailModal.module.css'
 
 interface Props {
@@ -40,6 +41,11 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
 
   // カスタム種目はAPI待ち不要なので常に 'ok' として扱い、ローディング表示を出さない
   const effectiveStatus = hasCustomData || isCustomWithoutData ? 'ok' : status
+
+  const videoId = EXERCISE_VIDEO_MAP[exercise.name]
+  const youtubeHref = videoId
+    ? `https://www.youtube.com/watch?v=${videoId}`
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + ' フォーム')}`
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -104,7 +110,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
         {/* デフォルト種目のみ YouTube フォーム動画リンクを表示 */}
         {!exercise.isCustom && (
           <a
-            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + ' フォーム')}`}
+            href={youtubeHref}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.youtubeLink}
