@@ -208,10 +208,12 @@ describe('ExerciseDetailModal', () => {
     expect(link.closest('a')).toHaveAttribute('rel', expect.stringContaining('noopener noreferrer'))
   })
 
-  // ---- G. カスタム種目（isCustom: true）の場合 → 「フォーム動画を見る」リンクが表示されない ----
-  it('カスタム種目のとき「フォーム動画を見る」リンクが表示されない', () => {
-    renderModal({ isCustom: true })
+  // ---- G. カスタム種目（isCustom: true）の場合 → YouTube 検索URLの「フォーム動画を見る」リンクが表示される ----
+  it('カスタム種目のとき「フォーム動画を見る」リンクが表示され、YouTube 検索URLになっている', () => {
+    renderModal({ isCustom: true, name: 'マイオリジナル種目' })
 
-    expect(screen.queryByText(/フォーム動画を見る/)).toBeNull()
+    const link = screen.getByText(/フォーム動画を見る/)
+    expect(link).toBeInTheDocument()
+    expect(link.closest('a')).toHaveAttribute('href', expect.stringContaining('youtube.com/results?search_query='))
   })
 })

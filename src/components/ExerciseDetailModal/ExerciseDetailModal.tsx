@@ -42,6 +42,8 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
   // カスタム種目はAPI待ち不要なので常に 'ok' として扱い、ローディング表示を出さない
   const effectiveStatus = hasCustomData || isCustomWithoutData ? 'ok' : status
 
+  // デフォルト種目: 静的マップの動画ID → 直リンク
+  // カスタム種目: マップに存在しないので常に検索URLにフォールバック
   const videoId = EXERCISE_VIDEO_MAP[exercise.name]
   const youtubeHref = videoId
     ? `https://www.youtube.com/watch?v=${videoId}`
@@ -107,17 +109,15 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
           </>
         )}
 
-        {/* デフォルト種目のみ YouTube フォーム動画リンクを表示 */}
-        {!exercise.isCustom && (
-          <a
-            href={youtubeHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.youtubeLink}
-          >
-            フォーム動画を見る ↗
-          </a>
-        )}
+        {/* デフォルト種目: 山本先生の直リンク、カスタム種目: YouTube 検索URL */}
+        <a
+          href={youtubeHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.youtubeLink}
+        >
+          フォーム動画を見る ↗
+        </a>
 
         <button
           className={styles.closeButton}
