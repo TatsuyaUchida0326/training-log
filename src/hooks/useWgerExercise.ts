@@ -25,14 +25,10 @@ async function fetchDescription(jaName: string): Promise<string> {
   const res = await fetch(`https://ja.wikipedia.org/api/rest_v1/page/summary/${encoded}`)
   if (!res.ok) return '' // 記事が存在しない場合は空文字を返す（非表示にする）
   const json: unknown = await res.json()
-  const extract =
-    typeof json === 'object' &&
-    json !== null &&
-    !Array.isArray(json) &&
-    'extract' in json &&
-    typeof (json as Record<string, unknown>).extract === 'string'
-      ? (json as Record<string, unknown>).extract as string
-      : undefined
+  const record = typeof json === 'object' && json !== null && !Array.isArray(json)
+    ? (json as Record<string, unknown>)
+    : null
+  const extract = record && typeof record.extract === 'string' ? record.extract : undefined
   return extract ?? ''
 }
 
