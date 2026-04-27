@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { PageHeaderProvider } from '../contexts/PageHeaderContext'
+import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import BodyPage from './BodyPage'
 
 function renderBodyPage() {

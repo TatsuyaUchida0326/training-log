@@ -17,6 +17,10 @@ interface BodyTrendChartProps {
   targetBodyFat: number  // 0 = 未設定
 }
 
+const CHART_PX_PER_POINT = 36
+const CHART_PADDING_PX = 50
+const CHART_MIN_WIDTH = 160
+
 export default function BodyTrendChart({ records, targetWeight, targetBodyFat }: BodyTrendChartProps) {
   const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date))
 
@@ -34,8 +38,8 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
     return null
   }
 
-  const weightChartWidth = Math.max(weightPoints.length * 36 + 50, 160)
-  const bodyFatChartWidth = Math.max(bodyFatPoints.length * 36 + 50, 160)
+  const weightChartWidth = Math.max(weightPoints.length * CHART_PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
+  const bodyFatChartWidth = Math.max(bodyFatPoints.length * CHART_PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
 
   return (
     <div className={styles.wrap}>

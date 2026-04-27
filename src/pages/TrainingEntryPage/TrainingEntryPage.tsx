@@ -2,11 +2,11 @@ import { useEffect, useRef, useState, useMemo } from 'react'
 import { X, Plus } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
-import { useTrainingRecords } from '../hooks/useTrainingRecords'
-import { useExercises } from '../hooks/useExercises'
-import { useSettings } from '../hooks/useSettings'
-import { calcRM, displayWeight, inputToKg } from '../utils/training'
-import type { TrainingRecord, TrainingSet } from '../types'
+import { useTrainingRecords } from '../../hooks/useTrainingRecords'
+import { useExercises } from '../../hooks/useExercises'
+import { useSettings } from '../../hooks/useSettings'
+import { calcRM, displayWeight, inputToKg } from '../../utils/training'
+import type { TrainingRecord, TrainingSet } from '../../types'
 import styles from './TrainingEntryPage.module.css'
 
 function newSetId(): string {
@@ -107,6 +107,7 @@ export default function TrainingEntryPage() {
       upsertRecord(newRecord)
     }
     initializedRef.current = true
+    // upsertRecord を deps に含めると再レンダーのたびに実行されるため、初回マウント時のみ実行するよう意図的に除外
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseId, date])
 

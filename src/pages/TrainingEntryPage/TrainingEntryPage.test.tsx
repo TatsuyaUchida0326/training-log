@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
-import { PageHeaderProvider } from '../contexts/PageHeaderContext'
+import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import TrainingEntryPage from './TrainingEntryPage'
 
 const EXERCISE_ID = 'ex-bench'

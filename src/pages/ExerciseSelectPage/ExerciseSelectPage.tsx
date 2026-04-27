@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useExercises } from '../hooks/useExercises'
-import { usePageHeader } from '../contexts/PageHeaderContext'
-import { CATEGORIES } from '../data/defaultExercises'
-import ExerciseDetailModal from '../components/ExerciseDetailModal/ExerciseDetailModal'
-import type { Exercise } from '../types'
+import { useExercises } from '../../hooks/useExercises'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
+import { CATEGORIES } from '../../data/defaultExercises'
+import ExerciseDetailModal from '../../components/ExerciseDetailModal/ExerciseDetailModal'
+import type { Exercise } from '../../types'
 import styles from './ExerciseSelectPage.module.css'
 
 const INITIAL_SHOW = 3

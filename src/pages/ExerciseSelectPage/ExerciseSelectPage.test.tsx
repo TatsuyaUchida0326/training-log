@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import ExerciseSelectPage from './ExerciseSelectPage'
-import { PageHeaderProvider, usePageHeader } from '../contexts/PageHeaderContext'
+import { PageHeaderProvider, usePageHeader } from '../../contexts/PageHeaderContext'
 
 function HeaderSpy() {
   const { header } = usePageHeader()

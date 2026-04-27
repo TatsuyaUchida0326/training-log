@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect } from 'vitest'
 import DateDetailPage from './DateDetailPage'
-import { PageHeaderProvider, usePageHeader } from '../contexts/PageHeaderContext'
+import { PageHeaderProvider, usePageHeader } from '../../contexts/PageHeaderContext'
 
 function HeaderSpy() {
   const { header } = usePageHeader()

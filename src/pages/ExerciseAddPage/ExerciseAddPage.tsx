@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useExercises } from '../hooks/useExercises'
+import { useExercises } from '../../hooks/useExercises'
 import styles from './ExerciseAddPage.module.css'
 
 export default function ExerciseAddPage() {

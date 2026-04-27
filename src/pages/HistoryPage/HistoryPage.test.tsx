@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { PageHeaderProvider } from '../contexts/PageHeaderContext'
+import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import HistoryPage from './HistoryPage'
-import type { TrainingRecord, Exercise } from '../types'
+import type { TrainingRecord, Exercise } from '../../types'
 
 // ── フィクスチャ ──────────────────────────────────────────────────────────────
 
