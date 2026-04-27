@@ -187,8 +187,9 @@ interface ChartBlockProps {
   color: string
 }
 
-// 1データ点あたりの幅（px）
 const PX_PER_POINT = 52
+const CHART_PADDING_PX = 60
+const CHART_MIN_WIDTH = 300
 
 function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
   const formatted = useMemo(
@@ -199,7 +200,7 @@ function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
     [data]
   )
 
-  const chartWidth = Math.max(formatted.length * PX_PER_POINT + 60, 300)
+  const chartWidth = Math.max(formatted.length * PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
 
   return (
     <div className={styles.chartBlock}>

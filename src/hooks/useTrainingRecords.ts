@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import type { TrainingRecord, TrainingSet } from '../types'
 
 const STORAGE_KEY = 'strength-log-records'
@@ -36,7 +36,7 @@ export function useTrainingRecords() {
     return past[0] ?? null
   }
 
-  function upsertRecord(record: TrainingRecord): void {
+  const upsertRecord = useCallback((record: TrainingRecord): void => {
     setRecords((prev) => {
       const idx = prev.findIndex((r) => r.id === record.id)
       const next =
@@ -46,7 +46,7 @@ export function useTrainingRecords() {
       persist(next)
       return next
     })
-  }
+  }, [])
 
   function addSet(recordId: string, set: TrainingSet): void {
     setRecords((prev) => {

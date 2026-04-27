@@ -107,9 +107,7 @@ export default function TrainingEntryPage() {
       upsertRecord(newRecord)
     }
     initializedRef.current = true
-    // upsertRecord を deps に含めると再レンダーのたびに実行されるため、初回マウント時のみ実行するよう意図的に除外
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exerciseId, date])
+  }, [exerciseId, date, upsertRecord])
 
   const record = exerciseId ? getRecord(exerciseId, date) : null
 
