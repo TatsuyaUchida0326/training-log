@@ -2,16 +2,26 @@
   padding: 0 0 5rem;
 }
 
-/* ── ヘッダー内統計（帯の subtitle として描画） ── */
-.headerStats {
+/* ── 日付 + 集計エリア（body上段） ── */
+.dateSection {
+  background: #1e3a6e;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.dateLabel {
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.bodyStats {
   display: flex;
   align-items: stretch;
-  width: 100%;
-  padding: 0 4px 4px;
   gap: 0;
 }
 
-.headerStatCard {
+.bodyStatCard {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -19,21 +29,21 @@
   gap: 2px;
 }
 
-.headerStatLabel {
+.bodyStatLabel {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.75);
   font-weight: 500;
   white-space: nowrap;
 }
 
-.headerStatValue {
+.bodyStatValue {
   font-size: 18px;
   font-weight: 700;
   color: #fff;
   line-height: 1;
 }
 
-.headerStatDivider {
+.bodyStatDivider {
   width: 1px;
   background: rgba(255, 255, 255, 0.3);
   margin: 2px 0;

@@ -49,37 +49,8 @@ export default function DateDetailPage() {
       : Math.round(totalVolume)
 
   useEffect(() => {
-    if (!dateStr) return
-    const d = parseISO(dateStr)
-    if (!isValid(d)) return
-    setHeader({
-      title: formatDateJa(d),
-      centered: true,
-      subtitle: (
-        <div className={styles.headerStats}>
-          <div className={styles.headerStatCard}>
-            <span className={styles.headerStatLabel}>合計種目数</span>
-            <span className={styles.headerStatValue}>{totalExercises}</span>
-          </div>
-          <div className={styles.headerStatDivider} />
-          <div className={styles.headerStatCard}>
-            <span className={styles.headerStatLabel}>合計セット数</span>
-            <span className={styles.headerStatValue}>{totalSets}</span>
-          </div>
-          <div className={styles.headerStatDivider} />
-          <div className={styles.headerStatCard}>
-            <span className={styles.headerStatLabel}>合計レップ数</span>
-            <span className={styles.headerStatValue}>{totalReps}</span>
-          </div>
-          <div className={styles.headerStatDivider} />
-          <div className={styles.headerStatCard}>
-            <span className={styles.headerStatLabel}>合計負荷量({unit})</span>
-            <span className={styles.headerStatValue}>{displayVolume.toLocaleString()}</span>
-          </div>
-        </div>
-      ),
-    })
-  }, [dateStr, totalExercises, totalSets, totalReps, displayVolume, unit, setHeader, navigate])
+    setHeader({ title: 'トレーニング記録', centered: true })
+  }, [setHeader])
 
   if (!isValidDate) {
     return (
@@ -91,6 +62,32 @@ export default function DateDetailPage() {
 
   return (
     <div className={styles.page}>
+      {/* 日付 + 集計カード */}
+      <div className={styles.dateSection}>
+        <div className={styles.dateLabel}>{formatDateJa(date)}</div>
+        <div className={styles.bodyStats}>
+          <div className={styles.bodyStatCard}>
+            <span className={styles.bodyStatLabel}>合計種目数</span>
+            <span className={styles.bodyStatValue}>{totalExercises}</span>
+          </div>
+          <div className={styles.bodyStatDivider} />
+          <div className={styles.bodyStatCard}>
+            <span className={styles.bodyStatLabel}>合計セット数</span>
+            <span className={styles.bodyStatValue}>{totalSets}</span>
+          </div>
+          <div className={styles.bodyStatDivider} />
+          <div className={styles.bodyStatCard}>
+            <span className={styles.bodyStatLabel}>合計レップ数</span>
+            <span className={styles.bodyStatValue}>{totalReps}</span>
+          </div>
+          <div className={styles.bodyStatDivider} />
+          <div className={styles.bodyStatCard}>
+            <span className={styles.bodyStatLabel}>負荷量({unit})</span>
+            <span className={styles.bodyStatValue}>{displayVolume.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
       {/* コンテンツ */}
       <div className={styles.content}>
         {totalExercises === 0 ? (
