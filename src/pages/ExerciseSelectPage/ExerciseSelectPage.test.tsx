@@ -12,7 +12,7 @@ function HeaderSpy() {
 
 const mockDeleteExercise = vi.fn()
 
-vi.mock('../hooks/useExercises', () => ({
+vi.mock('../../hooks/useExercises', () => ({
   useExercises: () => ({
     exercises: [
       { id: '1', name: 'ベンチプレス', categoryId: '胸', isCustom: false },

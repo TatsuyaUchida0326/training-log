@@ -117,4 +117,43 @@ describe('useWgerExercise', () => {
     expect(result.current.data!.descriptionJa).toContain('有酸素運動')
     expect(result.current.data!.muscles).toEqual([])
   })
+
+  it('Wikipedia API が extract フィールドのないオブジェクトを返した場合は descriptionJa="" になる', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ type: 'standard' }),
+    })
+
+    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(result.current.data!.descriptionJa).toBe('')
+  })
+
+  it('Wikipedia API が null を返した場合は descriptionJa="" になる', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => null,
+    })
+
+    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(result.current.data!.descriptionJa).toBe('')
+  })
+
+  it('Wikipedia API が配列を返した場合は descriptionJa="" になる', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ['unexpected'],
+    })
+
+    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(result.current.data!.descriptionJa).toBe('')
+  })
 })

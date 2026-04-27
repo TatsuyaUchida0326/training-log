@@ -30,7 +30,7 @@ const MOCK_RECORDS: TrainingRecord[] = [
 
 // ── モック ────────────────────────────────────────────────────────────────────
 
-vi.mock('../hooks/useTrainingRecords', () => ({
+vi.mock('../../hooks/useTrainingRecords', () => ({
   useTrainingRecords: () => ({
     records: MOCK_RECORDS,
     getRecordsByDate: (date: string) => MOCK_RECORDS.filter((r) => r.date === date),
@@ -44,7 +44,7 @@ vi.mock('../hooks/useTrainingRecords', () => ({
   }),
 }))
 
-vi.mock('../hooks/useExercises', () => ({
+vi.mock('../../hooks/useExercises', () => ({
   useExercises: () => ({
     exercises: MOCK_EXERCISES,
     addExercise: vi.fn(),

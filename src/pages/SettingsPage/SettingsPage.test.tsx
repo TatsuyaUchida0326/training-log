@@ -8,7 +8,7 @@ const mockUpdateTrainingDefaultSets = vi.fn()
 const mockUpdateRequiredExercises = vi.fn()
 const mockUpdateWeightUnit = vi.fn()
 
-vi.mock('../hooks/useSettings', () => ({
+vi.mock('../../hooks/useSettings', () => ({
   useSettings: () => ({
     settings: { defaultSets: 3, trainingDefaultSets: 3, weightUnit: 'kg', requiredExercises: 3 },
     updateDefaultSets: mockUpdateDefaultSets,
