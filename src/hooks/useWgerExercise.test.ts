@@ -156,4 +156,50 @@ describe('useWgerExercise', () => {
 
     expect(result.current.data!.descriptionJa).toBe('')
   })
+
+  // A. Wikipedia API が thumbnail.source を返した場合 → thumbnailUrl にそのURLが入る
+  it('Wikipedia API が thumbnail.source を返した場合、thumbnailUrl にそのURLが入る', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        type: 'standard',
+        extract: '説明文。',
+        thumbnail: { source: 'https://example.com/img.jpg', width: 320, height: 240 },
+      }),
+    })
+
+    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(result.current.data!.thumbnailUrl).toBe('https://example.com/img.jpg')
+  })
+
+  // B. Wikipedia API が thumbnail なしで返した場合 → thumbnailUrl が空文字
+  it('Wikipedia API が thumbnail なしで返した場合、thumbnailUrl が空文字になる', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ type: 'standard', extract: '説明文。' }),
+    })
+
+    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(result.current.data!.thumbnailUrl).toBe('')
+  })
+
+  // C. Wikipedia API が thumbnail.source が文字列でない場合 → thumbnailUrl が空文字
+  it('Wikipedia API が thumbnail.source が文字列でない場合、thumbnailUrl が空文字になる', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ type: 'standard', extract: '説明文。', thumbnail: { source: 123 } }),
+    })
+
+    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    act(() => { result.current.fetch() })
+    await waitFor(() => expect(result.current.status).toBe('ok'))
+
+    expect(result.current.data!.thumbnailUrl).toBe('')
+  })
 })

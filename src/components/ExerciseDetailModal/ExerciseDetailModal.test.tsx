@@ -157,4 +157,61 @@ describe('ExerciseDetailModal', () => {
 
     expect(screen.getByText(/種目追加時に情報を入力すると表示されます/)).toBeInTheDocument()
   })
+
+  // ---- D. デフォルト種目で thumbnailUrl がある場合 → <img> が表示される ----
+  it('status="ok" かつ thumbnailUrl がある場合、<img> が表示される', () => {
+    mockStatus = 'ok'
+    mockData = {
+      muscles: [],
+      musclesSecondary: [],
+      descriptionJa: '',
+      thumbnailUrl: 'https://example.com/img.jpg',
+    }
+
+    renderModal({ isCustom: false })
+
+    const img = screen.getByRole('img')
+    expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('src', 'https://example.com/img.jpg')
+  })
+
+  // ---- E. デフォルト種目で thumbnailUrl が空文字の場合 → <img> が表示されない ----
+  it('status="ok" かつ thumbnailUrl が空文字の場合、<img> が表示されない', () => {
+    mockStatus = 'ok'
+    mockData = {
+      muscles: [],
+      musclesSecondary: [],
+      descriptionJa: '',
+      thumbnailUrl: '',
+    }
+
+    renderModal({ isCustom: false })
+
+    expect(screen.queryByRole('img')).toBeNull()
+  })
+
+  // ---- F. デフォルト種目（isCustom: false）の場合 → 「フォーム動画を見る」リンクが表示される ----
+  it('デフォルト種目のとき「フォーム動画を見る」リンクが表示され、YouTube へのリンクになっている', () => {
+    mockStatus = 'ok'
+    mockData = {
+      muscles: [],
+      musclesSecondary: [],
+      descriptionJa: '',
+      thumbnailUrl: '',
+    }
+
+    renderModal({ isCustom: false })
+
+    const link = screen.getByText(/フォーム動画を見る/)
+    expect(link).toBeInTheDocument()
+    expect(link.closest('a')).toHaveAttribute('href', expect.stringContaining('youtube.com'))
+    expect(link.closest('a')).toHaveAttribute('rel', expect.stringContaining('noopener noreferrer'))
+  })
+
+  // ---- G. カスタム種目（isCustom: true）の場合 → 「フォーム動画を見る」リンクが表示されない ----
+  it('カスタム種目のとき「フォーム動画を見る」リンクが表示されない', () => {
+    renderModal({ isCustom: true })
+
+    expect(screen.queryByText(/フォーム動画を見る/)).toBeNull()
+  })
 })

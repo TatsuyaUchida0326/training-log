@@ -57,9 +57,9 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
             ) : effectiveData && (
               <>
                 {/* Wikipedia サムネイル（デフォルト種目かつ画像URLがある場合のみ表示） */}
-                {(effectiveData.thumbnailUrl ?? '') && (
+                {effectiveData.thumbnailUrl && (
                   <img
-                    src={effectiveData.thumbnailUrl ?? ''}
+                    src={effectiveData.thumbnailUrl}
                     alt={exercise.name}
                     className={styles.thumbnail}
                   />
