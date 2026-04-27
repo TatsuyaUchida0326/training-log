@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Info } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../../hooks/useExercises'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
@@ -104,7 +103,7 @@ export default function ExerciseSelectPage() {
                             setDetailExercise(ex)
                           }}
                         >
-                          <Info size={18} />
+                          解説
                         </button>
                       )}
                     </div>
