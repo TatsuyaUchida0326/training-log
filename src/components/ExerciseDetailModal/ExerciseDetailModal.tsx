@@ -34,6 +34,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
         muscles: exercise.muscles ?? [],
         musclesSecondary: exercise.musclesSecondary ?? [],
         descriptionJa: exercise.description ?? '',
+        thumbnailUrl: '',  // カスタム種目は画像なし
       }
     : data
 
@@ -55,6 +56,15 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
               <p className={styles.description}>種目追加時に情報を入力すると表示されます</p>
             ) : effectiveData && (
               <>
+                {/* Wikipedia サムネイル（デフォルト種目かつ画像URLがある場合のみ表示） */}
+                {(effectiveData.thumbnailUrl ?? '') && (
+                  <img
+                    src={effectiveData.thumbnailUrl ?? ''}
+                    alt={exercise.name}
+                    className={styles.thumbnail}
+                  />
+                )}
+
                 <div className={styles.section}>
                   <div className={styles.sectionLabel}>対象筋肉</div>
                   {effectiveData.muscles.length > 0 ? (
@@ -89,6 +99,18 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
               </>
             )}
           </>
+        )}
+
+        {/* デフォルト種目のみ YouTube フォーム動画リンクを表示 */}
+        {!exercise.isCustom && (
+          <a
+            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + ' フォーム')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.youtubeLink}
+          >
+            フォーム動画を見る ↗
+          </a>
         )}
 
         <button
