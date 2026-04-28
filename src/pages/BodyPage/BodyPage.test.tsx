@@ -146,7 +146,7 @@ describe('BodyPage - calcBody 計算値', () => {
   it('身長・体重が設定されていれば BMI が計算される', () => {
     // localStorage に設定を直接セット
     localStorage.setItem('strength-log-body-settings', JSON.stringify({ height: 170, targetWeight: 0, muscleMassUnit: '%', targetBodyFat: 0 }))
-    const today = new Date().toISOString().slice(0, 10)
+    const today = format(new Date(), 'yyyy-MM-dd')
     localStorage.setItem('strength-log-body-records', JSON.stringify([
       { date: today, weight: 68, bodyFat: null, muscleMass: null, waist: null, memo: '' }
     ]))
@@ -156,7 +156,7 @@ describe('BodyPage - calcBody 計算値', () => {
   })
 
   it('体重と体脂肪率が設定されていれば体脂肪量が計算される', () => {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = format(new Date(), 'yyyy-MM-dd')
     localStorage.setItem('strength-log-body-records', JSON.stringify([
       { date: today, weight: 80, bodyFat: 20, muscleMass: null, waist: null, memo: '' }
     ]))
@@ -166,7 +166,7 @@ describe('BodyPage - calcBody 計算値', () => {
   })
 
   it('体重と体脂肪率が設定されていれば除脂肪体重が計算される', () => {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = format(new Date(), 'yyyy-MM-dd')
     localStorage.setItem('strength-log-body-records', JSON.stringify([
       { date: today, weight: 80, bodyFat: 20, muscleMass: null, waist: null, memo: '' }
     ]))
