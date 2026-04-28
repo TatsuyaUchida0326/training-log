@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useBodySettings } from '../hooks/useBodySettings'
-import { usePageHeader } from '../contexts/PageHeaderContext'
+import { useBodySettings } from '../../hooks/useBodySettings'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
 import styles from './BodySettingsPage.module.css'
 
 export default function BodySettingsPage() {

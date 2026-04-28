@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addDays, subDays } from 'date-fns'
-import { useBodyRecords } from '../hooks/useBodyRecords'
-import { useBodySettings } from '../hooks/useBodySettings'
-import { usePageHeader } from '../contexts/PageHeaderContext'
-import { calcBody } from '../utils/body'
+import { useBodyRecords } from '../../hooks/useBodyRecords'
+import { useBodySettings } from '../../hooks/useBodySettings'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
+import { calcBody } from '../../utils/body'
 import styles from './BodyPage.module.css'
 
 function toDateStr(date: Date): string {

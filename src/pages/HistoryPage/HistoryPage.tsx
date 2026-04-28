@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { Dumbbell } from 'lucide-react'
 import { addMonths, subMonths, format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
-import { usePageHeader } from '../contexts/PageHeaderContext'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
 import {
   LineChart,
   Line,
@@ -11,13 +11,13 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import Calendar from '../components/Calendar/Calendar'
-import CalendarDayPopup from '../components/CalendarDayPopup/CalendarDayPopup'
-import { useTrainingRecords } from '../hooks/useTrainingRecords'
-import { useExercises } from '../hooks/useExercises'
-import { CATEGORIES } from '../data/defaultExercises'
-import { calcHistoryStats } from '../utils/historyStats'
-import type { GraphPoint } from '../utils/historyStats'
+import Calendar from '../../components/Calendar/Calendar'
+import CalendarDayPopup from '../../components/CalendarDayPopup/CalendarDayPopup'
+import { useTrainingRecords } from '../../hooks/useTrainingRecords'
+import { useExercises } from '../../hooks/useExercises'
+import { CATEGORIES } from '../../data/defaultExercises'
+import { calcHistoryStats } from '../../utils/historyStats'
+import type { GraphPoint } from '../../utils/historyStats'
 import styles from './HistoryPage.module.css'
 
 type ViewMode = 'calendar' | 'graph'
@@ -187,16 +187,20 @@ interface ChartBlockProps {
   color: string
 }
 
-// 1データ点あたりの幅（px）
 const PX_PER_POINT = 52
+const CHART_PADDING_PX = 60
+const CHART_MIN_WIDTH = 300
 
 function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
-  const formatted = data.map((d) => ({
-    date: format(new Date(d.date), 'M/d'),
-    value: d.value,
-  }))
+  const formatted = useMemo(
+    () => data.map((d) => ({
+      date: format(new Date(d.date), 'M/d'),
+      value: d.value,
+    })),
+    [data]
+  )
 
-  const chartWidth = Math.max(formatted.length * PX_PER_POINT + 60, 300)
+  const chartWidth = Math.max(formatted.length * PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
 
   return (
     <div className={styles.chartBlock}>

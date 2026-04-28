@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import { useSettings } from '../hooks/useSettings'
-import { usePageHeader } from '../contexts/PageHeaderContext'
+import { useSettings } from '../../hooks/useSettings'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
 import styles from './SettingsPage.module.css'
 
 export default function SettingsPage() {

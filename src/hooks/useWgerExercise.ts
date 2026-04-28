@@ -24,8 +24,12 @@ async function fetchDescription(jaName: string): Promise<string> {
   const encoded = encodeURIComponent(jaName)
   const res = await fetch(`https://ja.wikipedia.org/api/rest_v1/page/summary/${encoded}`)
   if (!res.ok) return '' // 記事が存在しない場合は空文字を返す（非表示にする）
-  const json = await res.json() as { extract?: string }
-  return json.extract ?? ''
+  const json: unknown = await res.json()
+  const record = typeof json === 'object' && json !== null && !Array.isArray(json)
+    ? (json as Record<string, unknown>)
+    : null
+  const extract = record && typeof record.extract === 'string' ? record.extract : undefined
+  return extract ?? ''
 }
 
 // 筋肉情報（静的）＋説明文（静的 or Wikipedia）を組み合わせてデータを構築する

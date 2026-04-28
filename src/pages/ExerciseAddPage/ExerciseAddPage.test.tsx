@@ -6,7 +6,7 @@ import ExerciseAddPage from './ExerciseAddPage'
 
 const mockAddExercise = vi.fn()
 
-vi.mock('../hooks/useExercises', () => ({
+vi.mock('../../hooks/useExercises', () => ({
   useExercises: () => ({
     exercises: [],
     getCategoryExercises: vi.fn(),
