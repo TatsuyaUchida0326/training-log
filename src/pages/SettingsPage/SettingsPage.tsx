@@ -7,7 +7,7 @@ export default function SettingsPage() {
   const { settings, updateDefaultSets, updateTrainingDefaultSets, updateRequiredExercises, updateWeightUnit } = useSettings()
   const { setHeader } = usePageHeader()
   useEffect(() => {
-    setHeader({ title: '初期値設定', centered: true })
+    setHeader({ title: '設定画面', centered: true })
   }, [setHeader])
 
   // 全データを削除してアプリを初期状態に戻す処理

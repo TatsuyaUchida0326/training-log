@@ -21,7 +21,7 @@ export default function HomePage() {
   const { setHeader } = usePageHeader()
 
   useEffect(() => {
-    setHeader({ title: 'Strength Log', centered: false })
+    setHeader({ title: 'ホーム画面', centered: true })
   }, [setHeader])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)

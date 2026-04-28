@@ -5,6 +5,7 @@ import { format } from 'date-fns'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
 import { useSettings } from '../../hooks/useSettings'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
 import { calcRM, displayWeight, inputToKg } from '../../utils/training'
 import type { TrainingRecord, TrainingSet } from '../../types'
 import styles from './TrainingEntryPage.module.css'
@@ -44,6 +45,12 @@ export default function TrainingEntryPage() {
 
   const { settings } = useSettings()
   const { exercises } = useExercises()
+  const { setHeader } = usePageHeader()
+
+  useEffect(() => {
+    setHeader({ title: 'トレーニング記録画面', centered: true })
+  }, [setHeader])
+
   const {
     records,
     getRecord,

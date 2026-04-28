@@ -1,18 +1,41 @@
-/* 日付ナビゲーショングループ（カレンダーと同仕様） */
-.dateNav {
+/* 日付ナビゲーション（body内カード） */
+.dateNavRow {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 10px 16px;
   gap: 0.75rem;
 }
 
 .dateNavTitle {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #fff;
+  color: #111827;
   letter-spacing: 0.03em;
   min-width: 6.5em;
   text-align: center;
+}
+
+.dateNavBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #374151;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dateNavBtn:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .page {

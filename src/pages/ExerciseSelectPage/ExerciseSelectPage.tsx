@@ -20,7 +20,7 @@ export default function ExerciseSelectPage() {
   const [detailExercise, setDetailExercise] = useState<Exercise | null>(null)
 
   useEffect(() => {
-    setHeader({ title: '種目を選択', centered: true })
+    setHeader({ title: 'メニュー画面', centered: true })
   }, [setHeader])
 
   // デフォルト順 + カスタムカテゴリー（CATEGORIES にないもの）を末尾に追加

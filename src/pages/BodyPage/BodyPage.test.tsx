@@ -1,4 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { format, addDays } from 'date-fns'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import BodyPage from './BodyPage'
@@ -86,6 +88,38 @@ describe('BodyPage - 入力と自動計算', () => {
   it('メモ入力欄が表示される', () => {
     renderBodyPage()
     expect(screen.getByPlaceholderText('メモを入力')).toBeInTheDocument()
+  })
+})
+
+describe('BodyPage - 日付ナビゲーション', () => {
+  it('「前の日」ボタンが表示される', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('前の日')).toBeInTheDocument()
+  })
+
+  it('「次の日」ボタンが表示される', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('次の日')).toBeInTheDocument()
+  })
+
+  it('今日の日付が表示される', () => {
+    renderBodyPage()
+    const todayStr = format(new Date(), 'yyyy年M月d日')
+    expect(screen.getByText(todayStr)).toBeInTheDocument()
+  })
+
+  it('「次の日」をクリックすると明日の日付が表示される', async () => {
+    renderBodyPage()
+    const tomorrowStr = format(addDays(new Date(), 1), 'yyyy年M月d日')
+    await userEvent.click(screen.getByLabelText('次の日'))
+    expect(screen.getByText(tomorrowStr)).toBeInTheDocument()
+  })
+
+  it('「前の日」をクリックすると昨日の日付が表示される', async () => {
+    renderBodyPage()
+    const yesterdayStr = format(addDays(new Date(), -1), 'yyyy年M月d日')
+    await userEvent.click(screen.getByLabelText('前の日'))
+    expect(screen.getByText(yesterdayStr)).toBeInTheDocument()
   })
 })
 

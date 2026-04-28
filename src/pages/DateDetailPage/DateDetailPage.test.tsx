@@ -23,9 +23,9 @@ function renderWithRoute(dateStr: string) {
 }
 
 describe('DateDetailPage', () => {
-  it('ヘッダータイトルは「トレーニング記録」で固定される', () => {
+  it('ヘッダータイトルは「トレーニング記録画面」で固定される', () => {
     renderWithRoute('2026-04-16')
-    expect(screen.getByTestId('page-title')).toHaveTextContent('トレーニング記録')
+    expect(screen.getByTestId('page-title')).toHaveTextContent('トレーニング記録画面')
   })
 
   it('有効な dateStr で日本語の日付が body に表示される', () => {

@@ -28,29 +28,8 @@ export default function BodyPage() {
   const muscleMassUnitLabel = settings.muscleMassUnit
 
   useEffect(() => {
-    setHeader({
-      title: (
-        <div className={styles.dateNav}>
-          <button
-            className="header-nav-btn"
-            onClick={() => setCurrentDate((d) => subDays(d, 1))}
-            aria-label="前の日"
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <span className={styles.dateNavTitle}>{formatDisplay(currentDate)}</span>
-          <button
-            className="header-nav-btn"
-            onClick={() => setCurrentDate((d) => addDays(d, 1))}
-            aria-label="次の日"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      ),
-      centered: true,
-    })
-  }, [currentDate, setHeader])
+    setHeader({ title: '体組成画面', centered: true })
+  }, [setHeader])
 
   function handleNumBlur(
     field: 'weight' | 'bodyFat' | 'muscleMass' | 'waist',
@@ -76,6 +55,24 @@ export default function BodyPage() {
   return (
     <div className={styles.page}>
       <div className={styles.scrollArea}>
+        {/* 日付ナビゲーション */}
+        <div className={styles.dateNavRow}>
+          <button
+            className={styles.dateNavBtn}
+            onClick={() => setCurrentDate((d) => subDays(d, 1))}
+            aria-label="前の日"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <span className={styles.dateNavTitle}>{formatDisplay(currentDate)}</span>
+          <button
+            className={styles.dateNavBtn}
+            onClick={() => setCurrentDate((d) => addDays(d, 1))}
+            aria-label="次の日"
+          >
+            <ChevronRight size={18} />
+          </button>
+        </div>
 
         {/* 基本情報カード */}
         <div className={styles.card}>

@@ -49,7 +49,7 @@ export default function DateDetailPage() {
       : Math.round(totalVolume)
 
   useEffect(() => {
-    setHeader({ title: 'トレーニング記録', centered: true })
+    setHeader({ title: 'トレーニング記録画面', centered: true })
   }, [setHeader])
 
   if (!isValidDate) {
