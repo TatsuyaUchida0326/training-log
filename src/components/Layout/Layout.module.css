@@ -1,7 +1,14 @@
 .layout {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   min-height: 100vh;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .header {
@@ -107,5 +114,4 @@
 .main {
   flex: 1;
   padding: 1rem;
-  padding-bottom: 5rem;
 }

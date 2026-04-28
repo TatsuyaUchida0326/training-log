@@ -7,7 +7,7 @@ import DateDetailPage from './DateDetailPage'
 import HistoryPage from './HistoryPage'
 import SettingsPage from './SettingsPage'
 
-// BottomNav が必要とするタブ情報を持つラッパー
+// Sidebar が必要とするタブ情報を持つラッパー
 function AppRoutes({ initialPath }: { initialPath: string }) {
   return (
     <PageHeaderProvider>

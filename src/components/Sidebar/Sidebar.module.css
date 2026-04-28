@@ -1,0 +1,57 @@
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #0c1e3d 0%, #1565c0 100%);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 1.25rem 1rem;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(100, 181, 246, 0.25);
+  letter-spacing: 0.01em;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+
+.tab {
+  text-decoration: none;
+  display: block;
+}
+
+.tabInner {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  transition: background 0.15s, color 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.tabInner[data-active='true'] {
+  background: rgba(255, 255, 255, 0.12);
+  color: #90caf9;
+  border-left-color: #90caf9;
+}
+
+.tabInner[data-active='false']:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.label {
+  font-size: 0.875rem;
+}
