@@ -438,3 +438,65 @@ c() { gh api repos/$REPO/pulls/$PR/comments -f body="$1" -f commit_id="$SHA" -f 
 ### コーディング規約に追加すべき事項
 1. **外部API採用前の疎通確認**: `curl` で主要エンドポイントをすべて確認してから実装する。エンドポイントが動作することを前提にしない
 2. **外部APIの代替設計**: 外部APIが廃止・変更された場合のフォールバック（静的データ、代替API）を設計段階で考慮する
+
+---
+
+## セッション振り返り（2026-04-24 後半 — PRフローの事後修正）
+
+## Plan（計画）
+
+wger API → Wikipedia API 切り替えおよびカスタム種目入力機能を、フィーチャーブランチを通さずに main へ直接コミットしてしまっていたため、PRフローを遡及修正する。
+
+---
+
+## Do（実施内容）
+
+1. `git reset --hard 1827c88` で local main を feat/body-trend-chart マージコミットまで巻き戻す
+2. `git push origin main --force` でリモートも同地点に巻き戻す
+3. `fix/wikipedia-api` ブランチを作成し、2件の修正コミットを cherry-pick → push → PR #8 作成・マージ
+4. `feat/custom-exercise-info` ブランチを作成し、カスタム種目コミットを cherry-pick → push → PR #9 作成・マージ
+5. PDCA docs コミットを直接 main に cherry-pick して push
+
+---
+
+## Check（検証）
+
+### テスト結果
+- 249テスト 26ファイル 全件パス
+- ビルド成功（npm run build）
+
+### よかった点
+- `git cherry-pick` でコミット内容を保持しながらブランチを正しく分岐させられた
+- `gh pr create` / `gh pr merge` でコマンドラインから PR フローを完結できた
+
+### 反省点
+- **PRフローを最初から守るべきだった**: main への直接コミットは事後に力技で修正が必要になり工数が増える。今後はどんな小さな修正も必ず feature/fix ブランチ → PR の流れで行う
+- **force-push は慎重に**: 今回はユーザー承認済みで単独リポジトリだったため問題なかったが、共同開発では他者の作業を破壊する危険がある
+
+---
+
+## Act（次回への改善）
+
+### ルール追加（git-rules）
+- **main への直接 push は禁止**: 緊急の hotfix 含め、必ず feature/fix ブランチ → PR → merge の順で行う
+- **コミット前のブランチ確認**: `git branch --show-current` で現在のブランチを確認してから commit する
+
+---
+
+## PR #11: 設定画面に全データをリセットボタンを追加（2026-04-25）
+
+### 実装内容
+- `SettingsPage.tsx` にデータ管理セクションと `handleResetAllData()` 関数を追加
+- `window.confirm` → `localStorage.clear()` → `window.location.reload()` の流れでリセット
+
+### テスト結果
+- 266テスト 27ファイル 全件パス
+- `vi.spyOn(localStorage, 'clear')` が jsdom で機能しない問題を発見 → `Storage.prototype.clear` をスパイすることで解決
+
+### 反省点
+- **GitHub レビューコメントとソースコードコメントを混同した**: ユーザーが「Files Changed タブの＋ボタンで挿入するコメント」と言っていたのに、ソースコード内に `//` コメントを追加してしまった。今後「PRのコメント挿入」は GitHub インラインレビューコメント（`gh api pulls/{n}/comments`）を指す
+- **`gh api` の `-f` と `-F` の違い**: 整数型パラメータには `-F`、文字列には `-f` を使わないと 422 エラーになる
+
+### よかった点
+- jsdom の localStorage スパイ問題を自律的に発見・修正できた
+- GitHub API で全 `+` 行にレビューコメントを一括投稿できた

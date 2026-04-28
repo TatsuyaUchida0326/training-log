@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useWgerExercise } from '../../hooks/useWgerExercise'
 import type { Exercise } from '../../types'
 import type { WgerExerciseData } from '../../hooks/useWgerExercise'
+import { EXERCISE_VIDEO_MAP } from '../../data/exerciseVideoMap'
 import styles from './ExerciseDetailModal.module.css'
 
 interface Props {
@@ -34,11 +35,19 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
         muscles: exercise.muscles ?? [],
         musclesSecondary: exercise.musclesSecondary ?? [],
         descriptionJa: exercise.description ?? '',
+        thumbnailUrl: '',  // カスタム種目は画像なし
       }
     : data
 
   // カスタム種目はAPI待ち不要なので常に 'ok' として扱い、ローディング表示を出さない
   const effectiveStatus = hasCustomData || isCustomWithoutData ? 'ok' : status
+
+  // デフォルト種目: 静的マップの動画ID → 直リンク
+  // カスタム種目: マップに存在しないので常に検索URLにフォールバック
+  const videoId = EXERCISE_VIDEO_MAP[exercise.name]
+  const youtubeHref = videoId
+    ? `https://www.youtube.com/watch?v=${videoId}`
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + ' フォーム')}`
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -55,6 +64,15 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
               <p className={styles.description}>種目追加時に情報を入力すると表示されます</p>
             ) : effectiveData && (
               <>
+                {/* Wikipedia サムネイル（デフォルト種目かつ画像URLがある場合のみ表示） */}
+                {effectiveData.thumbnailUrl && (
+                  <img
+                    src={effectiveData.thumbnailUrl}
+                    alt={exercise.name}
+                    className={styles.thumbnail}
+                  />
+                )}
+
                 <div className={styles.section}>
                   <div className={styles.sectionLabel}>対象筋肉</div>
                   {effectiveData.muscles.length > 0 ? (
@@ -90,6 +108,16 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
             )}
           </>
         )}
+
+        {/* デフォルト種目: 山本先生の直リンク、カスタム種目: YouTube 検索URL */}
+        <a
+          href={youtubeHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.youtubeLink}
+        >
+          フォーム動画を見る ↗
+        </a>
 
         <button
           className={styles.closeButton}

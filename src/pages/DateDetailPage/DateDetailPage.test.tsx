@@ -23,14 +23,19 @@ function renderWithRoute(dateStr: string) {
 }
 
 describe('DateDetailPage', () => {
-  it('有効な dateStr で日本語の日付が表示される', () => {
+  it('ヘッダータイトルは「トレーニング記録画面」で固定される', () => {
     renderWithRoute('2026-04-16')
-    expect(screen.getByTestId('page-title')).toHaveTextContent('2026年4月16日（木）')
+    expect(screen.getByTestId('page-title')).toHaveTextContent('トレーニング記録画面')
+  })
+
+  it('有効な dateStr で日本語の日付が body に表示される', () => {
+    renderWithRoute('2026-04-16')
+    expect(screen.getByText('2026年4月16日（木）')).toBeInTheDocument()
   })
 
   it('別の日付でも正しく日本語表示される', () => {
     renderWithRoute('2026-01-01')
-    expect(screen.getByTestId('page-title')).toHaveTextContent('2026年1月1日（木）')
+    expect(screen.getByText('2026年1月1日（木）')).toBeInTheDocument()
   })
 
   it('空状態メッセージが表示される', () => {

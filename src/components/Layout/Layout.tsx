@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
-import BottomNav from '../BottomNav/BottomNav'
+import Sidebar from '../Sidebar/Sidebar'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import type { TabName } from '../../types'
 import styles from './Layout.module.css'
@@ -23,24 +23,26 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className={styles.layout}>
-      <header className={styles.header}>
-        <div className={styles.headerInner}>
-          <div className={styles.headerLeft}>
-            {header.leftElement ?? null}
+      <Sidebar activeTab={activeTab} />
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <div className={styles.headerInner}>
+            <div className={styles.headerLeft}>
+              {header.leftElement ?? null}
+            </div>
+            <h1 className={`${styles.title} ${header.centered ? styles.titleCentered : ''}`}>
+              {header.title}
+            </h1>
+            <div className={styles.headerRight}>
+              {header.rightElement ?? null}
+            </div>
           </div>
-          <h1 className={`${styles.title} ${header.centered ? styles.titleCentered : ''}`}>
-            {header.title}
-          </h1>
-          <div className={styles.headerRight}>
-            {header.rightElement ?? null}
-          </div>
-        </div>
-        {header.subtitle && (
-          <div className={styles.headerSubtitle}>{header.subtitle}</div>
-        )}
-      </header>
-      <main className={styles.main}>{children}</main>
-      <BottomNav activeTab={activeTab} />
+          {header.subtitle && (
+            <div className={styles.headerSubtitle}>{header.subtitle}</div>
+          )}
+        </header>
+        <main className={styles.main}>{children}</main>
+      </div>
     </div>
   )
 }

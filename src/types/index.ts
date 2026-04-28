@@ -64,6 +64,6 @@ export interface CalendarProps {
   markIcon?: React.ReactNode      // マークアイコンの上書き（デフォルト 💪）
 }
 
-export interface BottomNavProps {
+export interface SidebarProps {
   activeTab: TabName
 }

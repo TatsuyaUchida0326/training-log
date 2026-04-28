@@ -53,9 +53,9 @@ describe('ExerciseSelectPage', () => {
     vi.clearAllMocks()
   })
 
-  it('「種目を選択」タイトルが表示される', () => {
+  it('「メニュー画面」タイトルが表示される', () => {
     renderPage()
-    expect(screen.getByTestId('page-title')).toHaveTextContent('種目を選択')
+    expect(screen.getByTestId('page-title')).toHaveTextContent('メニュー画面')
   })
 
   it('「胸」カテゴリーヘッダーが表示される', () => {
