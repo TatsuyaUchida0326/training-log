@@ -1,9 +1,8 @@
+/* 内側スクロールをやめ、ドキュメント全体のスクロールに任せる */
 .page {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: #f9fafb;
-  overflow: hidden;
+  gap: 12px;
 }
 
 /* ヘッダーバー */
@@ -15,6 +14,7 @@
   padding: 10px 12px;
   gap: 8px;
   flex-shrink: 0;
+  border-radius: 12px;
 }
 
 .barTitle {
@@ -48,11 +48,8 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* スクロール領域 */
+/* 本文（スクロールはドキュメント側が持つ） */
 .scrollArea {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -105,11 +102,21 @@
   overflow: hidden;
 }
 
+/*
+ * 4カラム・2段のセット行。
+ * 1段目 = セット番号 / 重さ / 回数 / 削除、2段目 = RM。
+ * 320px でも横スクロールしないよう、入力欄は minmax(0, 1fr) で潰せるようにする。
+ */
+.tableHeader,
+.setRow {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr) 44px;
+  column-gap: 4px;
+  align-items: center;
+}
+
 /* テーブルヘッダー */
 .tableHeader {
-  display: grid;
-  grid-template-columns: 44px 1fr 1fr 90px 36px;
-  align-items: center;
   padding: 8px 12px;
   background: #f9fafb;
   border-bottom: 1px solid #e5e7eb;
@@ -117,6 +124,18 @@
   font-weight: 600;
   color: #9ca3af;
   text-align: center;
+}
+
+/*
+ * 15px のままだと「セット」が2行に折り返す。
+ * grid-row も戻す（見出しは1段なので、セット行と同じ2段ぶち抜きにすると
+ * 見出しだけ縦に間延びして「重さ」「回数」と高さが揃わない）。
+ */
+.tableHeader .colSet {
+  grid-row: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
 }
 
 .tableHeader .colWeight,
@@ -130,14 +149,13 @@
 }
 
 .setRow {
-  display: grid;
-  grid-template-columns: 44px 1fr 1fr 90px 36px;
-  align-items: center;
-  padding: 10px 0;
-  gap: 4px;
+  row-gap: 4px;
+  padding: 8px 0;
 }
 
 .colSet {
+  grid-row: 1 / span 2;
+  align-self: center;
   font-size: 15px;
   font-weight: 700;
   color: #374151;
@@ -148,20 +166,24 @@
 .colReps {
   display: flex;
   align-items: center;
-  gap: 4px;
   justify-content: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .numInput {
-  width: 62px;
+  width: 100%;
+  min-width: 0;
+  max-width: 140px;
+  min-height: 44px;
   border: none;
   border-bottom: 1.5px solid #d1d5db;
   background: transparent;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 600;
   color: #111827;
   text-align: right;
-  padding: 2px 4px;
+  padding: 0 4px;
   outline: none;
 }
 
@@ -182,13 +204,20 @@
   white-space: nowrap;
 }
 
+/* RM は2段目へ。重さ・回数の下にまたがって置く */
 .colRm {
+  grid-column: 2 / 4;
+  grid-row: 2;
   font-size: 12px;
   color: #6b7280;
   text-align: center;
 }
 
 .colAction {
+  grid-row: 1 / span 2;
+  align-self: center;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -197,7 +226,7 @@
   color: #d1d5db;
   font-size: 14px;
   cursor: pointer;
-  padding: 4px;
+  padding: 0;
   border-radius: 4px;
   transition: color 0.15s;
 }
@@ -213,10 +242,11 @@
 
 .memoInput {
   width: 100%;
+  min-height: 44px;
   border: none;
   border-bottom: 1px solid #e5e7eb;
   background: transparent;
-  font-size: 13px;
+  font-size: 14px;
   color: #6b7280;
   padding: 4px 0;
   outline: none;
@@ -243,6 +273,11 @@
   font-weight: 600;
   padding: 12px;
   width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
@@ -368,32 +403,4 @@
   color: #6b7280;
   margin-top: 10px;
   letter-spacing: 0.05em;
-}
-
-/* ── FAB: 左下の戻るボタン（DateDetailPage・ExerciseSelectPage と同仕様） ── */
-.fabBack {
-  position: fixed;
-  bottom: calc(4rem + 1.25rem);
-  left: 1.25rem;
-  width: 78px;
-  height: 52px;
-  clip-path: path('M 4 31 Q 0 26 4 21 L 19 5 Q 22 0 28 0 L 70 0 Q 78 0 78 8 L 78 44 Q 78 52 70 52 L 28 52 Q 22 52 19 47 L 4 31 Z');
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  filter: drop-shadow(0 3px 6px rgba(59, 130, 246, 0.45));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-left: 16px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  transition: filter 0.15s, background 0.15s;
-}
-
-.fabBack:hover {
-  background: #2563eb;
-  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.55));
 }

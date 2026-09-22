@@ -7,6 +7,11 @@
   --color-sunday: #ef4444;
   --color-saturday: #3b82f6;
 
+  /* レイアウト寸法（スマホ⇄PC で共有する） */
+  --bottom-nav-height: 56px;
+  --sidebar-width: 240px;
+  --content-max-width: 960px;
+
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   font-size: 16px;
   font-synthesis: none;
@@ -28,6 +33,8 @@ body {
   color: var(--color-text);
   min-width: 320px;
   min-height: 100vh;
+  /* dvh 対応ブラウザではアドレスバーの伸縮を含めた実高さを使う */
+  min-height: 100dvh;
 }
 
 a {

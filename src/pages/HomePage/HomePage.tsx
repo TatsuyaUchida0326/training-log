@@ -28,7 +28,7 @@ export default function HomePage() {
   const { setHeader } = usePageHeader()
 
   useEffect(() => {
-    setHeader({ title: 'ホーム画面', centered: true })
+    setHeader({ title: 'ホーム', centered: true })
   }, [setHeader])
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
@@ -120,19 +120,21 @@ export default function HomePage() {
       />
 
       <div className={styles.mainRow}>
-        <div className={styles.leftCol}>
+        <div className={styles.gaugeCell}>
           <ContinuityGauge
             current={continuityStreak}
             requiredExercises={settings.requiredExercises}
             requiredSets={settings.defaultSets}
           />
+        </div>
+        <div className={styles.chartsCell}>
           <BodyTrendChart
             records={bodyRecords}
             targetWeight={bodySettings.targetWeight}
             targetBodyFat={bodySettings.targetBodyFat}
           />
         </div>
-        <div className={styles.rightCol}>
+        <div className={styles.trophyCell}>
           <TrophyBadge trophies={trophies} unit={unit} />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import Sidebar from '../Sidebar/Sidebar'
+import BottomNav from '../BottomNav/BottomNav'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import type { TabName } from '../../types'
 import styles from './Layout.module.css'
@@ -43,6 +44,8 @@ export default function Layout({ children }: LayoutProps) {
         </header>
         <main className={styles.main}>{children}</main>
       </div>
+      {/* Sidebar と BottomNav は常に両方描画し、表示は CSS の幅判定に任せる */}
+      <BottomNav activeTab={activeTab} />
     </div>
   )
 }

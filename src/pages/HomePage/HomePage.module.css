@@ -1,31 +1,52 @@
+/* 画面下の余白は Layout の .main が BottomNav 分をまとめて持つ */
 .page {
-  padding-bottom: 5rem;
+  padding-bottom: 0;
 }
 
-/* メイン2カラム行 */
+/*
+ * メイン行。PC はゲージ＋グラフを左、トロフィーを右に並べ、
+ * スマホは1列に積み替える（並び順は grid-template-areas で切り替える）。
+ */
 .mainRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    'gauge trophy'
+    'charts trophy';
   gap: 8px;
-  margin-top: 0.5rem;
-  padding: 0 12px;
+  margin-top: 8px;
 }
 
-.leftCol {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/*
+ * min-width: 0 は必須。グリッド項目の既定 min-width: auto のままだと、
+ * 体組成グラフの内部幅（点の数 × 間隔）がセル幅を押し広げ、画面全体が横スクロールする。
+ */
+.gaugeCell {
+  grid-area: gauge;
   min-width: 0;
 }
 
-/* height: gauge(72) + gap(6) + chartBlock(145) + gap(6) + chartBlock(145) = 374px */
-.rightCol {
-  height: 374px;
-  display: flex;
-  flex-direction: column;
+.chartsCell {
+  grid-area: charts;
   min-width: 0;
-  overflow: hidden;
 }
+
+/*
+ * トロフィーは2行ぶんの高さに合わせて伸ばす。
+ * 固定 height を持たせると 1 列時にスマホで間延びするため、
+ * PC のみ absolute で親セルいっぱいに広げる。
+ */
+.trophyCell {
+  grid-area: trophy;
+  position: relative;
+  min-width: 0;
+}
+
+.trophyCell > * {
+  position: absolute;
+  inset: 0;
+}
+
 
 /* サマリーセクション */
 .summary {
@@ -137,4 +158,32 @@
 
 .setDetail {
   flex: 1;
+}
+
+/*
+ * スマホ幅（< 640px）では1列に積み替える。
+ * メディアクエリは特異度を上げないため、上書き対象より後ろに置く必要がある。
+ */
+@media (max-width: 639.98px) {
+  .mainRow {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'gauge'
+      'trophy'
+      'charts';
+  }
+
+  .trophyCell {
+    position: static;
+  }
+
+  .trophyCell > * {
+    position: static;
+    max-height: 320px;
+  }
+
+  /* 1列では縦に余裕があるので、サマリーの高さ制限を外して全件見せる */
+  .summary {
+    max-height: none;
+  }
 }

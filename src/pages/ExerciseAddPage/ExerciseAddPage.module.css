@@ -1,54 +1,12 @@
+/* 戻る・登録はヘッダーへ移した。下の余白は Layout の .main が持つ */
 .page {
-  padding-bottom: 5rem;
-}
-
-.bar {
-  display: flex;
-  align-items: center;
-  background: var(--color-primary);
-  color: #fff;
-  padding: 0.625rem 1rem;
-}
-
-.backButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  flex-shrink: 0;
-}
-
-.barTitle {
-  flex: 1;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-.registerButton {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0.25rem;
-  flex-shrink: 0;
-  min-width: 2.5rem;
-  text-align: right;
-}
-
-.registerButton:disabled {
-  opacity: 0.4;
-  cursor: default;
+  padding-bottom: 0;
 }
 
 /* ── フォーム ── */
 .form {
   background: #fff;
-  margin: 1rem;
+  margin: 0;
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
   overflow: hidden;
@@ -57,6 +15,7 @@
 .row {
   display: flex;
   align-items: center;
+  min-height: 56px;
   padding: 0.875rem 1rem;
   border-bottom: 1px solid #f3f4f6;
 }
@@ -90,8 +49,10 @@
 
 .input {
   flex: 1;
+  min-height: 44px;
   border: none;
-  font-size: 0.95rem;
+  /* 16px 未満だと iOS が入力時に自動ズームする */
+  font-size: 16px;
   font-family: inherit;
   color: var(--color-text);
   background: transparent;

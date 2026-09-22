@@ -1,21 +1,7 @@
 import { Link } from 'react-router-dom'
-import { Home, ClipboardList, Scale, Settings, type LucideIcon } from 'lucide-react'
-import type { SidebarProps, TabName } from '../../types'
+import { TABS } from '../../data/navigation'
+import type { SidebarProps } from '../../types'
 import styles from './Sidebar.module.css'
-
-interface TabConfig {
-  id: TabName
-  label: string
-  href: string
-  Icon: LucideIcon
-}
-
-const TABS: TabConfig[] = [
-  { id: 'home',     label: 'ホーム', href: '/',        Icon: Home },
-  { id: 'history',  label: '履歴',   href: '/history', Icon: ClipboardList },
-  { id: 'body',     label: '体組成', href: '/body',    Icon: Scale },
-  { id: 'settings', label: '設定',   href: '/settings',Icon: Settings },
-]
 
 export default function Sidebar({ activeTab }: SidebarProps) {
   return (
@@ -30,6 +16,7 @@ export default function Sidebar({ activeTab }: SidebarProps) {
               to={tab.href}
               className={styles.tab}
               data-active={isActive ? 'true' : 'false'}
+              aria-current={isActive ? 'page' : undefined}
             >
               <span
                 data-testid={`tab-${tab.id}`}

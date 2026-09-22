@@ -1,5 +1,6 @@
 .page {
-  padding: 0 0 5rem;
+  /* FAB がリストの末尾に重ならないぶんだけ空ける（BottomNav 分は .main が持つ） */
+  padding-bottom: 72px;
 }
 
 /* ── 日付 + 集計エリア（body上段） ── */
@@ -78,8 +79,9 @@
 /* ── FAB ── */
 .fab {
   position: fixed;
-  bottom: calc(4rem + 1.25rem); /* BottomNav高さ + 余白 */
-  right: 1.25rem;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
+  right: 16px;
+  z-index: 40;
   width: 52px;
   height: 52px;
   border-radius: 50%;
@@ -99,32 +101,12 @@
   background: var(--color-primary-dark);
 }
 
-.fabBack {
-  position: fixed;
-  bottom: calc(4rem + 1.25rem);
-  left: 1.25rem;
-  width: 78px;
-  height: 52px;
-  /* 左向き矢印シェイプ（角丸） */
-  clip-path: path('M 4 31 Q 0 26 4 21 L 19 5 Q 22 0 28 0 L 70 0 Q 78 0 78 8 L 78 44 Q 78 52 70 52 L 28 52 Q 22 52 19 47 L 4 31 Z');
-  background: #3b82f6;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  filter: drop-shadow(0 3px 6px rgba(59, 130, 246, 0.45));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-left: 16px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  transition: filter 0.15s, background 0.15s;
-}
-
-.fabBack:hover {
-  background: #2563eb;
-  filter: drop-shadow(0 4px 8px rgba(59, 130, 246, 0.55));
+/* PC では下部タブが無いぶん、FAB を下げる */
+@media (min-width: 900px) {
+  .fab {
+    bottom: calc(env(safe-area-inset-bottom) + 24px);
+    right: 24px;
+  }
 }
 
 /* ── 種目カードリスト ── */

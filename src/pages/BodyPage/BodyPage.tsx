@@ -28,7 +28,7 @@ export default function BodyPage() {
   const muscleMassUnitLabel = settings.muscleMassUnit
 
   useEffect(() => {
-    setHeader({ title: '体組成画面', centered: true })
+    setHeader({ title: '体組成', centered: true })
   }, [setHeader])
 
   function handleNumBlur(

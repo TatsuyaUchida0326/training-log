@@ -15,8 +15,8 @@ export default function BodySettingsPage() {
       title: '目標体重設定',
       centered: true,
       leftElement: (
-        <button className="header-btn" onClick={() => navigate('/body')} aria-label="戻る">
-          <ChevronLeft size={20} />
+        <button className="header-icon-btn" onClick={() => navigate('/body')} aria-label="戻る">
+          <ChevronLeft size={24} />
         </button>
       ),
     })
