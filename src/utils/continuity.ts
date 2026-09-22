@@ -1,4 +1,5 @@
 import type { TrainingRecord } from '../types'
+import { filledSets } from './training'
 
 /**
  * 指定した達成条件（種目数・セット数）を満たした日付の一覧を昇順で返す。
@@ -24,7 +25,9 @@ export function getQualifyingDates(
 
   return Array.from(byDate.entries())
     .filter(([, dayRecords]) => {
-      const qualified = dayRecords.filter((r) => r.sets.length >= requiredSets)
+      const qualified = dayRecords.filter(
+        (record) => filledSets(record).length >= requiredSets,
+      )
       return qualified.length >= requiredExercises
     })
     .map(([date]) => date)

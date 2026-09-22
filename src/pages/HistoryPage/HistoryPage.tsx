@@ -15,13 +15,25 @@ import Calendar from '../../components/Calendar/Calendar'
 import CalendarDayPopup from '../../components/CalendarDayPopup/CalendarDayPopup'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
+import { useSettings } from '../../hooks/useSettings'
 import { CATEGORIES } from '../../data/defaultExercises'
+import {
+  displayWeight,
+  displayVolume,
+  hasFilledSets,
+  recordsOfExistingExercises,
+} from '../../utils/training'
 import { calcHistoryStats } from '../../utils/historyStats'
 import type { GraphPoint } from '../../utils/historyStats'
 import styles from './HistoryPage.module.css'
 
 type ViewMode = 'calendar' | 'graph'
 const ALL = 'ALL'
+
+/** グラフの点（kg 保存）を表示用の値に換算する */
+function toDisplayPoints(points: GraphPoint[], convert: (kg: number) => number): GraphPoint[] {
+  return points.map((point) => ({ date: point.date, value: convert(point.value) }))
+}
 
 export default function HistoryPage() {
   const navigate = useNavigate()
@@ -39,6 +51,14 @@ export default function HistoryPage() {
 
   const { records } = useTrainingRecords()
   const { exercises } = useExercises()
+  const { settings } = useSettings()
+  const unit = settings.weightUnit
+
+  // 削除済み種目の記録はカレンダーの印にもグラフにも出さない
+  const visibleRecords = useMemo(
+    () => recordsOfExistingExercises(records, exercises),
+    [records, exercises],
+  )
 
   // 部位タブ（デフォルト9 + カスタム）
   const customCategories = [
@@ -59,17 +79,32 @@ export default function HistoryPage() {
 
   // フィルタ済みレコード
   const filteredRecords = useMemo(() => {
-    return records.filter((r) => {
-      if (selectedExercise !== ALL) return r.exerciseId === selectedExercise
+    return visibleRecords.filter((record) => {
+      if (selectedExercise !== ALL) return record.exerciseId === selectedExercise
       if (selectedCategory !== ALL) {
-        const ex = exercises.find((e) => e.id === r.exerciseId)
+        const ex = exercises.find((e) => e.id === record.exerciseId)
         return ex?.categoryId === selectedCategory
       }
       return true
     })
-  }, [records, exercises, selectedCategory, selectedExercise])
+  }, [visibleRecords, exercises, selectedCategory, selectedExercise])
 
   const stats = useMemo(() => calcHistoryStats(filteredRecords), [filteredRecords])
+
+  // 重量系グラフ（最大重量・最大RM・総負荷量）は設定の単位に換算して描画する
+  const toDisplayWeight = (kg: number) => displayWeight(kg, unit)
+  const maxWeightPoints = useMemo(
+    () => toDisplayPoints(stats.maxWeight, toDisplayWeight),
+    [stats.maxWeight, unit],
+  )
+  const maxRMPoints = useMemo(
+    () => toDisplayPoints(stats.maxRM, toDisplayWeight),
+    [stats.maxRM, unit],
+  )
+  const totalVolumePoints = useMemo(
+    () => toDisplayPoints(stats.totalVolume, (kg) => displayVolume(kg, unit)),
+    [stats.totalVolume, unit],
+  )
 
   return (
     <div className={styles.page}>
@@ -134,7 +169,9 @@ export default function HistoryPage() {
             selectedDate={selectedDate}
             onDateSelect={(date) => {
                 const dateStr = format(date, 'yyyy-MM-dd')
-                const hasRecords = records.some((r) => r.date === dateStr)
+                const hasRecords = visibleRecords.some(
+                  (record) => record.date === dateStr && hasFilledSets(record),
+                )
                 if (hasRecords) {
                   setPopupDate(dateStr)
                 } else {
@@ -155,10 +192,10 @@ export default function HistoryPage() {
             <p className={styles.emptyText}>記録がありません</p>
           ) : (
             <>
-              <ChartBlock title="最大重量" data={stats.maxWeight} unit="kg" color="#22c55e" />
-              <ChartBlock title="最大RM" data={stats.maxRM} unit="kg" color="#3b82f6" />
+              <ChartBlock title="最大重量" data={maxWeightPoints} unit={unit} color="#22c55e" />
+              <ChartBlock title="最大RM" data={maxRMPoints} unit={unit} color="#3b82f6" />
               <ChartBlock title="セット数" data={stats.totalSets} unit="set" color="#f59e0b" />
-              <ChartBlock title="総負荷量" data={stats.totalVolume} unit="kg" color="#8b5cf6" />
+              <ChartBlock title="総負荷量" data={totalVolumePoints} unit={unit} color="#8b5cf6" />
             </>
           )}
         </div>
@@ -166,7 +203,7 @@ export default function HistoryPage() {
       {popupDate && (
         <CalendarDayPopup
           date={popupDate}
-          records={records.filter((r) => r.date === popupDate)}
+          records={visibleRecords.filter((record) => record.date === popupDate)}
           exercises={exercises}
           onClose={() => setPopupDate(null)}
           onNavigate={(date) => {

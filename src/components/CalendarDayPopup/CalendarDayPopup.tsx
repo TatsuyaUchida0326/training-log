@@ -1,4 +1,5 @@
 import { getDay, parseISO } from 'date-fns'
+import { filledSets } from '../../utils/training'
 import type { TrainingRecord, Exercise } from '../../types'
 import styles from './CalendarDayPopup.module.css'
 
@@ -37,6 +38,10 @@ function groupByCategory(
     const exercise = exerciseMap.get(record.exerciseId)
     if (!exercise) continue
 
+    // 空セットを数えると、画面に出ない記録が「0set」の行として並んでしまう
+    const setCount = filledSets(record).length
+    if (setCount === 0) continue
+
     const { categoryId, name } = exercise
 
     if (!categoryMap.has(categoryId)) {
@@ -47,9 +52,9 @@ function groupByCategory(
     const items = categoryMap.get(categoryId) ?? []
     const existing = items.find((item) => item.name === name)
     if (existing) {
-      existing.setCount += record.sets.length
+      existing.setCount += setCount
     } else {
-      items.push({ name, setCount: record.sets.length })
+      items.push({ name, setCount })
     }
   }
 

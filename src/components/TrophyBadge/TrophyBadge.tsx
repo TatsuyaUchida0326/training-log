@@ -1,3 +1,5 @@
+import { displayWeight } from '../../utils/training'
+import type { WeightUnit } from '../../types'
 import './TrophyBadge.css'
 
 export interface TrophyRecord {
@@ -8,9 +10,10 @@ export interface TrophyRecord {
 
 interface TrophyBadgeProps {
   trophies: TrophyRecord[]
+  unit: WeightUnit
 }
 
-export default function TrophyBadge({ trophies }: TrophyBadgeProps) {
+export default function TrophyBadge({ trophies, unit }: TrophyBadgeProps) {
   return (
     <div className="trophy-container">
       <div className="trophy-header">
@@ -23,16 +26,16 @@ export default function TrophyBadge({ trophies }: TrophyBadgeProps) {
         </p>
       ) : (
         <ul className="trophy-list">
-          {trophies.map((t, i) => (
-            <li key={i} className="trophy-item">
+          {trophies.map((trophy, index) => (
+            <li key={index} className="trophy-item">
               <div className="trophy-icon-wrap">
                 <span className="trophy-icon">🏆</span>
               </div>
               <div className="trophy-info">
-                <span className="trophy-name">{t.exerciseName}</span>
-                <span className="trophy-value">{t.rm} kg</span>
+                <span className="trophy-name">{trophy.exerciseName}</span>
+                <span className="trophy-value">{displayWeight(trophy.rm, unit)} {unit}</span>
               </div>
-              <span className="trophy-date">{t.date}</span>
+              <span className="trophy-date">{trophy.date}</span>
             </li>
           ))}
         </ul>

@@ -1,9 +1,10 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import ExerciseSelectPage from './ExerciseSelectPage'
 import { PageHeaderProvider, usePageHeader } from '../../contexts/PageHeaderContext'
+import { seedRecords } from '../../test/seed'
 
 function HeaderSpy() {
   const { header } = usePageHeader()
@@ -109,11 +110,98 @@ describe('ExerciseSelectPage', () => {
     expect(screen.getByText('End')).toBeInTheDocument()
   })
 
-  it('削除ボタンをクリックすると deleteExercise が呼ばれる', async () => {
+  it('削除ボタンをクリックし確認ダイアログで承諾すると deleteExercise が呼ばれる', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
     const deleteButtons = screen.getAllByRole('button', { name: '削除' })
     await userEvent.click(deleteButtons[0])
     expect(mockDeleteExercise).toHaveBeenCalledTimes(1)
+    confirmSpy.mockRestore()
+  })
+})
+
+/**
+ * 種目の削除は取り消せないため、記録件数を示した確認ダイアログを挟む。
+ * useTrainingRecords はモックせず、localStorage の記録をそのまま読ませる。
+ */
+describe('ExerciseSelectPage - 種目削除の確認ダイアログ', () => {
+  let confirmSpy: ReturnType<typeof vi.spyOn>
+
+  /** 1番目の種目（ベンチプレス）に、中身のある記録と空セットだけの記録を用意する */
+  function seedRecordsForFirstExercise(filledCount: number, emptyCount = 0): void {
+    const dayOf = (index: number) => String(index + 1).padStart(2, '0')
+    const filledRecords = Array.from({ length: filledCount }, (_, index) => ({
+      id: `rec-filled-${index}`,
+      date: `2026-04-${dayOf(index)}`,
+      exerciseId: '1',
+      sets: [{ id: `set-${index}`, weight: 60, reps: 10, memo: '' }],
+    }))
+    const emptyRecords = Array.from({ length: emptyCount }, (_, index) => ({
+      id: `rec-empty-${index}`,
+      date: `2026-05-${dayOf(index)}`,
+      exerciseId: '1',
+      sets: [{ id: `empty-${index}`, weight: 0, reps: 0, memo: '' }],
+    }))
+    seedRecords([...filledRecords, ...emptyRecords])
+  }
+
+  async function renderAndClickFirstDelete(): Promise<void> {
+    renderPage()
+    await userEvent.click(screen.getByText('Edit'))
+    await userEvent.click(screen.getAllByRole('button', { name: '削除' })[0])
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
+    confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  })
+
+  afterEach(() => {
+    confirmSpy.mockRestore()
+  })
+
+  it('編集モードで削除ボタンを押すと確認ダイアログが呼ばれる', async () => {
+    seedRecordsForFirstExercise(2)
+    await renderAndClickFirstDelete()
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('確認メッセージに削除対象の種目名が含まれる', async () => {
+    seedRecordsForFirstExercise(2)
+    await renderAndClickFirstDelete()
+    expect(String(confirmSpy.mock.calls[0][0])).toContain('ベンチプレス')
+  })
+
+  it('確認メッセージにその種目の記録件数が含まれる', async () => {
+    seedRecordsForFirstExercise(2)
+    await renderAndClickFirstDelete()
+    expect(String(confirmSpy.mock.calls[0][0])).toMatch(/2\s*件/)
+  })
+
+  it('確認ダイアログでキャンセルすると種目は削除されない', async () => {
+    seedRecordsForFirstExercise(2)
+    await renderAndClickFirstDelete()
+    expect(mockDeleteExercise).not.toHaveBeenCalled()
+  })
+
+  it('確認ダイアログで承諾すると種目が削除される', async () => {
+    confirmSpy.mockReturnValue(true)
+    seedRecordsForFirstExercise(2)
+    await renderAndClickFirstDelete()
+    expect(mockDeleteExercise).toHaveBeenCalledWith('1')
+  })
+
+  it('記録が1件も無い種目でも確認ダイアログが出る', async () => {
+    await renderAndClickFirstDelete()
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
+    expect(mockDeleteExercise).not.toHaveBeenCalled()
+  })
+
+  it('空セットだけの記録は件数に数えない', async () => {
+    seedRecordsForFirstExercise(2, 3)
+    await renderAndClickFirstDelete()
+    expect(String(confirmSpy.mock.calls[0][0])).toMatch(/2\s*件/)
   })
 })

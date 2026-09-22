@@ -2,6 +2,9 @@ import type React from 'react'
 
 export type TabName = 'home' | 'history' | 'body' | 'settings'
 
+/** 重量の表示単位。保存は常に kg で、表示・入力のときだけ換算する */
+export type WeightUnit = 'kg' | 'lbs'
+
 export interface TrainingSet {
   id: string
   weight: number   // 常にkg単位で保存
@@ -19,7 +22,7 @@ export interface TrainingRecord {
 export interface Settings {
   defaultSets: number          // 継続達成セット数（ContinuityGauge）
   trainingDefaultSets: number  // トレーニング記録のデフォルトセット数
-  weightUnit: 'kg' | 'lbs'
+  weightUnit: WeightUnit
   requiredExercises: number    // 継続達成種目数（ContinuityGauge）
 }
 

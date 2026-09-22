@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
 import type { TrainingRecord, TrainingSet } from '../types'
+import { hasFilledSets } from '../utils/training'
 
-const STORAGE_KEY = 'strength-log-records'
+export const STORAGE_KEY = 'strength-log-records'
 
 function loadRecords(): TrainingRecord[] {
   try {
@@ -28,10 +29,15 @@ export function useTrainingRecords() {
     return records.find((r) => r.exerciseId === exerciseId && r.date === date) ?? null
   }
 
-  // 指定日より前の最新記録を返す
+  // 指定日より前で、中身のあるセットを持つ最新記録を返す
   function getLastRecord(exerciseId: string, beforeDate: string): TrainingRecord | null {
     const past = records
-      .filter((r) => r.exerciseId === exerciseId && r.date < beforeDate && r.sets.length > 0)
+      .filter(
+        (record) =>
+          record.exerciseId === exerciseId &&
+          record.date < beforeDate &&
+          hasFilledSets(record),
+      )
       .sort((a, b) => b.date.localeCompare(a.date))
     return past[0] ?? null
   }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { DEFAULT_EXERCISES } from '../data/defaultExercises'
 import type { Exercise, CategoryId } from '../types'
 
-const STORAGE_KEY = 'strength-log-exercises'
+export const STORAGE_KEY = 'strength-log-exercises'
 
 function loadExercises(): Exercise[] {
   try {

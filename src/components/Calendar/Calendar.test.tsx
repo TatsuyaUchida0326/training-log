@@ -2,9 +2,10 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Calendar from './Calendar'
+import { setupFixedClock } from '../../test/fixedClock'
 import type { CalendarProps } from '../../types'
 
-// 今日を固定する（2026-04-16）
+// 年月ヘッダーも「今日」ボタンの表示判定も実時間に依存するため 2026-04-16 に固定する
 const TODAY = new Date(2026, 3, 16) // month は 0-indexed
 
 // デフォルト props
@@ -16,6 +17,8 @@ const defaultProps: CalendarProps = {
   selectedDate: null,
   onDateSelect: vi.fn(),
 }
+
+setupFixedClock(TODAY)
 
 beforeEach(() => {
   vi.clearAllMocks()
