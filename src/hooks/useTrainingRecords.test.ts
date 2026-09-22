@@ -129,3 +129,57 @@ describe('useTrainingRecords', () => {
     expect(r2.current.records[0].id).toBe('rec-1')
   })
 })
+
+/* 判定基準は isFilledSet を参照 */
+describe('useTrainingRecords - getLastRecord と空セット', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  const emptySets = [
+    { id: 'e1', weight: 0, reps: 0, memo: '' },
+    { id: 'e2', weight: 0, reps: 0, memo: '' },
+    { id: 'e3', weight: 0, reps: 0, memo: '' },
+  ]
+
+  it('空セットだけの過去記録は前回の記録として返さない', () => {
+    const { result } = renderHook(() => useTrainingRecords())
+    act(() => {
+      result.current.upsertRecord(
+        makeRecord({ id: 'rec-empty', date: '2026-04-16', sets: emptySets })
+      )
+    })
+    expect(result.current.getLastRecord('ex-bench', '2026-04-17')).toBeNull()
+  })
+
+  it('空セットだけの記録より古い、中身のある記録を前回の記録として返す', () => {
+    const { result } = renderHook(() => useTrainingRecords())
+    act(() => {
+      result.current.upsertRecord(
+        makeRecord({
+          id: 'rec-filled',
+          date: '2026-04-10',
+          sets: [{ id: 'f1', weight: 80, reps: 10, memo: '' }],
+        })
+      )
+      result.current.upsertRecord(
+        makeRecord({ id: 'rec-empty', date: '2026-04-16', sets: emptySets })
+      )
+    })
+    expect(result.current.getLastRecord('ex-bench', '2026-04-17')?.id).toBe('rec-filled')
+  })
+
+  it('重さ0でも回数が入っている過去記録は前回の記録として返す', () => {
+    const { result } = renderHook(() => useTrainingRecords())
+    act(() => {
+      result.current.upsertRecord(
+        makeRecord({
+          id: 'rec-bodyweight',
+          date: '2026-04-16',
+          sets: [{ id: 'bw1', weight: 0, reps: 20, memo: '' }],
+        })
+      )
+    })
+    expect(result.current.getLastRecord('ex-bench', '2026-04-17')?.id).toBe('rec-bodyweight')
+  })
+})

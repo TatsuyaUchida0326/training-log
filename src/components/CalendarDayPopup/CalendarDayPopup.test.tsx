@@ -163,3 +163,30 @@ describe('CalendarDayPopup', () => {
     expect(screen.queryByText('胸')).not.toBeInTheDocument()
   })
 })
+
+/* 判定基準は isFilledSet を参照 */
+describe('CalendarDayPopup - 空セットの除外', () => {
+  const emptySet = { id: 'empty-1', weight: 0, reps: 0, memo: '' }
+
+  it('空セットだけの記録は種目として表示しない', () => {
+    renderPopup({
+      records: [{ id: 'rec-empty', date: DATE, exerciseId: 'ex-chest-1', sets: [emptySet] }],
+    })
+    expect(screen.queryByText('ベンチプレス')).not.toBeInTheDocument()
+    expect(screen.queryByText('胸')).not.toBeInTheDocument()
+  })
+
+  it('セット数は中身のあるセットだけ数える', () => {
+    renderPopup({
+      records: [
+        {
+          id: 'rec-mixed',
+          date: DATE,
+          exerciseId: 'ex-chest-1',
+          sets: [{ id: 'filled-1', weight: 60, reps: 10, memo: '' }, emptySet, emptySet],
+        },
+      ],
+    })
+    expect(screen.getByText('1set')).toBeInTheDocument()
+  })
+})

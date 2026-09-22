@@ -185,3 +185,106 @@ describe('getQualifyingDates', () => {
     expect(getQualifyingDates(records, 3, 3)).toEqual(['2026-04-20', '2026-04-22'])
   })
 })
+
+/* 判定基準は isFilledSet を参照 */
+describe('getQualifyingDates - 空セットの除外', () => {
+  function makeEmptyRecord(date: string, exerciseId: string, setsCount: number): TrainingRecord {
+    return {
+      id: `${date}-${exerciseId}-empty`,
+      date,
+      exerciseId,
+      sets: Array.from({ length: setsCount }, (_, index) => ({
+        id: `empty-${index}`,
+        weight: 0,
+        reps: 0,
+        memo: '',
+      })),
+    }
+  }
+
+  function makeMixedRecord(
+    date: string,
+    exerciseId: string,
+    filledCount: number,
+    emptyCount: number,
+  ): TrainingRecord {
+    const filledSetList = Array.from({ length: filledCount }, (_, index) => ({
+      id: `filled-${index}`,
+      weight: 60,
+      reps: 10,
+      memo: '',
+    }))
+    const emptySetList = Array.from({ length: emptyCount }, (_, index) => ({
+      id: `empty-${index}`,
+      weight: 0,
+      reps: 0,
+      memo: '',
+    }))
+    return {
+      id: `${date}-${exerciseId}-mixed`,
+      date,
+      exerciseId,
+      sets: [...filledSetList, ...emptySetList],
+    }
+  }
+
+  it('空セットだけの記録が3種目あっても達成日にならない', () => {
+    const records: TrainingRecord[] = [
+      makeEmptyRecord('2026-04-20', 'ex1', 3),
+      makeEmptyRecord('2026-04-20', 'ex2', 3),
+      makeEmptyRecord('2026-04-20', 'ex3', 3),
+    ]
+    expect(getQualifyingDates(records, 3, 3)).toEqual([])
+  })
+
+  it('中身のあるセットが必要数に足りない種目は達成種目に数えない', () => {
+    const records: TrainingRecord[] = [
+      makeMixedRecord('2026-04-20', 'ex1', 2, 1), // 中身は2セットだけ
+      makeRecord('2026-04-20', 'ex2', 3),
+      makeRecord('2026-04-20', 'ex3', 3),
+    ]
+    expect(getQualifyingDates(records, 3, 3)).toEqual([])
+  })
+
+  it('空セット込みでも中身のあるセットが必要数あれば達成日になる', () => {
+    const records: TrainingRecord[] = [
+      makeMixedRecord('2026-04-20', 'ex1', 3, 2),
+      makeMixedRecord('2026-04-20', 'ex2', 3, 2),
+      makeMixedRecord('2026-04-20', 'ex3', 3, 2),
+    ]
+    expect(getQualifyingDates(records, 3, 3)).toEqual(['2026-04-20'])
+  })
+
+  it('重さ0でも回数が入っていれば自重種目として達成日に数える', () => {
+    const bodyweight = (exerciseId: string): TrainingRecord => ({
+      id: `2026-04-20-${exerciseId}-bw`,
+      date: '2026-04-20',
+      exerciseId,
+      sets: Array.from({ length: 3 }, (_, index) => ({
+        id: `bw-${index}`,
+        weight: 0,
+        reps: 15,
+        memo: '',
+      })),
+    })
+    const records = [bodyweight('ex1'), bodyweight('ex2'), bodyweight('ex3')]
+    expect(getQualifyingDates(records, 3, 3)).toEqual(['2026-04-20'])
+  })
+})
+
+describe('calcContinuityStreak - 空セットの除外', () => {
+  it('空セットだけの記録しかない日はストリークに数えない', () => {
+    const emptyDayRecords: TrainingRecord[] = ['ex1', 'ex2', 'ex3'].map((exerciseId) => ({
+      id: `${TODAY}-${exerciseId}-empty`,
+      date: TODAY,
+      exerciseId,
+      sets: Array.from({ length: 3 }, (_, index) => ({
+        id: `empty-${index}`,
+        weight: 0,
+        reps: 0,
+        memo: '',
+      })),
+    }))
+    expect(calcContinuityStreak(emptyDayRecords, 3, 3)).toBe(0)
+  })
+})

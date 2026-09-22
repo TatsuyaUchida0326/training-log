@@ -6,12 +6,20 @@ import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
 import { useSettings } from '../../hooks/useSettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
-import { calcRM, displayWeight, inputToKg } from '../../utils/training'
-import type { TrainingRecord, TrainingSet } from '../../types'
+import { calcRM, displayWeight, filledSets, inputToKg } from '../../utils/training'
+import type { TrainingSet } from '../../types'
 import styles from './TrainingEntryPage.module.css'
 
 function newSetId(): string {
   return `set-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+}
+
+function newEmptySet(): TrainingSet {
+  return { id: newSetId(), weight: 0, reps: 0, memo: '' }
+}
+
+function newEmptySets(count: number): TrainingSet[] {
+  return Array.from({ length: count }, newEmptySet)
 }
 
 // 入力を半角数字のみに即時フィルタリング（IME・全角をブロック）
@@ -87,79 +95,93 @@ export default function TrainingEntryPage() {
     if (toastTimerRef.current) clearTimeout(toastTimerRef.current)
   }, [])
 
-  // 現在の記録を取得（なければ新規作成）
-  const existingRecord = exerciseId ? getRecord(exerciseId, date) : null
-  const lastRecord = exerciseId ? getLastRecord(exerciseId, date) : null
-
-  const initializedRef = useRef(false)
-
-  useEffect(() => {
-    if (initializedRef.current) return
-    if (!exerciseId || !date) return
-    if (!existingRecord) {
-      // 新規: デフォルトセット数分の空セットを作成
-      const defaultCount = settings.trainingDefaultSets ?? 3
-      const sets: TrainingSet[] = Array.from({ length: defaultCount }, () => ({
-        id: newSetId(),
-        weight: 0,
-        reps: 0,
-        memo: '',
-      }))
-      const newRecord: TrainingRecord = {
-        id: newRecordId(exerciseId, date),
-        date,
-        exerciseId,
-        sets,
-      }
-      upsertRecord(newRecord)
-    }
-    initializedRef.current = true
-  }, [exerciseId, date, upsertRecord])
-
+  // 現在の記録。無ければ画面ローカルの下書きを表示する
   const record = exerciseId ? getRecord(exerciseId, date) : null
+  const lastRecord = exerciseId ? getLastRecord(exerciseId, date) : null
+  const lastRecordSets = lastRecord ? filledSets(lastRecord) : []
+
+  const [draftSets, setDraftSets] = useState<TrainingSet[]>(() =>
+    newEmptySets(settings.trainingDefaultSets),
+  )
+
+  const sets = record ? record.sets : draftSets
 
   const unit = settings.weightUnit
 
+  /** 記録があれば該当セットを更新し、無ければ下書き全体を記録として作る */
+  function saveSetUpdate(setId: string, updates: Partial<TrainingSet>) {
+    if (record) {
+      updateSet(record.id, setId, updates)
+      return
+    }
+    if (!exerciseId || !date) return
+    upsertRecord({
+      id: newRecordId(exerciseId, date),
+      date,
+      exerciseId,
+      sets: draftSets.map((set) => (set.id === setId ? { ...set, ...updates } : set)),
+    })
+  }
+
   function handleWeightChange(setId: string, raw: string) {
-    if (!record) return
-    const val = parseFloat(raw)
-    if (isNaN(val)) return
-    const weightKg = inputToKg(val, unit)
-    updateSet(record.id, setId, { weight: weightKg })
+    const currentSet = sets.find((set) => set.id === setId)
+    if (!currentSet) return
+    const trimmed = raw.trim()
+    const inputValue = trimmed === '' ? 0 : parseFloat(trimmed)
+    if (isNaN(inputValue)) return
+    // 値が変わらなければ保存しない。空欄で欄を離れただけで記録を作らないためと、
+    // lbs 表示値の往復丸めで保存値が動くのを防ぐため
+    if (inputValue === displayWeight(currentSet.weight, unit)) return
+
+    const weightKg = inputToKg(inputValue, unit)
+    saveSetUpdate(setId, { weight: weightKg })
     // repsが入力済みならRM更新チェック
-    const currentSet = record.sets.find((s) => s.id === setId)
-    if (currentSet && currentSet.reps > 0) {
+    if (currentSet.reps > 0) {
       const newRM = calcRM(weightKg, currentSet.reps)
       if (newRM > historicalBestRM) showRMToast(newRM)
     }
   }
 
   function handleRepsChange(setId: string, raw: string) {
-    if (!record) return
-    const val = parseInt(raw, 10)
-    if (isNaN(val)) return
-    updateSet(record.id, setId, { reps: val })
+    const currentSet = sets.find((set) => set.id === setId)
+    if (!currentSet) return
+    const trimmed = raw.trim()
+    const reps = trimmed === '' ? 0 : parseInt(trimmed, 10)
+    if (isNaN(reps)) return
+    // 値が変わらなければ保存しない（空欄で欄を離れただけで記録を作らない）
+    if (reps === currentSet.reps) return
+
+    saveSetUpdate(setId, { reps })
     // weightが入力済みならRM更新チェック
-    const currentSet = record.sets.find((s) => s.id === setId)
-    if (currentSet && currentSet.weight > 0 && val > 0) {
-      const newRM = calcRM(currentSet.weight, val)
+    if (currentSet.weight > 0 && reps > 0) {
+      const newRM = calcRM(currentSet.weight, reps)
       if (newRM > historicalBestRM) showRMToast(newRM)
     }
   }
 
   function handleMemoChange(setId: string, memo: string) {
-    if (!record) return
-    updateSet(record.id, setId, { memo })
+    if (record) {
+      updateSet(record.id, setId, { memo })
+      return
+    }
+    // 記録が無いあいだはメモだけで記録を作らず、下書きに保持する
+    setDraftSets((prev) => prev.map((set) => (set.id === setId ? { ...set, memo } : set)))
   }
 
   function handleAddSet() {
-    if (!record) return
-    addSet(record.id, { id: newSetId(), weight: 0, reps: 0, memo: '' })
+    if (record) {
+      addSet(record.id, newEmptySet())
+      return
+    }
+    setDraftSets((prev) => [...prev, newEmptySet()])
   }
 
   function handleDeleteSet(setId: string) {
-    if (!record) return
-    deleteSet(record.id, setId)
+    if (record) {
+      deleteSet(record.id, setId)
+      return
+    }
+    setDraftSets((prev) => prev.filter((set) => set.id !== setId))
   }
 
   if (!exercise || !dateStr) {
@@ -208,17 +230,17 @@ export default function TrainingEntryPage() {
 
       <div className={styles.scrollArea}>
         {/* Last Record */}
-        {lastRecord && lastRecord.sets.length > 0 && (
+        {lastRecord && (
           <div className={styles.lastRecord}>
             <div className={styles.lastRecordTitle}>
               Last Record : {format(new Date(lastRecord.date), 'yyyy/MM/dd')}
             </div>
             <div className={styles.lastRecordSets}>
-              {lastRecord.sets.map((s, i) => (
-                <div key={s.id} className={styles.lastRecordRow}>
-                  <span className={styles.lastSetNum}>{i + 1}</span>
+              {lastRecordSets.map((set, index) => (
+                <div key={set.id} className={styles.lastRecordRow}>
+                  <span className={styles.lastSetNum}>{index + 1}</span>
                   <span className={styles.lastSetDetail}>
-                    {displayWeight(s.weight, unit)}&nbsp;{unit} × {s.reps}&nbsp;reps
+                    {displayWeight(set.weight, unit)}&nbsp;{unit} × {set.reps}&nbsp;reps
                   </span>
                 </div>
               ))}
@@ -227,7 +249,7 @@ export default function TrainingEntryPage() {
         )}
 
         {/* セット入力エリア */}
-        {record && record.sets.length > 0 && (
+        {sets.length > 0 && (
           <div className={styles.setsCard}>
             {/* テーブルヘッダー */}
             <div className={styles.tableHeader}>
@@ -238,13 +260,13 @@ export default function TrainingEntryPage() {
               <span className={styles.colAction} />
             </div>
 
-            {record.sets.map((s, idx) => {
-              const rm = calcRM(s.weight, s.reps)
-              const dispWeight = displayWeight(s.weight, unit)
+            {sets.map((set, index) => {
+              const rm = calcRM(set.weight, set.reps)
+              const dispWeight = displayWeight(set.weight, unit)
               return (
-                <div key={s.id} className={styles.setBlock}>
+                <div key={set.id} className={styles.setBlock}>
                   <div className={styles.setRow}>
-                    <span className={styles.colSet}>{idx + 1}</span>
+                    <span className={styles.colSet}>{index + 1}</span>
                     <div className={styles.colWeight}>
                       <input
                         className={styles.numInput}
@@ -253,8 +275,8 @@ export default function TrainingEntryPage() {
                         defaultValue={dispWeight > 0 ? dispWeight : ''}
                         placeholder="0"
                         onInput={filterToDecimal}
-                        onBlur={(e) => handleWeightChange(s.id, e.target.value)}
-                        key={`w-${s.id}-${unit}`}
+                        onBlur={(e) => handleWeightChange(set.id, e.target.value)}
+                        key={`w-${set.id}-${unit}`}
                       />
                       <span className={styles.unitLabel}>{unit}</span>
                     </div>
@@ -263,21 +285,21 @@ export default function TrainingEntryPage() {
                         className={styles.numInput}
                         type="text"
                         inputMode="numeric"
-                        defaultValue={s.reps > 0 ? s.reps : ''}
+                        defaultValue={set.reps > 0 ? set.reps : ''}
                         placeholder="0"
                         onInput={filterToInteger}
-                        onBlur={(e) => handleRepsChange(s.id, e.target.value)}
-                        key={`r-${s.id}`}
+                        onBlur={(e) => handleRepsChange(set.id, e.target.value)}
+                        key={`r-${set.id}`}
                       />
                       <span className={styles.unitLabel}>回</span>
                     </div>
                     <span className={styles.colRm}>
-                      {rm > 0 ? `${rm} ${unit}` : '—'}
+                      {rm > 0 ? `${displayWeight(rm, unit)} ${unit}` : '—'}
                     </span>
                     <button
                       className={styles.colAction}
                       aria-label="セット削除"
-                      onClick={() => handleDeleteSet(s.id)}
+                      onClick={() => handleDeleteSet(set.id)}
                     >
                       <X size={14} />
                     </button>
@@ -287,12 +309,12 @@ export default function TrainingEntryPage() {
                       className={styles.memoInput}
                       type="text"
                       placeholder="メモ"
-                      defaultValue={s.memo}
-                      onBlur={(e) => handleMemoChange(s.id, e.target.value)}
-                      key={`m-${s.id}`}
+                      defaultValue={set.memo}
+                      onBlur={(e) => handleMemoChange(set.id, e.target.value)}
+                      key={`m-${set.id}`}
                     />
                   </div>
-                  {idx < record.sets.length - 1 && <hr className={styles.setDivider} />}
+                  {index < sets.length - 1 && <hr className={styles.setDivider} />}
                 </div>
               )
             })}

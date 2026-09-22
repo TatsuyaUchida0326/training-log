@@ -1,131 +1,52 @@
-# feature/14-exercise-media
+# 改善 第1弾（2026-09-22〜）— 不具合5件・スマホ対応・公開コードの掃除
 
-## Step 1: Plan
+計画の正本: `~/.claude/plans/reactive-gliding-abelson.md`（内田さん承認済み 2026-09-22）
+レビューの元資料: 2026-09-22 アプリ全体レビュー（担当A/B/C/D＋デザイナー、計8回）
 
-### 概要
-Issue #14 の新機能2件をデフォルト種目のみに適用する。
+## プロジェクト条件の適用（/develop）
 
-1. **Wikipedia サムネイル画像表示** — 詳細モーダルに種目の画像を追加
-2. **YouTube フォーム動画リンクボタン** — デフォルト種目のみ `!isCustom` で制御
+| 条件 | 適用 |
+|---|---|
+| テストランナー | あり（Vitest）→ Step 3・5 を実施 |
+| ブランチ | `develop` はローカル・リモートとも存在せず、過去16 PR はすべて feature → main。既存運用に合わせ `main` から直接切る |
+| worktree 隔離 | プロジェクトルール「コミットは指示があるまで行わない」のため、worktree（コミットが前提）ではなく **main 作業ツリー上の feature ブランチ**で作業する。main には触れない |
+| セカンドオピニオン | PR#2 の設計は Codex に取得済み（2026-09-22、採否は計画書に記録）。PR#1/#3 は原因が明確な修正のため対象外 |
+| Step 9 | Vercel 自動デプロイ。エビデンス保存先なし → 本番URLをヘッドレスブラウザで確認して報告 |
 
-### インターフェース定義
+## 進め方の変更（2026-09-22、内田さん指示「遅すぎる」）
 
-```typescript
-// useWgerExercise.ts — thumbnailUrl を追加
-export interface WgerExerciseData {
-  muscles: string[]
-  musclesSecondary: string[]
-  descriptionJa: string
-  thumbnailUrl: string  // Wikipedia サムネイル URL（なければ空文字）
-}
+- PR#1 の2回目修正後は再レビューを行わず、PM がテスト・ビルド・grep で裏取りし、実機確認は内田さんに渡す
+- PR#2・PR#3 のレビューは **4体×1回**（B×2・D×3 の重ね回しはしない）。実測で2回目以降に出るのは仕上げ系（テストヘルパー重複・命名）のみだったため
+- 計画からの変更（レビュー対応）: 種目削除後の記録を、日付詳細だけでなくホーム/履歴の印・継続ゲージ・グラフからも除く（`recordsOfExistingExercises`）。内田さん決定
 
-// ExerciseDetailModal.tsx — props 変更なし（exercise.isCustom を参照するだけ）
-```
+## PR#1 `fix/record-integrity`
 
-### Codex セカンドオピニオン → スキップ
-既存機能への追加のみ。設計判断不要な明確な実装。
+- [x] Step 1-2 計画・影響分析（計画書に記載済み）
+- [x] Step 3 テスト先行（tester）— 85件追加
+- [x] Step 4 実装（implementer）
+- [x] Step 5 `npm test` / `npm run build` — 368件PASS
+- [x] Step 6 レビュー A/B×2/C/D×3 — P2 5件（吹き出しの空セット・負荷量換算の二重・削除件数・下書きの key・命名/コメント）
+- [x] Step 7 修正1回目 → 376件PASS → 再レビュー A/B/C/D
+- [ ] Step 7 修正2回目（B/C/D の仕上げ指摘12件＋A の1件）— **2026-09-22 夜に中断**
+  - 本体ツリーは修正1回目の状態（28ファイル 376件 PASS・ビルド成功）で一貫している
+  - 2回目の編集途中のコピーが `.claude/worktrees/agent-afd2fe0a01f94141b/src` に残っている（テスト実行直前で停止）。**再開時はまずこれと本体を `diff -rq` し、テストが通るなら反映、通らなければ捨てて修正一覧をやり直す**
+  - 修正一覧（13件）: ①HomePage のトロフィーも `visibleRecords` を通す ②`TrainingEntryRoute` を `pages/TrainingEntryPage/index.tsx` へ ③DateDetailPage の二重判定を1段に ④HistoryPage の `(r)` 2行と `toDisplayWeight` 共有 ⑤`isFilledSet` / `recordsOfExistingExercises` の doc ⑥`DEFAULT_SETTINGS` export → `seed.ts` で参照 ⑦`useFixedDate`→`setupFixedClock` ⑧空セット理由コメントを定義側に集約 ⑨`seedExercises` / `seedRecords` ⑩同一ファイル内のキー直書き・旧ヘルパー置換 ⑪`emptyDay`→`emptyDayRecords` 等 ⑫`padStart` ⑬**historyStats.ts:53,56 の kg 段階の丸めを外す**（lbs で 45.36kg×1 が詳細100/グラフ99 になる。A 実機）
+  - 2回目の後は再レビューしない。PM が `npx vitest run` / `npm run build` / grep で裏取り
+- [ ] 内田さんの動作確認（`npm run dev` で: 種目を3つ開いて戻ってもゲージ0 / lbs で欄に出入りしても値が動かない / 削除に confirm / 履歴の吹き出しと日付詳細のセット数が一致）→ コミット指示待ち
+- [ ] コミット時の片付け: `.claude/worktrees/agent-*` 3つと `worktree-agent-*` ブランチ3本（4月の2本も含めると5本）を `git worktree remove` / `git branch -D`
+- 注意: 未追跡の `Strength Log 仕様書*.xlsx` / `docs/` はこの PR の作業物ではない。コミット時に `git add -A` しない（4章の判断待ち）
 
----
+## PR#2 `feat/mobile-layout`
 
-## Step 2: Assess
+- [ ] Step 2.5 デザイナーのモックアップ → 内田さん確認
+- [ ] Step 3〜7
+- [ ] 内田さんの動作確認 → コミット指示待ち
 
-### 変更対象ファイル
+## PR#3 `chore/portfolio-cleanup`
 
-| ファイル | 変更種別 | 内容 |
-|---------|---------|------|
-| `src/hooks/useWgerExercise.ts` | 修正 | `WgerExerciseData` に `thumbnailUrl` 追加、`fetchExternalData` で画像URLも取得 |
-| `src/components/ExerciseDetailModal/ExerciseDetailModal.tsx` | 修正 | 画像表示 + YouTube リンクボタン追加 |
-| `src/components/ExerciseDetailModal/ExerciseDetailModal.module.css` | 修正 | 画像・ボタンのスタイル追加 |
+- [ ] Step 3〜7
+- [ ] 内田さんの動作確認 → コミット指示待ち
 
-### リスク評価
-- `WgerExerciseData` に `thumbnailUrl` を追加 → カスタム種目の `effectiveData` 生成箇所で `thumbnailUrl: ''` の追加が必要（TypeScriptが検出してくれる）
-- Wikipedia 画像なし → 空文字のとき画像セクションを非表示にするだけで安全
-- YouTube ボタンの誤表示 → `!exercise.isCustom` で厳密制御
+## 持ち越し（今回やらない）
 
----
-
-## Step 2.5: UI/UX 設計
-
-### 画像エリア
-- 位置: 対象筋肉セクションの上
-- スタイル: `width: 100%`, `max-height: 200px`, `object-fit: cover`, 角丸8px
-- 画像なし: セクション全体を非表示
-
-### YouTube ボタン
-- 位置: 閉じるボタンの上
-- スタイル: 全幅、セカンダリーカラー（既存のボタンと統一感）
-- テキスト: 「フォーム動画を見る ↗」
-- `target="_blank" rel="noopener noreferrer"` の `<a>` タグ
-
----
-
-## 実装チェックリスト
-
-### テスト（Step 3）
-- [ ] useWgerExercise: Wikipedia が thumbnail を返した場合 thumbnailUrl が入る
-- [ ] useWgerExercise: Wikipedia が thumbnail なしで返した場合 thumbnailUrl が空文字
-- [ ] ExerciseDetailModal: デフォルト種目で thumbnailUrl あり → img 表示
-- [ ] ExerciseDetailModal: デフォルト種目で thumbnailUrl なし → img 非表示
-- [ ] ExerciseDetailModal: デフォルト種目 → YouTube リンク表示
-- [ ] ExerciseDetailModal: カスタム種目 → YouTube リンク非表示
-
-### 実装（Step 4）
-- [ ] useWgerExercise.ts: WgerExerciseData に thumbnailUrl 追加
-- [ ] useWgerExercise.ts: fetchExternalData で thumbnail.source を取得
-- [ ] ExerciseDetailModal.tsx: thumbnailUrl があれば img を表示
-- [ ] ExerciseDetailModal.tsx: !isCustom のとき YouTube リンクボタン表示
-- [ ] ExerciseDetailModal.module.css: 画像・ボタンのスタイル追加
-
-### 品質ゲート（Step 5）
-- [ ] npm test 全件 PASS
-- [ ] npm run build 成功
-
----
-
-# PR#16 レビュー対応④ — BottomNav → Sidebar 変更
-
-## Step 1: Plan
-
-### 概要
-西野さんのレビュー指摘に基づき、BottomNav（ボトムナビ）を左サイドバーに変更する。
-
-### インターフェース定義
-- `Sidebar` コンポーネント: `{ activeTab: TabName }` (BottomNavProps と同一)
-- `Layout`: props 変更なし、レイアウト flex-row 化
-
-### Codex セカンドオピニオン → スキップ
-デザイン確定済み（スクショ提供）。設計判断の余地なし。
-
-## Step 2: Assess
-
-### 変更対象ファイル
-| ファイル | 変更種別 |
-|---------|---------|
-| `src/components/Sidebar/Sidebar.tsx` | 新規作成 |
-| `src/components/Sidebar/Sidebar.module.css` | 新規作成 |
-| `src/components/Sidebar/Sidebar.test.tsx` | 新規作成 |
-| `src/components/Layout/Layout.tsx` | 修正 |
-| `src/components/Layout/Layout.module.css` | 修正 |
-| `src/components/BottomNav/` | 削除 |
-| `src/types/index.ts` | BottomNavProps → SidebarProps リネーム |
-
-### リスク
-- BottomNav参照: Layout.tsx・types.ts・BottomNav配下のみ（Routing.test.tsxはコメントのみ）
-- padding-bottom: 5rem 除去が必要
-
-## Step 2.5: Design（確定）
-- 左サイドバー（ダークネイビー）: 幅160px
-  - "Strength Log" タイトル
-  - ナビ: ホーム・履歴・体組成・設定 + アイコン
-- ヘッダー: 上部固定のまま（ページ名表示）
-- メインコンテンツ: サイドバー右側
-
-## 実装チェックリスト
-- [ ] Sidebar.tsx 作成
-- [ ] Sidebar.module.css 作成
-- [ ] Sidebar.test.tsx 作成（BottomNav.test.tsx から移行）
-- [ ] Layout.tsx 更新（BottomNav → Sidebar、flex-row）
-- [ ] Layout.module.css 更新（横並びレイアウト）
-- [ ] types/index.ts 更新（BottomNavProps → SidebarProps）
-- [ ] BottomNav ディレクトリ削除
-- [ ] 品質ゲート PASS
+計画書「今回やらないこと」を参照。

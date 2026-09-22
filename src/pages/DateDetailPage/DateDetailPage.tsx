@@ -6,10 +6,23 @@ import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
 import { useSettings } from '../../hooks/useSettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
-import { displayWeight, calcRM } from '../../utils/training'
+import {
+  displayWeight,
+  displayVolume,
+  calcRM,
+  filledSets,
+  hasFilledSets,
+} from '../../utils/training'
+import type { Exercise, TrainingRecord, TrainingSet } from '../../types'
 import styles from './DateDetailPage.module.css'
 
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土']
+
+interface DisplayedRecord {
+  record: TrainingRecord
+  exercise: Exercise
+  sets: TrainingSet[]
+}
 
 function formatDateJa(date: Date): string {
   const weekday = WEEKDAYS_JA[date.getDay()]
@@ -30,23 +43,29 @@ export default function DateDetailPage() {
   const isValidDate = date && isValid(date)
 
   const records = isValidDate ? getRecordsByDate(dateStr!) : []
-  const filledRecords = records.filter((r) => r.sets.length > 0)
 
-  const totalExercises = filledRecords.length
-  const totalSets = filledRecords.reduce((acc, r) => acc + r.sets.length, 0)
-  const totalReps = filledRecords.reduce(
-    (acc, r) => acc + r.sets.reduce((s, set) => s + set.reps, 0),
+  /**
+   * 画面に出す記録（種目が存在し、中身のあるセットがあるものだけ）。
+   * 削除済み種目や空セットだけの記録を数えると、カードの表示と合計種目数が食い違うため、
+   * ここで一度だけ絞る。
+   */
+  const displayedRecords: DisplayedRecord[] = records.filter(hasFilledSets).flatMap((record) => {
+    const exercise = exercises.find((item) => item.id === record.exerciseId)
+    return exercise ? [{ record, exercise, sets: filledSets(record) }] : []
+  })
+
+  const totalExercises = displayedRecords.length
+  const totalSets = displayedRecords.reduce((acc, entry) => acc + entry.sets.length, 0)
+  const totalReps = displayedRecords.reduce(
+    (acc, entry) => acc + entry.sets.reduce((sum, set) => sum + set.reps, 0),
     0
   )
-  const totalVolume = filledRecords.reduce(
-    (acc, r) =>
-      acc + r.sets.reduce((s, set) => s + set.weight * set.reps, 0),
+  const totalVolume = displayedRecords.reduce(
+    (acc, entry) =>
+      acc + entry.sets.reduce((sum, set) => sum + set.weight * set.reps, 0),
     0
   )
-  const displayVolume =
-    unit === 'lbs'
-      ? Math.round(totalVolume * 2.20462)
-      : Math.round(totalVolume)
+  const totalVolumeDisplay = displayVolume(totalVolume, unit)
 
   useEffect(() => {
     setHeader({ title: 'トレーニング記録画面', centered: true })
@@ -83,7 +102,7 @@ export default function DateDetailPage() {
           <div className={styles.bodyStatDivider} />
           <div className={styles.bodyStatCard}>
             <span className={styles.bodyStatLabel}>負荷量({unit})</span>
-            <span className={styles.bodyStatValue}>{displayVolume.toLocaleString()}</span>
+            <span className={styles.bodyStatValue}>{totalVolumeDisplay.toLocaleString()}</span>
           </div>
         </div>
       </div>
@@ -99,9 +118,7 @@ export default function DateDetailPage() {
           </div>
         ) : (
           <div className={styles.exerciseList}>
-            {filledRecords.map((record) => {
-              const ex = exercises.find((e) => e.id === record.exerciseId)
-              if (!ex) return null
+            {displayedRecords.map(({ record, exercise, sets }) => {
               return (
                 <div key={record.id} className={styles.exerciseCard}>
                   {/* カードヘッダー */}
@@ -111,7 +128,7 @@ export default function DateDetailPage() {
                       navigate(`/date/${dateStr}/exercises/${record.exerciseId}`)
                     }
                   >
-                    <span className={styles.exerciseName}>{ex.name}</span>
+                    <span className={styles.exerciseName}>{exercise.name}</span>
                   </button>
 
                   {/* セット一覧 */}
@@ -122,17 +139,17 @@ export default function DateDetailPage() {
                       <span className={styles.tColReps}>回数</span>
                       <span className={styles.tColRm}>RM</span>
                     </div>
-                    {record.sets.map((s, idx) => {
-                      const rm = calcRM(s.weight, s.reps)
+                    {sets.map((set, index) => {
+                      const rm = calcRM(set.weight, set.reps)
                       return (
-                        <div key={s.id} className={styles.setTableRow}>
-                          <span className={styles.tColSet}>{idx + 1}</span>
+                        <div key={set.id} className={styles.setTableRow}>
+                          <span className={styles.tColSet}>{index + 1}</span>
                           <span className={styles.tColWeight}>
-                            {displayWeight(s.weight, unit)}&nbsp;{unit}
+                            {displayWeight(set.weight, unit)}&nbsp;{unit}
                           </span>
-                          <span className={styles.tColReps}>{s.reps}&nbsp;回</span>
+                          <span className={styles.tColReps}>{set.reps}&nbsp;回</span>
                           <span className={styles.tColRm}>
-                            {rm > 0 ? `${rm}` : '—'}
+                            {rm > 0 ? `${displayWeight(rm, unit)}` : '—'}
                           </span>
                         </div>
                       )

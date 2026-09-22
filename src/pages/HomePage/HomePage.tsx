@@ -11,7 +11,14 @@ import { useExercises } from '../../hooks/useExercises'
 import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
-import { calcRM, displayWeight, getBest1RMs } from '../../utils/training'
+import {
+  calcRM,
+  displayWeight,
+  filledSets,
+  getBest1RMs,
+  hasFilledSets,
+  recordsOfExistingExercises,
+} from '../../utils/training'
 import { calcContinuityStreak, getQualifyingDates } from '../../utils/continuity'
 import styles from './HomePage.module.css'
 
@@ -26,7 +33,7 @@ export default function HomePage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
-  const { records, getRecordsByDate } = useTrainingRecords()
+  const { records } = useTrainingRecords()
   const { exercises } = useExercises()
   const { records: bodyRecords } = useBodyRecords()
   const { settings: bodySettings } = useBodySettings()
@@ -35,13 +42,18 @@ export default function HomePage() {
   const today = new Date()
   const todayStr = format(today, 'yyyy-MM-dd')
 
+  // 削除済み種目の記録はカレンダーの印にもゲージにも数えない
+  const visibleRecords = recordsOfExistingExercises(records, exercises)
+
   // トレーニング記録がある日付（カレンダーのドット表示用）
   const markedDates = [
-    ...new Set(records.filter((r) => r.sets.length > 0).map((r) => r.date)),
+    ...new Set(visibleRecords.filter(hasFilledSets).map((record) => record.date)),
   ]
 
   // 今日の記録をサマリー表示
-  const todayRecords = getRecordsByDate(todayStr).filter((r) => r.sets.length > 0)
+  const todayRecords = visibleRecords.filter(
+    (record) => record.date === todayStr && hasFilledSets(record),
+  )
 
   type GroupedExercise = {
     exerciseId: string
@@ -55,15 +67,16 @@ export default function HomePage() {
   todayRecords.forEach((record) => {
     const ex = exercises.find((e) => e.id === record.exerciseId)
     if (!ex) return
-    const maxRM = record.sets.reduce(
-      (max, s) => Math.max(max, calcRM(s.weight, s.reps)),
+    const sets = filledSets(record)
+    const maxRM = sets.reduce(
+      (max, set) => Math.max(max, calcRM(set.weight, set.reps)),
       0
     )
     const entry: GroupedExercise = {
       exerciseId: ex.id,
       name: ex.name,
       categoryId: ex.categoryId,
-      sets: record.sets,
+      sets,
       maxRM,
     }
     if (!grouped.has(ex.categoryId)) grouped.set(ex.categoryId, [])
@@ -72,20 +85,20 @@ export default function HomePage() {
 
   // 継続力ストリーク計算
   const continuityStreak = calcContinuityStreak(
-    records,
+    visibleRecords,
     settings.requiredExercises,
     settings.defaultSets,
   )
 
   // カレンダー用: 条件達成日（フルカラー）
   const achievedDates = getQualifyingDates(
-    records,
+    visibleRecords,
     settings.requiredExercises,
     settings.defaultSets,
   )
 
-  // TrophyBadge用: 全記録から種目別の歴代最高RM（日付は M/d 形式で表示）
-  const trophies = getBest1RMs(records, exercises).map((t) => ({
+  // TrophyBadge用: 種目別の歴代最高RM（日付は M/d 形式で表示）
+  const trophies = getBest1RMs(visibleRecords, exercises).map((t) => ({
     ...t,
     date: format(new Date(t.date), 'M/d'),
   }))
@@ -120,7 +133,7 @@ export default function HomePage() {
           />
         </div>
         <div className={styles.rightCol}>
-          <TrophyBadge trophies={trophies} />
+          <TrophyBadge trophies={trophies} unit={unit} />
         </div>
       </div>
 

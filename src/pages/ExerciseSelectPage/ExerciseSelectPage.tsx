@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../../hooks/useExercises'
+import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import { CATEGORIES } from '../../data/defaultExercises'
+import { hasFilledSets } from '../../utils/training'
 import ExerciseDetailModal from '../../components/ExerciseDetailModal/ExerciseDetailModal'
 import type { Exercise } from '../../types'
 import styles from './ExerciseSelectPage.module.css'
@@ -13,6 +15,7 @@ export default function ExerciseSelectPage() {
   const { dateStr } = useParams<{ dateStr: string }>()
   const navigate = useNavigate()
   const { exercises, getCategoryExercises, deleteExercise } = useExercises()
+  const { records } = useTrainingRecords()
   const { setHeader } = usePageHeader()
 
   const [isEditMode, setIsEditMode] = useState(false)
@@ -27,6 +30,18 @@ export default function ExerciseSelectPage() {
   const customCategories = [...new Set(exercises.map((e) => e.categoryId))]
     .filter((cat) => !CATEGORIES.includes(cat))
   const allCategories = [...CATEGORIES, ...customCategories]
+
+  // 削除は取り消せないため、その種目に紐づく記録の件数を示して確認する
+  function confirmAndDelete(exercise: Exercise) {
+    const recordCount = records.filter(
+      (record) => record.exerciseId === exercise.id && hasFilledSets(record),
+    ).length
+    const accepted = window.confirm(
+      `「${exercise.name}」を削除しますか？\nこの種目の記録 ${recordCount} 件は表示されなくなります。`,
+    )
+    if (!accepted) return
+    deleteExercise(exercise.id)
+  }
 
   function toggleExpand(cat: string) {
     setExpandedCategories((prev) => {
@@ -87,7 +102,7 @@ export default function ExerciseSelectPage() {
                           aria-label="削除"
                           onClick={(e) => {
                             e.stopPropagation()
-                            deleteExercise(ex.id)
+                            confirmAndDelete(ex)
                           }}
                         >
                           －

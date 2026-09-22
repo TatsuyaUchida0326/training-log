@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import type { Settings } from '../types'
+import type { Settings, WeightUnit } from '../types'
 
-const STORAGE_KEY = 'strength-log-settings'
+export const STORAGE_KEY = 'strength-log-settings'
 
-const DEFAULT_SETTINGS: Settings = {
+export const DEFAULT_SETTINGS: Settings = {
   defaultSets: 3,
   trainingDefaultSets: 3,
   weightUnit: 'kg',
@@ -51,7 +51,7 @@ export function useSettings() {
     })
   }
 
-  function updateWeightUnit(unit: 'kg' | 'lbs') {
+  function updateWeightUnit(unit: WeightUnit) {
     setSettings((prev) => {
       const next = { ...prev, weightUnit: unit }
       saveSettings(next)

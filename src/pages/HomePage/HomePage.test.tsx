@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import HomePage from './HomePage'
+import { seedExercises, seedRecords, seedSettings, todayStr } from '../../test/seed'
 
 beforeEach(() => {
   localStorage.clear()
@@ -57,5 +58,101 @@ describe('HomePage', () => {
     )
     renderHomePage()
     expect(screen.getByTestId('weight-chart')).toBeInTheDocument()
+  })
+})
+
+/* ── 空セット除外・削除済み種目・lbs 表示のテスト用ヘルパー ── */
+
+function seedBenchPress(): void {
+  seedExercises([{ id: 'ex-bench', name: 'ベンチプレス', categoryId: '胸', isCustom: false }])
+}
+
+function seedTodayRecord(
+  sets: { weight: number; reps: number }[],
+  exerciseId = 'ex-bench',
+): void {
+  seedRecords([
+    {
+      id: 'rec-today',
+      date: todayStr(),
+      exerciseId,
+      sets: sets.map((set, index) => ({
+        id: `set-${index}`,
+        weight: set.weight,
+        reps: set.reps,
+        memo: '',
+      })),
+    },
+  ])
+}
+
+function trophyPanel(): HTMLElement {
+  return screen.getByText('1RM更新').closest('.trophy-container') as HTMLElement
+}
+
+describe('HomePage - 空セットだけの記録は記録として扱わない', () => {
+  it('空セットだけの記録ではカレンダーに記録マークが出ない', () => {
+    seedBenchPress()
+    seedTodayRecord([{ weight: 0, reps: 0 }, { weight: 0, reps: 0 }, { weight: 0, reps: 0 }])
+    renderHomePage()
+    expect(screen.queryAllByTestId('marked-dot')).toHaveLength(0)
+  })
+
+  it('空セットだけの記録では「今日のトレーニング」に種目が出ない', () => {
+    seedBenchPress()
+    seedTodayRecord([{ weight: 0, reps: 0 }, { weight: 0, reps: 0 }, { weight: 0, reps: 0 }])
+    renderHomePage()
+    expect(screen.queryByText('ベンチプレス')).not.toBeInTheDocument()
+    expect(screen.getByText('まだ記録がありません')).toBeInTheDocument()
+  })
+
+  it('中身のあるセットがあればカレンダーに記録マークが出る', () => {
+    seedBenchPress()
+    seedTodayRecord([{ weight: 60, reps: 10 }, { weight: 0, reps: 0 }])
+    renderHomePage()
+    expect(screen.queryAllByTestId('marked-dot')).toHaveLength(1)
+  })
+
+  it('重さ0でも回数が入っていれば「今日のトレーニング」に表示される（自重種目）', () => {
+    seedBenchPress()
+    seedTodayRecord([{ weight: 0, reps: 20 }])
+    renderHomePage()
+    expect(screen.getByText('ベンチプレス')).toBeInTheDocument()
+  })
+})
+
+describe('HomePage - トロフィーの重量単位', () => {
+  it('lbs設定ではトロフィーのRMが lbs 換算値で表示される', () => {
+    seedBenchPress()
+    seedSettings({ weightUnit: 'lbs' })
+    seedTodayRecord([{ weight: 60, reps: 10 }])
+    renderHomePage()
+    expect(within(trophyPanel()).getByText('176.4 lbs')).toBeInTheDocument()
+  })
+
+  it('kg設定ではトロフィーのRMが kg のまま表示される', () => {
+    seedBenchPress()
+    seedSettings({ weightUnit: 'kg' })
+    seedTodayRecord([{ weight: 60, reps: 10 }])
+    renderHomePage()
+    expect(within(trophyPanel()).getByText('80 kg')).toBeInTheDocument()
+  })
+})
+
+describe('HomePage - 削除済み種目の記録', () => {
+  it('種目一覧に無い exerciseId の記録はカレンダーの印にもゲージにも数えない', () => {
+    seedBenchPress()
+    seedSettings({ requiredExercises: 1, defaultSets: 3 })
+    seedTodayRecord(
+      [
+        { weight: 60, reps: 10 },
+        { weight: 60, reps: 10 },
+        { weight: 60, reps: 10 },
+      ],
+      'ex-deleted'
+    )
+    renderHomePage()
+    expect(screen.queryAllByTestId('marked-dot')).toHaveLength(0)
+    expect(screen.getByText('0 / 90')).toBeInTheDocument()
   })
 })

@@ -4,11 +4,14 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import HistoryPage from './HistoryPage'
-import type { TrainingRecord, Exercise } from '../../types'
+import { setupFixedClock } from '../../test/fixedClock'
+import { seedSettings } from '../../test/seed'
+import type { TrainingRecord, Exercise, WeightUnit } from '../../types'
 
 // ── フィクスチャ ──────────────────────────────────────────────────────────────
 
 const DATE_WITH_RECORD = '2026-04-22'
+const DATE_WITH_DELETED_EXERCISE = '2026-04-10'
 
 const MOCK_EXERCISES: Exercise[] = [
   { id: 'ex-chest-1', name: 'ベンチプレス', categoryId: '胸', isCustom: false },
@@ -25,6 +28,13 @@ const MOCK_RECORDS: TrainingRecord[] = [
       { id: 's2', weight: 60, reps: 10, memo: '' },
       { id: 's3', weight: 60, reps: 10, memo: '' },
     ],
+  },
+  // 種目一覧から消えた種目の記録（画面には出ない想定）
+  {
+    id: 'rec-deleted',
+    date: DATE_WITH_DELETED_EXERCISE,
+    exerciseId: 'ex-deleted',
+    sets: [{ id: 's4', weight: 50, reps: 10, memo: '' }],
   },
 ]
 
@@ -69,6 +79,9 @@ function renderHistoryPage() {
 }
 
 // ── テスト ────────────────────────────────────────────────────────────────────
+
+// カレンダーの表示月は実時間に依存するため 2026-04-16 に固定する
+setupFixedClock(new Date(2026, 3, 16, 12))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -158,5 +171,73 @@ describe('HistoryPage — カレンダー日付クリック × CalendarDayPopup'
     await user.click(dayCells[0])
 
     expect(screen.queryByTestId('popup-overlay')).not.toBeInTheDocument()
+  })
+
+  it('種目一覧に無い種目の記録だけの日はポップアップが表示されない', async () => {
+    const user = userEvent.setup()
+    renderHistoryPage()
+
+    // 10日のセル（削除済み種目の記録だけがある日）をクリック
+    await user.click(screen.getAllByText('10')[0])
+
+    expect(screen.queryByTestId('popup-overlay')).not.toBeInTheDocument()
+  })
+})
+
+/**
+ * lbs 設定のときグラフの値も lbs に換算する（セット数は換算しない）。
+ *
+ * recharts のツールチップはホバー時にしか描画されず jsdom では検証できないため、
+ * 「Y軸の目盛が換算後の値まで伸びているか」で点の換算を確認する。
+ * ツールチップの単位表示そのものは実機確認に委ねる。
+ *
+ * フィクスチャ（60kg × 10回 × 3セット）の期待値:
+ *   最大重量 60kg → 132.3 lbs / 最大RM 80kg → 176.4 lbs / 総負荷量 1800kg → 3968（整数に丸める）
+ */
+describe('HistoryPage - グラフの重量単位', () => {
+  function maxYAxisTick(chartTitle: string): number {
+    const chartBlock = screen.getByText(chartTitle).parentElement as HTMLElement
+    const tickValues = Array.from(chartBlock.querySelectorAll('svg text'))
+      .map((tick) => Number(tick.textContent))
+      .filter((value) => !Number.isNaN(value))
+    return Math.max(...tickValues)
+  }
+
+  async function showGraphView(unit: WeightUnit): Promise<void> {
+    seedSettings({ weightUnit: unit })
+    renderHistoryPage()
+    await userEvent.click(screen.getByRole('button', { name: 'グラフ' }))
+  }
+
+  it('lbs設定では最大重量グラフの目盛が lbs 換算値まで伸びる', async () => {
+    await showGraphView('lbs')
+    expect(maxYAxisTick('最大重量')).toBeGreaterThanOrEqual(132.3)
+  })
+
+  it('lbs設定では最大RMグラフの目盛が lbs 換算値まで伸びる', async () => {
+    await showGraphView('lbs')
+    expect(maxYAxisTick('最大RM')).toBeGreaterThanOrEqual(176.4)
+  })
+
+  it('lbs設定では総負荷量グラフの目盛が lbs 換算値まで伸びる', async () => {
+    await showGraphView('lbs')
+    expect(maxYAxisTick('総負荷量')).toBeGreaterThanOrEqual(3968)
+  })
+
+  it('lbs設定でもセット数グラフは換算されない', async () => {
+    await showGraphView('lbs')
+    expect(maxYAxisTick('セット数')).toBe(3)
+  })
+
+  it('kg設定では最大重量グラフの目盛が kg のまま表示される', async () => {
+    await showGraphView('kg')
+    expect(maxYAxisTick('最大重量')).toBeGreaterThanOrEqual(60)
+    expect(maxYAxisTick('最大重量')).toBeLessThan(132.3)
+  })
+
+  it('kg設定では総負荷量グラフの目盛が kg のまま表示される', async () => {
+    await showGraphView('kg')
+    expect(maxYAxisTick('総負荷量')).toBeGreaterThanOrEqual(1800)
+    expect(maxYAxisTick('総負荷量')).toBeLessThan(3968)
   })
 })

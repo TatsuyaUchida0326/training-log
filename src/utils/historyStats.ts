@@ -1,5 +1,5 @@
-import type { TrainingRecord } from '../types'
-import { calcRM } from './training'
+import type { TrainingRecord, TrainingSet } from '../types'
+import { calcRM, filledSets } from './training'
 
 export interface GraphPoint {
   date: string   // 'YYYY-MM-DD'
@@ -22,12 +22,13 @@ export function calcHistoryStats(records: TrainingRecord[]): HistoryStats {
   // 日付順にソート
   const sorted = [...records].sort((a, b) => a.date.localeCompare(b.date))
 
-  // 日付ごとに集計
-  const byDate = new Map<string, TrainingRecord[]>()
-  sorted.forEach((r) => {
-    if (r.sets.length === 0) return
-    if (!byDate.has(r.date)) byDate.set(r.date, [])
-    byDate.get(r.date)!.push(r)
+  // 日付ごとに集計（中身のあるセットだけを対象にする）
+  const byDate = new Map<string, TrainingSet[]>()
+  sorted.forEach((record) => {
+    const sets = filledSets(record)
+    if (sets.length === 0) return
+    if (!byDate.has(record.date)) byDate.set(record.date, [])
+    byDate.get(record.date)!.push(...sets)
   })
 
   const trainedDates: string[] = []
@@ -36,27 +37,26 @@ export function calcHistoryStats(records: TrainingRecord[]): HistoryStats {
   const totalSets: GraphPoint[] = []
   const totalVolume: GraphPoint[] = []
 
-  byDate.forEach((dayRecords, date) => {
+  byDate.forEach((daySets, date) => {
     trainedDates.push(date)
 
     let dayMaxWeight = 0
     let dayMaxRM = 0
-    let daySets = 0
     let dayVolume = 0
 
-    dayRecords.forEach((record) => {
-      record.sets.forEach((s) => {
-        dayMaxWeight = Math.max(dayMaxWeight, s.weight)
-        dayMaxRM = Math.max(dayMaxRM, calcRM(s.weight, s.reps))
-        daySets += 1
-        dayVolume += s.weight * s.reps
-      })
+    daySets.forEach((set) => {
+      dayMaxWeight = Math.max(dayMaxWeight, set.weight)
+      dayMaxRM = Math.max(dayMaxRM, calcRM(set.weight, set.reps))
+      dayVolume += set.weight * set.reps
     })
 
-    maxWeight.push({ date, value: Math.round(dayMaxWeight * 10) / 10 })
-    maxRM.push({ date, value: Math.round(dayMaxRM * 10) / 10 })
-    totalSets.push({ date, value: daySets })
-    totalVolume.push({ date, value: Math.round(dayVolume) })
+    // kg の生値で返す。ここで丸めると lbs 換算時に二段丸めになり、
+    // 日付詳細画面（換算してから1回だけ丸める）と表示値がずれる。
+    maxWeight.push({ date, value: dayMaxWeight })
+    // dayMaxRM は calcRM が 0.1 単位に丸めた値の最大なので、ここでの丸めは不要
+    maxRM.push({ date, value: dayMaxRM })
+    totalSets.push({ date, value: daySets.length })
+    totalVolume.push({ date, value: dayVolume })
   })
 
   return { trainedDates, maxWeight, maxRM, totalSets, totalVolume }
