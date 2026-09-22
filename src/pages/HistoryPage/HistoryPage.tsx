@@ -60,7 +60,7 @@ export default function HistoryPage() {
     [records, exercises],
   )
 
-  // 部位タブ（デフォルト9 + カスタム）
+  // 部位タブ（既定の部位 + ユーザーが追加した部位）
   const customCategories = [
     ...new Set(exercises.map((e) => e.categoryId)),
   ].filter((c) => !CATEGORIES.includes(c))

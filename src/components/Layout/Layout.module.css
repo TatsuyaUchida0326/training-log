@@ -76,23 +76,6 @@
   padding: 6px 0 2px;
 }
 
-/* ヘッダー内ボタン共通 */
-:global(.header-btn) {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.1rem;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  line-height: 1;
-  transition: background 0.15s;
-}
-
-:global(.header-btn:hover) {
-  background: rgba(255, 255, 255, 0.2);
-}
-
 /* ヘッダー左右のアイコンボタン（タップ領域 44px を確保する） */
 :global(.header-icon-btn) {
   width: 44px;

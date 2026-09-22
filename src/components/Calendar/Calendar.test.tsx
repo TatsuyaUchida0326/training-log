@@ -25,13 +25,11 @@ beforeEach(() => {
 })
 
 describe('Calendar', () => {
-  // テスト1: 年月ヘッダーが正しく表示される
   it('年月ヘッダーが "2026年4月" 形式で表示される', () => {
     render(<Calendar {...defaultProps} />)
     expect(screen.getByText('2026年4月')).toBeInTheDocument()
   })
 
-  // テスト2: 曜日ヘッダー7列が表示される
   it('曜日ヘッダー 日〜土 が表示される', () => {
     render(<Calendar {...defaultProps} />)
     const weekdays = ['日', '月', '火', '水', '木', '金', '土']
@@ -40,7 +38,6 @@ describe('Calendar', () => {
     })
   })
 
-  // テスト3: currentDateの月の日付がすべて表示される
   it('April 2026 の全日付（1〜30）が表示される', () => {
     render(<Calendar {...defaultProps} />)
     // April は 30 日まで
@@ -51,7 +48,6 @@ describe('Calendar', () => {
     }
   })
 
-  // テスト4: ＜ボタンクリックで onPrevMonth が呼ばれる
   it('＜ボタンをクリックすると onPrevMonth が呼ばれる', async () => {
     const user = userEvent.setup()
     const onPrevMonth = vi.fn()
@@ -64,7 +60,6 @@ describe('Calendar', () => {
     expect(onPrevMonth).toHaveBeenCalledTimes(1)
   })
 
-  // テスト5: ＞ボタンクリックで onNextMonth が呼ばれる
   it('＞ボタンをクリックすると onNextMonth が呼ばれる', async () => {
     const user = userEvent.setup()
     const onNextMonth = vi.fn()
@@ -76,7 +71,6 @@ describe('Calendar', () => {
     expect(onNextMonth).toHaveBeenCalledTimes(1)
   })
 
-  // テスト6: 日付クリックで onDateSelect が正しい日付で呼ばれる
   it('日付「16」をクリックすると onDateSelect が 2026-04-16 の Date で呼ばれる', async () => {
     const user = userEvent.setup()
     const onDateSelect = vi.fn()
@@ -94,13 +88,11 @@ describe('Calendar', () => {
     expect(calledWith.getDate()).toBe(16)
   })
 
-  // テスト7: 当月表示中は「今日」ボタンが表示されない
   it('当月を表示中は「今日」ボタンが表示されない', () => {
     render(<Calendar {...defaultProps} currentDate={TODAY} />)
     expect(screen.queryByRole('button', { name: '今日' })).not.toBeInTheDocument()
   })
 
-  // テスト8: 前月表示中は「今日」ボタンが表示され、クリックで onToday が呼ばれる
   it('前月表示中に「今日」ボタンをクリックすると onToday が呼ばれる', async () => {
     const user = userEvent.setup()
     const onToday = vi.fn()
@@ -114,7 +106,6 @@ describe('Calendar', () => {
     expect(onToday).toHaveBeenCalledTimes(1)
   })
 
-  // テスト9: markedDates に含まれる日付にドットが表示される
   it('markedDates に含まれる日付にドットが表示される', () => {
     const markedDates = ['2026-04-10', '2026-04-20']
     render(<Calendar {...defaultProps} markedDates={markedDates} />)
@@ -123,7 +114,6 @@ describe('Calendar', () => {
     expect(dots.length).toBe(2)
   })
 
-  // テスト10: achievedDates に含まれる日付にドットが表示される
   it('achievedDates に含まれる日付にドットが表示される', () => {
     const achievedDates = ['2026-04-10', '2026-04-20']
     render(<Calendar {...defaultProps} achievedDates={achievedDates} />)
@@ -132,7 +122,6 @@ describe('Calendar', () => {
     expect(dots.length).toBe(2)
   })
 
-  // テスト11: markedDates のみの日はグレー、achievedDates の日はフルカラー
   it('achievedDates の日はフルカラー、markedDates のみの日はグレー表示になる', () => {
     render(
       <Calendar

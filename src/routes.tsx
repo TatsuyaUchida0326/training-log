@@ -8,7 +8,6 @@ import DateDetailPage from './pages/DateDetailPage'
 import ExerciseSelectPage from './pages/ExerciseSelectPage'
 import ExerciseAddPage from './pages/ExerciseAddPage'
 import TrainingEntryPage from './pages/TrainingEntryPage'
-import BodySettingsPage from './pages/BodySettingsPage'
 
 export const router = createBrowserRouter([
   {
@@ -21,7 +20,6 @@ export const router = createBrowserRouter([
       { path: '/date/:dateStr/exercises/:exerciseId', element: <TrainingEntryPage /> },
       { path: '/history', element: <HistoryPage /> },
       { path: '/body', element: <BodyPage /> },
-      { path: '/body/settings', element: <BodySettingsPage /> },
       { path: '/settings', element: <SettingsPage /> },
     ],
   },

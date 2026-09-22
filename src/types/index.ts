@@ -20,10 +20,10 @@ export interface TrainingRecord {
 }
 
 export interface Settings {
-  defaultSets: number          // 継続達成セット数（ContinuityGauge）
-  trainingDefaultSets: number  // トレーニング記録のデフォルトセット数
+  requiredSets: number       // 継続達成に必要なセット数（ContinuityGauge）
+  defaultSets: number        // トレーニング記録画面の初期セット数
   weightUnit: WeightUnit
-  requiredExercises: number    // 継続達成種目数（ContinuityGauge）
+  requiredExercises: number  // 継続達成に必要な種目数（ContinuityGauge）
 }
 
 export type CategoryId = string

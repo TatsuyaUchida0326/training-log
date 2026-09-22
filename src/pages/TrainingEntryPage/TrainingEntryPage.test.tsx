@@ -228,7 +228,7 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
   })
 
   it('記録が無い日に画面を開くと設定の既定セット数ぶんの下書き行が表示される', async () => {
-    seedSettings({ trainingDefaultSets: 4 })
+    seedSettings({ defaultSets: 4 })
     renderEntry()
     await waitFor(() => {
       expect(screen.getAllByLabelText('セット削除')).toHaveLength(4)

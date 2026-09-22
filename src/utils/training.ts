@@ -41,8 +41,8 @@ export function calcRM(weightKg: number, reps: number): number {
 }
 
 /**
- * 全記録から種目別の歴代最高1RMと更新日を返す（RM降順）。
- * date は 'YYYY-MM-DD' 形式で返す。
+ * 全記録から種目別の歴代最高1RMと、その記録を達成した日を返す。
+ * 並び順は更新日の新しい順。date は 'YYYY-MM-DD' 形式。
  */
 export function getBest1RMs(
   records: TrainingRecord[],

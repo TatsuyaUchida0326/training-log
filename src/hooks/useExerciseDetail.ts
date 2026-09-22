@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react'
 import { EXERCISE_MUSCLE_MAP } from '../data/exerciseMuscleMap'
 
-export type WgerStatus = 'idle' | 'loading' | 'ok' | 'error'
+export type ExerciseDetailStatus = 'idle' | 'loading' | 'ok' | 'error'
 
 // 種目詳細モーダルに表示するデータ型
-export interface WgerExerciseData {
+export interface ExerciseDetail {
   muscles: string[]          // 対象筋肉
   musclesSecondary: string[] // 補助筋
   descriptionJa: string      // 日本語説明文
@@ -12,7 +12,7 @@ export interface WgerExerciseData {
 }
 
 // セッション内でAPIレスポンスを再利用するためのメモリキャッシュ（種目名 → データ）
-const cache = new Map<string, WgerExerciseData>()
+const cache = new Map<string, ExerciseDetail>()
 
 // テスト間でキャッシュ汚染を防ぐためにexport（beforeEachで呼び出す）
 export function clearCache(): void {
@@ -39,7 +39,7 @@ async function fetchExternalData(jaName: string): Promise<{ descriptionJa: strin
 
 // 筋肉情報（静的）＋説明文・画像（静的 or Wikipedia）を組み合わせてデータを構築する
 // description が静的マップにある場合はAPIを呼ばずにスキップする（thumbnailUrl は空文字）
-async function loadExerciseData(jaName: string): Promise<WgerExerciseData> {
+async function loadExerciseData(jaName: string): Promise<ExerciseDetail> {
   const muscleData = EXERCISE_MUSCLE_MAP[jaName] ?? { muscles: [], musclesSecondary: [] }
   if (muscleData.description) {
     // 静的説明文がある場合は Wikipedia フェッチをスキップ
@@ -59,15 +59,15 @@ async function loadExerciseData(jaName: string): Promise<WgerExerciseData> {
   }
 }
 
-export function useWgerExercise(jaName: string): {
-  status: WgerStatus
-  data: WgerExerciseData | null
-  fetch: () => void
+export function useExerciseDetail(jaName: string): {
+  status: ExerciseDetailStatus
+  data: ExerciseDetail | null
+  load: () => void
 } {
-  const [status, setStatus] = useState<WgerStatus>('idle')
-  const [data, setData] = useState<WgerExerciseData | null>(null)
+  const [status, setStatus] = useState<ExerciseDetailStatus>('idle')
+  const [data, setData] = useState<ExerciseDetail | null>(null)
 
-  const fetchData = useCallback(() => {
+  const load = useCallback(() => {
     // 空文字の場合はカスタム種目（API不要）または呼び出し不要なケース
     if (!jaName) return
 
@@ -93,5 +93,5 @@ export function useWgerExercise(jaName: string): {
       })
   }, [jaName])
 
-  return { status, data, fetch: fetchData }
+  return { status, data, load }
 }

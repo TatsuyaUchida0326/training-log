@@ -1,12 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { useWgerExercise, clearCache } from './useWgerExercise'
+import { useExerciseDetail, clearCache } from './useExerciseDetail'
 
 function makeWikipediaResponse(extract: string) {
   return { type: 'standard', extract }
 }
 
-describe('useWgerExercise', () => {
+describe('useExerciseDetail', () => {
   let fetchMock: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
@@ -20,15 +20,15 @@ describe('useWgerExercise', () => {
   })
 
   it('初期状態は status="idle", data=null である', () => {
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
     expect(result.current.status).toBe('idle')
     expect(result.current.data).toBeNull()
   })
 
-  it('fetch() を呼ぶと status が "loading" になる', async () => {
+  it('load() を呼ぶと status が "loading" になる', async () => {
     fetchMock.mockReturnValue(new Promise(() => {}))
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     expect(result.current.status).toBe('loading')
   })
 
@@ -38,8 +38,8 @@ describe('useWgerExercise', () => {
       json: async () => makeWikipediaResponse('上半身を鍛えるウェイトトレーニングの種目。'),
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data).not.toBeNull()
@@ -51,8 +51,8 @@ describe('useWgerExercise', () => {
   it('Wikipedia API が 404 を返した場合は descriptionJa="" で status="ok" になる', async () => {
     fetchMock.mockResolvedValueOnce({ ok: false, status: 404 })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.descriptionJa).toBe('')
@@ -62,8 +62,8 @@ describe('useWgerExercise', () => {
   it('Wikipedia API がネットワークエラーのとき status="error" になる', async () => {
     fetchMock.mockRejectedValueOnce(new Error('Network Error'))
 
-    const { result } = renderHook(() => useWgerExercise('スクワット'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('スクワット'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('error'))
     expect(result.current.data).toBeNull()
   })
@@ -74,43 +74,43 @@ describe('useWgerExercise', () => {
       json: async () => makeWikipediaResponse('説明文。'),
     })
 
-    const { result } = renderHook(() => useWgerExercise('存在しない種目'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('存在しない種目'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.muscles).toEqual([])
     expect(result.current.data!.musclesSecondary).toEqual([])
   })
 
-  it('同じ jaName で2回 fetch() しても Wikipedia API 呼び出しは1回（キャッシュが効く）', async () => {
+  it('同じ jaName で2回 load() しても Wikipedia API 呼び出しは1回（キャッシュが効く）', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => makeWikipediaResponse('キャッシュテスト。'),
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     const callCount = fetchMock.mock.calls.length
 
-    act(() => { result.current.fetch() })
+    act(() => { result.current.load() })
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(fetchMock.mock.calls.length).toBe(callCount)
   })
 
-  it('jaName が空文字のとき fetch() を呼んでも何もしない（status は idle のまま）', async () => {
-    const { result } = renderHook(() => useWgerExercise(''))
-    act(() => { result.current.fetch() })
+  it('jaName が空文字のとき load() を呼んでも何もしない（status は idle のまま）', async () => {
+    const { result } = renderHook(() => useExerciseDetail(''))
+    act(() => { result.current.load() })
     await new Promise((resolve) => setTimeout(resolve, 50))
     expect(result.current.status).toBe('idle')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('静的 description がある種目（ランニング）は Wikipedia API を呼ばずに status="ok" になる', async () => {
-    const { result } = renderHook(() => useWgerExercise('ランニング'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ランニング'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(fetchMock).not.toHaveBeenCalled()
@@ -124,8 +124,8 @@ describe('useWgerExercise', () => {
       json: async () => ({ type: 'standard' }),
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.descriptionJa).toBe('')
@@ -137,8 +137,8 @@ describe('useWgerExercise', () => {
       json: async () => null,
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.descriptionJa).toBe('')
@@ -150,14 +150,13 @@ describe('useWgerExercise', () => {
       json: async () => ['unexpected'],
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.descriptionJa).toBe('')
   })
 
-  // A. Wikipedia API が thumbnail.source を返した場合 → thumbnailUrl にそのURLが入る
   it('Wikipedia API が thumbnail.source を返した場合、thumbnailUrl にそのURLが入る', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
@@ -168,36 +167,34 @@ describe('useWgerExercise', () => {
       }),
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.thumbnailUrl).toBe('https://example.com/img.jpg')
   })
 
-  // B. Wikipedia API が thumbnail なしで返した場合 → thumbnailUrl が空文字
   it('Wikipedia API が thumbnail なしで返した場合、thumbnailUrl が空文字になる', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ type: 'standard', extract: '説明文。' }),
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.thumbnailUrl).toBe('')
   })
 
-  // C. Wikipedia API が thumbnail.source が文字列でない場合 → thumbnailUrl が空文字
   it('Wikipedia API が thumbnail.source が文字列でない場合、thumbnailUrl が空文字になる', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ type: 'standard', extract: '説明文。', thumbnail: { source: 123 } }),
     })
 
-    const { result } = renderHook(() => useWgerExercise('ベンチプレス'))
-    act(() => { result.current.fetch() })
+    const { result } = renderHook(() => useExerciseDetail('ベンチプレス'))
+    act(() => { result.current.load() })
     await waitFor(() => expect(result.current.status).toBe('ok'))
 
     expect(result.current.data!.thumbnailUrl).toBe('')

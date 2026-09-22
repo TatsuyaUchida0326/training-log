@@ -4,12 +4,9 @@ import { filledSets } from './training'
 /**
  * 指定した達成条件（種目数・セット数）を満たした日付の一覧を昇順で返す。
  *
- * ContinuityGauge のカラー判定（達成日のハイライト）と
- * calcContinuityStreak のインプットとして使用する。
- *
  * @param records - 全トレーニング記録
- * @param requiredExercises - 達成とみなす最低種目数（SettingsPage で変更可能）
- * @param requiredSets - 達成とみなす最低セット数（SettingsPage で変更可能）
+ * @param requiredExercises - 達成とみなす最低種目数
+ * @param requiredSets - 達成とみなす最低セット数
  * @returns 条件を満たした日付の配列（'YYYY-MM-DD' 形式・昇順）
  */
 export function getQualifyingDates(
