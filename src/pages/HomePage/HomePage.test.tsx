@@ -142,7 +142,7 @@ describe('HomePage - トロフィーの重量単位', () => {
 describe('HomePage - 削除済み種目の記録', () => {
   it('種目一覧に無い exerciseId の記録はカレンダーの印にもゲージにも数えない', () => {
     seedBenchPress()
-    seedSettings({ requiredExercises: 1, defaultSets: 3 })
+    seedSettings({ requiredExercises: 1, requiredSets: 3 })
     seedTodayRecord(
       [
         { weight: 60, reps: 10 },

@@ -115,7 +115,7 @@ export default function TrainingEntryPage() {
   const lastRecordSets = lastRecord ? filledSets(lastRecord) : []
 
   const [draftSets, setDraftSets] = useState<TrainingSet[]>(() =>
-    newEmptySets(settings.trainingDefaultSets),
+    newEmptySets(settings.defaultSets),
   )
 
   const sets = record ? record.sets : draftSets

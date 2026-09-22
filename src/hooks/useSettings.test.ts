@@ -9,46 +9,46 @@ describe('useSettings', () => {
     localStorage.clear()
   })
 
-  it('初期値: defaultSets=3, trainingDefaultSets=3, weightUnit="kg", requiredExercises=3 が返る', () => {
+  it('初期値: requiredSets=3, defaultSets=3, weightUnit="kg", requiredExercises=3 が返る', () => {
     const { result } = renderHook(() => useSettings())
+    expect(result.current.settings.requiredSets).toBe(3)
     expect(result.current.settings.defaultSets).toBe(3)
-    expect(result.current.settings.trainingDefaultSets).toBe(3)
     expect(result.current.settings.weightUnit).toBe('kg')
     expect(result.current.settings.requiredExercises).toBe(3)
   })
 
-  it('updateDefaultSets(5) で settings.defaultSets が 5 になる', () => {
+  it('updateRequiredSets(5) で settings.requiredSets が 5 になる', () => {
     const { result } = renderHook(() => useSettings())
     act(() => {
-      result.current.updateDefaultSets(5)
+      result.current.updateRequiredSets(5)
     })
-    expect(result.current.settings.defaultSets).toBe(5)
+    expect(result.current.settings.requiredSets).toBe(5)
+  })
+
+  it('updateRequiredSets で localStorage に保存される', () => {
+    const { result } = renderHook(() => useSettings())
+    act(() => {
+      result.current.updateRequiredSets(7)
+    })
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
+    expect(stored.requiredSets).toBe(7)
+  })
+
+  it('updateDefaultSets(4) で settings.defaultSets が 4 になる', () => {
+    const { result } = renderHook(() => useSettings())
+    act(() => {
+      result.current.updateDefaultSets(4)
+    })
+    expect(result.current.settings.defaultSets).toBe(4)
   })
 
   it('updateDefaultSets で localStorage に保存される', () => {
     const { result } = renderHook(() => useSettings())
     act(() => {
-      result.current.updateDefaultSets(7)
+      result.current.updateDefaultSets(4)
     })
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-    expect(stored.defaultSets).toBe(7)
-  })
-
-  it('updateTrainingDefaultSets(4) で settings.trainingDefaultSets が 4 になる', () => {
-    const { result } = renderHook(() => useSettings())
-    act(() => {
-      result.current.updateTrainingDefaultSets(4)
-    })
-    expect(result.current.settings.trainingDefaultSets).toBe(4)
-  })
-
-  it('updateTrainingDefaultSets で localStorage に保存される', () => {
-    const { result } = renderHook(() => useSettings())
-    act(() => {
-      result.current.updateTrainingDefaultSets(4)
-    })
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
-    expect(stored.trainingDefaultSets).toBe(4)
+    expect(stored.defaultSets).toBe(4)
   })
 
   it('updateRequiredExercises(2) で settings.requiredExercises が 2 になる', () => {
@@ -93,5 +93,17 @@ describe('useSettings', () => {
     const { result } = renderHook(() => useSettings())
     expect(result.current.settings.defaultSets).toBe(5)
     expect(result.current.settings.weightUnit).toBe('lbs')
+  })
+
+  it('旧形式（trainingDefaultSets あり）は requiredSets ← 旧 defaultSets、defaultSets ← 旧 trainingDefaultSets として読み込む', () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ defaultSets: 5, trainingDefaultSets: 4, weightUnit: 'lbs', requiredExercises: 2 })
+    )
+    const { result } = renderHook(() => useSettings())
+    expect(result.current.settings.requiredSets).toBe(5)
+    expect(result.current.settings.defaultSets).toBe(4)
+    expect(result.current.settings.weightUnit).toBe('lbs')
+    expect(result.current.settings.requiredExercises).toBe(2)
   })
 })

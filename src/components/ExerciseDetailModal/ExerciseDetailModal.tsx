@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
-import { useWgerExercise } from '../../hooks/useWgerExercise'
+import { useExerciseDetail } from '../../hooks/useExerciseDetail'
 import type { Exercise } from '../../types'
-import type { WgerExerciseData } from '../../hooks/useWgerExercise'
+import type { ExerciseDetail } from '../../hooks/useExerciseDetail'
 import { EXERCISE_VIDEO_MAP } from '../../data/exerciseVideoMap'
 import styles from './ExerciseDetailModal.module.css'
 
@@ -19,18 +19,18 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
   // カスタム種目だが追加時に情報を入力しなかった場合 → 「入力すると表示されます」と案内
   const isCustomWithoutData = exercise.isCustom && !hasCustomData
 
-  // jaName を空文字にすることで useWgerExercise 内のフェッチをスキップさせる
-  const { status, data, fetch } = useWgerExercise(
+  // jaName を空文字にすることで useExerciseDetail 内のフェッチをスキップさせる
+  const { status, data, load } = useExerciseDetail(
     hasCustomData || isCustomWithoutData ? '' : exercise.name,
   )
 
   useEffect(() => {
     // デフォルト種目のみAPIを呼び出す（カスタム種目はスキップ）
-    if (!hasCustomData && !isCustomWithoutData) fetch()
-  }, [fetch, hasCustomData, isCustomWithoutData])
+    if (!hasCustomData && !isCustomWithoutData) load()
+  }, [load, hasCustomData, isCustomWithoutData])
 
   // カスタム種目の保存データをAPI応答と同じ形に揃える（表示ロジックを統一するため）
-  const effectiveData: WgerExerciseData | null = hasCustomData
+  const effectiveData: ExerciseDetail | null = hasCustomData
     ? {
         muscles: exercise.muscles ?? [],
         musclesSecondary: exercise.musclesSecondary ?? [],
@@ -42,7 +42,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
   // カスタム種目はAPI待ち不要なので常に 'ok' として扱い、ローディング表示を出さない
   const effectiveStatus = hasCustomData || isCustomWithoutData ? 'ok' : status
 
-  // デフォルト種目: 静的マップの動画ID → 直リンク
+  // デフォルト種目: 静的マップの動画ID → VALX 筋トレ大学の動画へ直リンク
   // カスタム種目: マップに存在しないので常に検索URLにフォールバック
   const videoId = EXERCISE_VIDEO_MAP[exercise.name]
   const youtubeHref = videoId
@@ -109,7 +109,7 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
           </>
         )}
 
-        {/* デフォルト種目: 山本先生の直リンク、カスタム種目: YouTube 検索URL */}
+        {/* デフォルト種目: VALX 筋トレ大学の動画へ直リンク、カスタム種目: YouTube 検索URL */}
         <a
           href={youtubeHref}
           target="_blank"

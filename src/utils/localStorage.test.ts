@@ -47,13 +47,13 @@ describe('localStorage 耐障害性', () => {
     expect(merged.height).toBe(170) // 既存値が保持される
   })
 
-  it('トレーニング設定の旧キーと後方互換性', () => {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ defaultSets: 4, weightUnit: 'lbs' }))
+  it('保存データに無いトレーニング設定キーはデフォルト値で補完される', () => {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ requiredSets: 4, weightUnit: 'lbs' }))
     const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) ?? '{}')
     // useSettings のデフォルトマージを模倣
-    const merged = { defaultSets: 3, trainingDefaultSets: 3, weightUnit: 'kg', requiredExercises: 3, ...stored }
-    expect(merged.defaultSets).toBe(4)
+    const merged = { requiredSets: 3, defaultSets: 3, weightUnit: 'kg', requiredExercises: 3, ...stored }
+    expect(merged.requiredSets).toBe(4)
     expect(merged.weightUnit).toBe('lbs')
-    expect(merged.trainingDefaultSets).toBe(3) // 旧データにない → デフォルト
+    expect(merged.defaultSets).toBe(3) // 保存データにない → デフォルト
   })
 })

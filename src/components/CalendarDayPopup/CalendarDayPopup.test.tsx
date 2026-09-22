@@ -73,13 +73,11 @@ beforeEach(() => {
 })
 
 describe('CalendarDayPopup', () => {
-  // テスト1: 日付ヘッダー形式
-  it('日付が「4月22日（火）」形式で表示される', () => {
+  it('日付が「4月22日（水）」形式で表示される', () => {
     renderPopup()
     expect(screen.getByText('4月22日（水）')).toBeInTheDocument()
   })
 
-  // テスト2: 部位ごとのグループ表示
   it('種目が部位ごとにグループ表示される（カテゴリラベルが表示される）', () => {
     renderPopup()
     // 胸・背中 の両カテゴリラベルが表示される
@@ -87,7 +85,6 @@ describe('CalendarDayPopup', () => {
     expect(screen.getByText('背中')).toBeInTheDocument()
   })
 
-  // テスト3: 各種目にセット数が表示される
   it('各種目にセット数（例: 3set）が表示される', () => {
     renderPopup()
     // ベンチプレス: 3set
@@ -98,7 +95,6 @@ describe('CalendarDayPopup', () => {
     expect(screen.getByText('1set')).toBeInTheDocument()
   })
 
-  // テスト4: 種目名が表示される
   it('各種目名が表示される', () => {
     renderPopup()
     expect(screen.getByText('ベンチプレス')).toBeInTheDocument()
@@ -106,7 +102,6 @@ describe('CalendarDayPopup', () => {
     expect(screen.getByText('デッドリフト')).toBeInTheDocument()
   })
 
-  // テスト4: X ボタンクリックで onClose が呼ばれる
   it('Xボタン（aria-label="close" または role="button"）クリックで onClose が呼ばれる', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
@@ -122,7 +117,6 @@ describe('CalendarDayPopup', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  // テスト5: オーバーレイクリックで onClose が呼ばれる
   it('オーバーレイ（data-testid="popup-overlay"）クリックで onClose が呼ばれる', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
@@ -133,7 +127,6 @@ describe('CalendarDayPopup', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
-  // テスト6: カードクリックでは onClose が呼ばれない
   it('カード内クリックでは onClose が呼ばれない', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
@@ -144,7 +137,6 @@ describe('CalendarDayPopup', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  // テスト7: 「詳細を見る」ボタンクリックで onNavigate が呼ばれる
   it('「詳細を見る」ボタンクリックで onNavigate("2026-04-22") が呼ばれる', async () => {
     const user = userEvent.setup()
     const onNavigate = vi.fn()
@@ -156,7 +148,6 @@ describe('CalendarDayPopup', () => {
     expect(onNavigate).toHaveBeenCalledWith('2026-04-22')
   })
 
-  // テスト8: レコードが空の場合は空状態メッセージが表示される（防御的テスト）
   it('records が空の場合は種目リストが表示されない', () => {
     renderPopup({ records: [] })
     expect(screen.queryByText('ベンチプレス')).not.toBeInTheDocument()

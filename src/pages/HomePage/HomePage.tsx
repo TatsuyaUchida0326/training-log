@@ -87,14 +87,14 @@ export default function HomePage() {
   const continuityStreak = calcContinuityStreak(
     visibleRecords,
     settings.requiredExercises,
-    settings.defaultSets,
+    settings.requiredSets,
   )
 
   // カレンダー用: 条件達成日（フルカラー）
   const achievedDates = getQualifyingDates(
     visibleRecords,
     settings.requiredExercises,
-    settings.defaultSets,
+    settings.requiredSets,
   )
 
   // TrophyBadge用: 種目別の歴代最高RM（日付は M/d 形式で表示）
@@ -124,7 +124,7 @@ export default function HomePage() {
           <ContinuityGauge
             current={continuityStreak}
             requiredExercises={settings.requiredExercises}
-            requiredSets={settings.defaultSets}
+            requiredSets={settings.requiredSets}
           />
         </div>
         <div className={styles.chartsCell}>

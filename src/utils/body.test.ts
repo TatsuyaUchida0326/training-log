@@ -19,7 +19,7 @@ const baseSettings: BodySettings = {
 }
 
 describe('calcBody', () => {
-  it('スクショの値と一致する（BMI=34.38）', () => {
+  it('身長169cm・体重98.2kg のとき BMI は 34.38', () => {
     const { bmi } = calcBody(baseRecord, baseSettings)
     expect(bmi).toBe(34.38)
   })

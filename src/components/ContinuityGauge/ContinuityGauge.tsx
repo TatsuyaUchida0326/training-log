@@ -5,7 +5,7 @@ interface ContinuityGaugeProps {
   max?: number
   requiredExercises?: number  // 達成に必要な種目数（デフォルト3・設定で変更可）
   requiredSets?: number       // 達成に必要なセット数（デフォルト3・設定で変更可）
-  resetDays?: number          // 休止でリセットされる日数（デフォルト10・設定で変更可）
+  resetDays?: number          // 休止でリセットされる日数（固定値10。設定画面からは変更できない）
 }
 
 const MAX = 90

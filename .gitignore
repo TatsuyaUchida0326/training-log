@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.vercel
+
+# AI エージェント用のローカル設定・作業メモ（公開しない）
+CLAUDE.md
+tasks/

@@ -92,10 +92,7 @@ describe('BodyTrendChart', () => {
     )
     const weightChart = screen.getByTestId('weight-chart')
     expect(weightChart).toBeInTheDocument()
-    // ReferenceLine の label が DOM に現れることを確認
-    // within を使わずとも、体脂肪率グラフには targetBodyFat=0 で参照線なし、
-    // かつ targetWeight>0 で体重グラフ側のみ「目標」が出るので screen でも取得可能。
-    // ただし bodyFat グラフも存在するため、念のため体重グラフ内で確認する。
+    // ReferenceLine の label が体重グラフ内に描画されることを確認する
     expect(weightChart.textContent).toContain('目標')
   })
 
@@ -134,7 +131,7 @@ describe('BodyTrendChart', () => {
     expect(screen.getByTestId('weight-chart')).toBeInTheDocument()
   })
 
-  it('31件以上あっても最新30件のみ表示される（BodyTrendChart 上限）', () => {
+  it('35件の記録を渡しても描画が壊れない', () => {
     const many: BodyRecord[] = Array.from({ length: 35 }, (_, i) => ({
       date: `2026-0${Math.floor(i / 30) + 1}-${String((i % 30) + 1).padStart(2, '0')}`,
       weight: 70 + i,
@@ -146,7 +143,6 @@ describe('BodyTrendChart', () => {
     render(
       <BodyTrendChart records={many} targetWeight={0} targetBodyFat={0} />
     )
-    // グラフが表示されること（上限テスト: 壊れないこと）
     expect(screen.getByTestId('weight-chart')).toBeInTheDocument()
   })
 })
