@@ -9,6 +9,7 @@ import {
   ReferenceLine,
 } from 'recharts'
 import type { BodyRecord } from '../../types'
+import { useChartWidth } from '../../hooks/useChartWidth'
 import styles from './BodyTrendChart.module.css'
 
 interface BodyTrendChartProps {
@@ -34,12 +35,16 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
     .slice(-30)
     .map((r) => ({ date: format(new Date(r.date), 'M/d'), value: r.bodyFat as number }))
 
+  const weightChartWidth = Math.max(weightPoints.length * CHART_PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
+  const bodyFatChartWidth = Math.max(bodyFatPoints.length * CHART_PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
+
+  // フックは早期 return より前に呼ぶ（記録が無い日でも呼び出し順を変えない）
+  const [weightChartRef, weightWidth] = useChartWidth<HTMLDivElement>(weightChartWidth)
+  const [bodyFatChartRef, bodyFatWidth] = useChartWidth<HTMLDivElement>(bodyFatChartWidth)
+
   if (weightPoints.length === 0 && bodyFatPoints.length === 0) {
     return null
   }
-
-  const weightChartWidth = Math.max(weightPoints.length * CHART_PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
-  const bodyFatChartWidth = Math.max(bodyFatPoints.length * CHART_PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
 
   return (
     <div className={styles.wrap}>
@@ -51,15 +56,15 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               <span className={styles.targetLabel}>目標 {targetWeight} kg</span>
             )}
           </div>
-          <div className={styles.chartScroll} role="img" aria-label="体重の推移グラフ">
+          <div className={styles.chartArea} ref={weightChartRef} role="img" aria-label="体重の推移グラフ">
             <LineChart
-              width={weightChartWidth}
+              width={weightWidth}
               height={110}
               data={weightPoints}
               margin={{ top: 4, right: 28, left: -16, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={0} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval="preserveStartEnd" minTickGap={16} />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} />
               <Tooltip />
               {targetWeight > 0 && (
@@ -90,15 +95,15 @@ export default function BodyTrendChart({ records, targetWeight, targetBodyFat }:
               <span className={styles.targetLabel}>目標 {targetBodyFat} %</span>
             )}
           </div>
-          <div className={styles.chartScroll} role="img" aria-label="体脂肪率の推移グラフ">
+          <div className={styles.chartArea} ref={bodyFatChartRef} role="img" aria-label="体脂肪率の推移グラフ">
             <LineChart
-              width={bodyFatChartWidth}
+              width={bodyFatWidth}
               height={110}
               data={bodyFatPoints}
               margin={{ top: 4, right: 28, left: -16, bottom: 0 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval={0} />
+              <XAxis dataKey="date" tick={{ fontSize: 9 }} interval="preserveStartEnd" minTickGap={16} />
               <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9 }} />
               <Tooltip />
               {targetBodyFat > 0 && (

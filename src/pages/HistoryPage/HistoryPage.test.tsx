@@ -226,7 +226,9 @@ describe('HistoryPage - グラフの重量単位', () => {
 
   it('lbs設定でもセット数グラフは換算されない', async () => {
     await showGraphView('lbs')
-    expect(maxYAxisTick('セット数')).toBe(3)
+    // セット数は 3。目盛はデータ範囲に少し余白を足すので上限は 4 になる。
+    // lbs 換算していれば 2.2 倍の値まで伸びるため、この上限で換算の有無を判定できる。
+    expect(maxYAxisTick('セット数')).toBe(4)
   })
 
   it('kg設定では最大重量グラフの目盛が kg のまま表示される', async () => {

@@ -5,3 +5,5 @@
 export { STORAGE_KEY as RECORDS_KEY } from '../hooks/useTrainingRecords'
 export { STORAGE_KEY as EXERCISES_KEY } from '../hooks/useExercises'
 export { STORAGE_KEY as SETTINGS_KEY } from '../hooks/useSettings'
+export { STORAGE_KEY as BODY_RECORDS_KEY } from '../hooks/useBodyRecords'
+export { STORAGE_KEY as BODY_SETTINGS_KEY } from '../hooks/useBodySettings'

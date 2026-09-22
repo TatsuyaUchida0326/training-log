@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { BodyRecord } from '../types'
 
-const STORAGE_KEY = 'strength-log-body-records'
+export const STORAGE_KEY = 'strength-log-body-records'
 
 function load(): BodyRecord[] {
   try {

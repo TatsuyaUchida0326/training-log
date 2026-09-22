@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { BodySettings } from '../types'
 
-const STORAGE_KEY = 'strength-log-body-settings'
+export const STORAGE_KEY = 'strength-log-body-settings'
 
 const DEFAULT_SETTINGS: BodySettings = {
   height: 0,
