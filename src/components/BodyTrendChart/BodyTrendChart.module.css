@@ -27,12 +27,7 @@
   color: #6b7280;
 }
 
-.chartScroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.chartScroll::-webkit-scrollbar {
-  display: none;
+/* グラフは枠の幅に合わせて描く（useChartWidth で計測）。はみ出しは切り落とす */
+.chartArea {
+  overflow: hidden;
 }

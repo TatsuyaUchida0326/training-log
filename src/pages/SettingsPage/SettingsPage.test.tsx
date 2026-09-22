@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import SettingsPage from './SettingsPage'
+import { RECORDS_KEY } from '../../test/storageKeys'
 
 const mockUpdateRequiredSets = vi.fn()
 const mockUpdateDefaultSets = vi.fn()
@@ -190,6 +191,80 @@ describe('SettingsPage — データ管理セクション', () => {
     confirmSpy.mockReturnValue(false)
     render(<SettingsPage />)
     await userEvent.click(screen.getByRole('button', { name: '全データをリセット' }))
+    expect(reloadMock).not.toHaveBeenCalled()
+  })
+})
+
+describe('SettingsPage — サンプルデータ', () => {
+  let confirmSpy: ReturnType<typeof vi.spyOn>
+  let reloadMock: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    localStorage.clear()
+    confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
+    // window.location は読み取り専用のため Object.defineProperty で上書きする
+    reloadMock = vi.fn()
+    Object.defineProperty(window, 'location', {
+      configurable: true,
+      value: { ...window.location, reload: reloadMock },
+    })
+  })
+
+  afterEach(() => {
+    confirmSpy.mockRestore()
+    localStorage.clear()
+  })
+
+  it('「サンプルデータを入れる」ラベルと「入れる」ボタンが表示される', () => {
+    render(<SettingsPage />)
+    expect(screen.getByText('サンプルデータを入れる')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '入れる' })).toBeInTheDocument()
+  })
+
+  it('セクションの説明文が表示される', () => {
+    render(<SettingsPage />)
+    expect(
+      screen.getByText(
+        'アプリの動きを試すための約1か月分の記録を入れます。元に戻すには「全データをリセット」を使ってください。'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('ボタンクリックで window.confirm が呼ばれる（メッセージ内容を検証）', async () => {
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '入れる' }))
+    expect(confirmSpy).toHaveBeenCalledWith(
+      'サンプルデータを入れますか？\n現在の記録は置き換わります。'
+    )
+  })
+
+  it('confirm が true を返したとき記録が localStorage に書き込まれる', async () => {
+    confirmSpy.mockReturnValue(true)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '入れる' }))
+
+    const stored = JSON.parse(localStorage.getItem(RECORDS_KEY) ?? '[]')
+    expect(stored.length).toBeGreaterThan(0)
+  })
+
+  it('confirm が true を返したとき window.location.reload が呼ばれる', async () => {
+    confirmSpy.mockReturnValue(true)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '入れる' }))
+    expect(reloadMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('confirm が false を返したとき記録が書き込まれない', async () => {
+    confirmSpy.mockReturnValue(false)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '入れる' }))
+    expect(localStorage.getItem(RECORDS_KEY)).toBeNull()
+  })
+
+  it('confirm が false を返したとき window.location.reload が呼ばれない', async () => {
+    confirmSpy.mockReturnValue(false)
+    render(<SettingsPage />)
+    await userEvent.click(screen.getByRole('button', { name: '入れる' }))
     expect(reloadMock).not.toHaveBeenCalled()
   })
 })

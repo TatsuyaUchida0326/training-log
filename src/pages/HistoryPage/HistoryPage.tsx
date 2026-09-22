@@ -3,6 +3,7 @@ import { Dumbbell } from 'lucide-react'
 import { addMonths, subMonths, format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
+import { useChartWidth } from '../../hooks/useChartWidth'
 import {
   LineChart,
   Line,
@@ -228,6 +229,15 @@ const PX_PER_POINT = 52
 const CHART_PADDING_PX = 60
 const CHART_MIN_WIDTH = 300
 
+/**
+ * 目盛りはデータの範囲に合わせる。0 起点にすると、
+ * 60kg → 67.5kg のような伸びが画面上ほぼ平らになって読み取れない。
+ */
+const Y_DOMAIN: [(dataMin: number) => number, (dataMax: number) => number] = [
+  (dataMin) => Math.max(0, Math.floor(dataMin * 0.92)),
+  (dataMax) => Math.ceil(dataMax * 1.05),
+]
+
 function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
   const formatted = useMemo(
     () => data.map((d) => ({
@@ -237,12 +247,13 @@ function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
     [data]
   )
 
-  const chartWidth = Math.max(formatted.length * PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
+  const fallbackWidth = Math.max(formatted.length * PX_PER_POINT + CHART_PADDING_PX, CHART_MIN_WIDTH)
+  const [chartRef, chartWidth] = useChartWidth<HTMLDivElement>(fallbackWidth)
 
   return (
     <div className={styles.chartBlock}>
       <div className={styles.chartTitle}>{title}</div>
-      <div className={styles.chartScroll}>
+      <div className={styles.chartArea} ref={chartRef}>
         <LineChart
           width={chartWidth}
           height={200}
@@ -252,11 +263,14 @@ function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
           <XAxis
             dataKey="date"
+            interval="preserveStartEnd"
+            minTickGap={24}
             tick={{ fontSize: 10, fill: '#9ca3af' }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
+            domain={Y_DOMAIN}
             tick={{ fontSize: 10, fill: '#9ca3af' }}
             tickLine={false}
             axisLine={false}

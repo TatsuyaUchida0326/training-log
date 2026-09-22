@@ -1,14 +1,24 @@
 import { useEffect } from 'react'
+import { useExercises } from '../../hooks/useExercises'
 import { useSettings } from '../../hooks/useSettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
+import { applySampleData } from '../../utils/sampleData'
 import styles from './SettingsPage.module.css'
 
 export default function SettingsPage() {
   const { settings, updateRequiredSets, updateDefaultSets, updateRequiredExercises, updateWeightUnit } = useSettings()
+  const { exercises } = useExercises()
   const { setHeader } = usePageHeader()
   useEffect(() => {
     setHeader({ title: '設定', centered: true })
   }, [setHeader])
+
+  function handleApplySampleData() {
+    if (window.confirm('サンプルデータを入れますか？\n現在の記録は置き換わります。')) {
+      applySampleData(exercises, new Date())
+      window.location.reload()
+    }
+  }
 
   function handleResetAllData() {
     if (window.confirm('本当にすべてのデータを削除しますか？\nこの操作は元に戻せません。')) {
@@ -86,8 +96,17 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className={`${styles.section} ${styles.dangerSection}`}>
+      <div className={`${styles.section} ${styles.dataSection}`}>
         <p className={styles.sectionTitle}>データ管理</p>
+        <p className={styles.sectionNote}>
+          アプリの動きを試すための約1か月分の記録を入れます。元に戻すには「全データをリセット」を使ってください。
+        </p>
+        <div className={styles.row}>
+          <span className={styles.label}>サンプルデータを入れる</span>
+          <button className={styles.sampleButton} onClick={handleApplySampleData}>
+            入れる
+          </button>
+        </div>
         <div className={styles.row}>
           <span className={styles.label}>全データをリセット</span>
           <button className={styles.resetButton} onClick={handleResetAllData}>
