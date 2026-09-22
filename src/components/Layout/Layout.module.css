@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: row;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .content {
@@ -27,7 +28,7 @@
     radial-gradient(ellipse 44px 24px at 90% 86%, rgba(255,255,255,0.32) 0%, transparent 100%),
     /* 空グラデーション */
     linear-gradient(180deg, #0c1e3d 0%, #1565c0 55%, #1e88e5 80%, #64b5f6 100%);
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   position: sticky;
   top: 0;
   z-index: 50;
@@ -38,13 +39,18 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
 }
 
 .headerLeft,
 .headerRight {
   display: flex;
   align-items: center;
-  min-width: 48px;
+  min-width: 44px;
+  flex-shrink: 0;
 }
 
 .headerRight {
@@ -87,6 +93,43 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* ヘッダー左右のアイコンボタン（タップ領域 44px を確保する） */
+:global(.header-icon-btn) {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+:global(.header-icon-btn:hover) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ヘッダー右の文字ボタン（「登録」など） */
+:global(.header-text-btn) {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 8px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+:global(.header-text-btn:disabled) {
+  opacity: 0.4;
+  cursor: default;
+}
+
 /* カレンダーと同仕様のナビボタン（角丸四角・青ホバー） */
 :global(.header-nav-btn) {
   display: flex;
@@ -113,5 +156,29 @@
 
 .main {
   flex: 1;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
   padding: 1rem;
+  /* 下部タブに本文の末尾が隠れないよう、タブの高さぶんを常に空ける */
+  padding-bottom: calc(1rem + var(--bottom-nav-height) + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 900px) {
+  .main {
+    padding-bottom: 1rem;
+  }
+}
+
+/* 1.3rem のままだと 320px でタイトルが折り返す */
+@media (max-width: 899.98px) {
+  .title {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 399.98px) {
+  .header {
+    padding: 0.5rem 0.75rem;
+  }
 }

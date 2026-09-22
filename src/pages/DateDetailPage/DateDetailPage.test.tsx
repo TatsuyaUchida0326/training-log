@@ -1,14 +1,11 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import DateDetailPage from './DateDetailPage'
-import { PageHeaderProvider, usePageHeader } from '../../contexts/PageHeaderContext'
+import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
+import { HeaderSpy } from '../../test/HeaderSpy'
 import { seedExercises, seedRecords, seedSettings } from '../../test/seed'
-
-function HeaderSpy() {
-  const { header } = usePageHeader()
-  return <div data-testid="page-title">{header.title}</div>
-}
 
 function renderWithRoute(dateStr: string) {
   return render(
@@ -16,6 +13,7 @@ function renderWithRoute(dateStr: string) {
       <HeaderSpy />
       <MemoryRouter initialEntries={[`/date/${dateStr}`]}>
         <Routes>
+          <Route path="/" element={<div data-testid="home-page" />} />
           <Route path="/date/:dateStr" element={<DateDetailPage />} />
         </Routes>
       </MemoryRouter>
@@ -24,9 +22,15 @@ function renderWithRoute(dateStr: string) {
 }
 
 describe('DateDetailPage', () => {
-  it('ヘッダータイトルは「トレーニング記録画面」で固定される', () => {
+  it('ヘッダータイトルは「トレーニング記録」で固定される', () => {
     renderWithRoute('2026-04-16')
-    expect(screen.getByTestId('page-title')).toHaveTextContent('トレーニング記録画面')
+    expect(screen.getByTestId('page-title')).toHaveTextContent('トレーニング記録')
+  })
+
+  it('ヘッダー左の「戻る」でホームへ遷移する', async () => {
+    renderWithRoute('2026-04-16')
+    await userEvent.click(screen.getByRole('button', { name: '戻る' }))
+    expect(screen.getByTestId('home-page')).toBeInTheDocument()
   })
 
   it('有効な dateStr で日本語の日付が body に表示される', () => {

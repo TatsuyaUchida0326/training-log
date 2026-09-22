@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import { X, Plus } from 'lucide-react'
+import { ChevronLeft, X, Plus } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
@@ -56,8 +56,22 @@ export default function TrainingEntryPage() {
   const { setHeader } = usePageHeader()
 
   useEffect(() => {
-    setHeader({ title: 'トレーニング記録画面', centered: true })
-  }, [setHeader])
+    setHeader({
+      // 日付詳細と同じ文言にすると2画面が区別できないため分ける
+      title: 'セットを記録',
+      centered: true,
+      // navigate(-1) だと直接URLを開いたときアプリ外へ戻るため、遷移先を明示する
+      leftElement: (
+        <button
+          className="header-icon-btn"
+          aria-label="戻る"
+          onClick={() => navigate(`/date/${dateStr}`)}
+        >
+          <ChevronLeft size={24} />
+        </button>
+      ),
+    })
+  }, [setHeader, navigate, dateStr])
 
   const {
     records,
@@ -256,7 +270,7 @@ export default function TrainingEntryPage() {
               <span className={styles.colSet}>セット</span>
               <span className={styles.colWeight}>重さ</span>
               <span className={styles.colReps}>回数</span>
-              <span className={styles.colRm}>RM</span>
+              {/* RM はセット行の2段目に移したため、見出しは置かない */}
               <span className={styles.colAction} />
             </div>
 
@@ -272,6 +286,7 @@ export default function TrainingEntryPage() {
                         className={styles.numInput}
                         type="text"
                         inputMode="decimal"
+                        aria-label={`${index + 1}セット目の重さ`}
                         defaultValue={dispWeight > 0 ? dispWeight : ''}
                         placeholder="0"
                         onInput={filterToDecimal}
@@ -285,6 +300,7 @@ export default function TrainingEntryPage() {
                         className={styles.numInput}
                         type="text"
                         inputMode="numeric"
+                        aria-label={`${index + 1}セット目の回数`}
                         defaultValue={set.reps > 0 ? set.reps : ''}
                         placeholder="0"
                         onInput={filterToInteger}
@@ -301,7 +317,7 @@ export default function TrainingEntryPage() {
                       aria-label="セット削除"
                       onClick={() => handleDeleteSet(set.id)}
                     >
-                      <X size={14} />
+                      <X size={18} />
                     </button>
                   </div>
                   <div className={styles.memoRow}>
@@ -326,14 +342,6 @@ export default function TrainingEntryPage() {
           <Plus size={16} /> セットを追加
         </button>
       </div>
-      {/* FAB: 左下の戻るボタン */}
-      <button
-        className={styles.fabBack}
-        onClick={() => navigate(-1)}
-        aria-label="戻る"
-      >
-        戻る
-      </button>
     </div>
   )
 }

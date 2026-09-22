@@ -13,7 +13,9 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PageHeaderProvider } from '../contexts/PageHeaderContext'
+import { HeaderSpy } from '../test/HeaderSpy'
 import HomePage from './HomePage'
+import DateDetailPage from './DateDetailPage'
 import TrainingEntryRoute from './TrainingEntryPage'
 import { readStoredRecords, seedExercises, seedSettings, todayStr } from '../test/seed'
 import { repsInputs, weightInputs } from '../test/inputs'
@@ -26,13 +28,14 @@ const OTHER_EXERCISE_NAME = 'スクワット'
 function renderFromEntryPage() {
   return render(
     <PageHeaderProvider>
+      <HeaderSpy />
       <MemoryRouter
         initialEntries={['/', `/date/${todayStr()}/exercises/${EXERCISE_ID}`]}
         initialIndex={1}
       >
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/date/:dateStr" element={<div data-testid="detail-page" />} />
+          <Route path="/date/:dateStr" element={<DateDetailPage />} />
           <Route
             path="/date/:dateStr/exercises/:exerciseId"
             element={<TrainingEntryRoute />}
@@ -80,7 +83,14 @@ function fillSet(index: number, weight: string, reps: string): void {
   fireEvent.blur(repsInputs()[index], { target: { value: reps } })
 }
 
+/**
+ * ヘッダー左の「戻る」を辿ってホームまで戻る。
+ * 戻り先は navigate(-1) ではなく画面ごとに固定されているため、
+ * 記録画面 → 日付詳細 → ホーム の2段階になる。
+ */
 async function goBackToHome(): Promise<void> {
+  await userEvent.click(screen.getByRole('button', { name: '戻る' }))
+  await screen.findByText('合計種目数')
   await userEvent.click(screen.getByRole('button', { name: '戻る' }))
   await screen.findByText('今日のトレーニング')
 }

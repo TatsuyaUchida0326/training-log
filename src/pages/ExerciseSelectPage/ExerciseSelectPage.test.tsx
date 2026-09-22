@@ -3,13 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import ExerciseSelectPage from './ExerciseSelectPage'
-import { PageHeaderProvider, usePageHeader } from '../../contexts/PageHeaderContext'
+import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
+import { HeaderSpy } from '../../test/HeaderSpy'
 import { seedRecords } from '../../test/seed'
-
-function HeaderSpy() {
-  const { header } = usePageHeader()
-  return <div data-testid="page-title">{header.title}</div>
-}
 
 const mockDeleteExercise = vi.fn()
 
@@ -54,9 +50,15 @@ describe('ExerciseSelectPage', () => {
     vi.clearAllMocks()
   })
 
-  it('「メニュー画面」タイトルが表示される', () => {
+  it('「種目を選ぶ」タイトルが表示される', () => {
     renderPage()
-    expect(screen.getByTestId('page-title')).toHaveTextContent('メニュー画面')
+    expect(screen.getByTestId('page-title')).toHaveTextContent('種目を選ぶ')
+  })
+
+  it('ヘッダー左の「戻る」で日付詳細へ遷移する', async () => {
+    renderPage()
+    await userEvent.click(screen.getByRole('button', { name: '戻る' }))
+    expect(screen.getByTestId('detail-page')).toBeInTheDocument()
   })
 
   it('「胸」カテゴリーヘッダーが表示される', () => {

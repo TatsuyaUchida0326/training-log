@@ -46,7 +46,7 @@ export default function HistoryPage() {
 
   const { setHeader } = usePageHeader()
   useEffect(() => {
-    setHeader({ title: '履歴画面', centered: true })
+    setHeader({ title: '履歴', centered: true })
   }, [setHeader])
 
   const { records } = useTrainingRecords()

@@ -1,8 +1,9 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
+import { HeaderSpy } from '../../test/HeaderSpy'
 import TrainingEntryPage from './TrainingEntryPage'
 import { readStoredRecords, seedExercises, seedRecords, seedSettings } from '../../test/seed'
 import { repsInputs, weightInputs } from '../../test/inputs'
@@ -17,8 +18,10 @@ function setupExercise() {
 function renderEntry(exerciseId = EXERCISE_ID, date = DATE_STR) {
   return render(
     <PageHeaderProvider>
+      <HeaderSpy />
       <MemoryRouter initialEntries={[`/date/${date}/exercises/${exerciseId}`]}>
         <Routes>
+          <Route path="/date/:dateStr" element={<div data-testid="detail-page" />} />
           <Route
             path="/date/:dateStr/exercises/:exerciseId"
             element={<TrainingEntryPage />}
@@ -40,12 +43,24 @@ describe('TrainingEntryPage - 表示', () => {
     expect(screen.getByText('ベンチプレス')).toBeInTheDocument()
   })
 
-  it('「セット」「重さ」「回数」「RM」カラムヘッダーが表示される', () => {
+  it('「セット」「重さ」「回数」カラムヘッダーが表示される', () => {
     renderEntry()
     expect(screen.getByText('セット')).toBeInTheDocument()
     expect(screen.getByText('重さ')).toBeInTheDocument()
     expect(screen.getByText('回数')).toBeInTheDocument()
-    expect(screen.getByText('RM')).toBeInTheDocument()
+  })
+
+  it('RM はセット行の2段目に移り、カラムヘッダーには出さない', () => {
+    renderEntry()
+    expect(screen.queryByText('RM')).not.toBeInTheDocument()
+  })
+
+  it('重さ・回数の入力欄はセット番号つきのラベルを持つ', async () => {
+    renderEntry()
+    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    expect(screen.getByLabelText('1セット目の重さ')).toBeInTheDocument()
+    expect(screen.getByLabelText('1セット目の回数')).toBeInTheDocument()
+    expect(screen.getByLabelText('3セット目の重さ')).toBeInTheDocument()
   })
 
   it('デフォルト3セットが表示される', async () => {
@@ -61,9 +76,22 @@ describe('TrainingEntryPage - 表示', () => {
     expect(screen.getByText('セットを追加')).toBeInTheDocument()
   })
 
-  it('戻るボタンが表示される', () => {
+  it('ヘッダータイトルが「セットを記録」になる', () => {
     renderEntry()
-    expect(screen.getByText('戻る')).toBeInTheDocument()
+    expect(screen.getByTestId('page-title')).toHaveTextContent('セットを記録')
+  })
+
+  it('ヘッダー左に戻るボタンが表示される', () => {
+    renderEntry()
+    expect(
+      within(screen.getByTestId('page-header-left')).getByRole('button', { name: '戻る' })
+    ).toBeInTheDocument()
+  })
+
+  it('「戻る」でその日の日付詳細へ遷移する', async () => {
+    renderEntry()
+    await userEvent.click(screen.getByRole('button', { name: '戻る' }))
+    expect(screen.getByTestId('detail-page')).toBeInTheDocument()
   })
 
   it('存在しない種目IDの場合エラーメッセージが表示される', () => {

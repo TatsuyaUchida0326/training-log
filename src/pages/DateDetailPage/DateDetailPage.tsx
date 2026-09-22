@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { ChevronLeft, Plus } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { parseISO, isValid, format } from 'date-fns'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
@@ -68,8 +68,17 @@ export default function DateDetailPage() {
   const totalVolumeDisplay = displayVolume(totalVolume, unit)
 
   useEffect(() => {
-    setHeader({ title: 'トレーニング記録画面', centered: true })
-  }, [setHeader])
+    setHeader({
+      title: 'トレーニング記録',
+      centered: true,
+      // navigate(-1) だと直接URLを開いたときアプリ外へ戻るため、遷移先を明示する
+      leftElement: (
+        <button className="header-icon-btn" aria-label="戻る" onClick={() => navigate('/')}>
+          <ChevronLeft size={24} />
+        </button>
+      ),
+    })
+  }, [setHeader, navigate])
 
   if (!isValidDate) {
     return (
@@ -162,15 +171,6 @@ export default function DateDetailPage() {
           </div>
         )}
       </div>
-
-      {/* FAB: 左下の戻るボタン */}
-      <button
-        className={styles.fabBack}
-        onClick={() => navigate(-1)}
-        aria-label="戻る"
-      >
-        戻る
-      </button>
 
       {/* FAB: 右下の種目追加ボタン */}
       <button

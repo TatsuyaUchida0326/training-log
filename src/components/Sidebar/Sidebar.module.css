@@ -1,14 +1,22 @@
 .sidebar {
-  width: 240px;
-  min-height: 100vh;
+  width: var(--sidebar-width);
   background: linear-gradient(180deg, #0c1e3d 0%, #1565c0 100%);
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
   flex-shrink: 0;
   overflow-y: auto;
+}
+
+/* スマホ幅では BottomNav に役割を渡す */
+@media (max-width: 899.98px) {
+  .sidebar {
+    display: none;
+  }
 }
 
 .logo {

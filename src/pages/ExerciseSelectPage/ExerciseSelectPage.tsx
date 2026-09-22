@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { ChevronLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../../hooks/useExercises'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
@@ -23,8 +24,21 @@ export default function ExerciseSelectPage() {
   const [detailExercise, setDetailExercise] = useState<Exercise | null>(null)
 
   useEffect(() => {
-    setHeader({ title: 'メニュー画面', centered: true })
-  }, [setHeader])
+    setHeader({
+      title: '種目を選ぶ',
+      centered: true,
+      // navigate(-1) だと直接URLを開いたときアプリ外へ戻るため、遷移先を明示する
+      leftElement: (
+        <button
+          className="header-icon-btn"
+          aria-label="戻る"
+          onClick={() => navigate(`/date/${dateStr}`)}
+        >
+          <ChevronLeft size={24} />
+        </button>
+      ),
+    })
+  }, [setHeader, navigate, dateStr])
 
   // デフォルト順 + カスタムカテゴリー（CATEGORIES にないもの）を末尾に追加
   const customCategories = [...new Set(exercises.map((e) => e.categoryId))]
@@ -140,15 +154,6 @@ export default function ExerciseSelectPage() {
           )
         })}
       </div>
-
-      {/* FAB: 左下の戻るボタン */}
-      <button
-        className={styles.fabBack}
-        onClick={() => navigate(-1)}
-        aria-label="戻る"
-      >
-        戻る
-      </button>
 
       {detailExercise && (
         <ExerciseDetailModal

@@ -1,13 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../../hooks/useExercises'
+import { usePageHeader } from '../../contexts/PageHeaderContext'
 import styles from './ExerciseAddPage.module.css'
 
 export default function ExerciseAddPage() {
   const { dateStr } = useParams<{ dateStr: string }>()
   const navigate = useNavigate()
   const { addExercise } = useExercises()
+  const { setHeader } = usePageHeader()
 
   const [categoryId, setCategoryId] = useState('')
   const [name, setName] = useState('')
@@ -34,27 +36,45 @@ export default function ExerciseAddPage() {
     navigate(`/date/${dateStr}/exercises/select`)
   }
 
-  return (
-    <div className={styles.page}>
-      {/* ヘッダーバー */}
-      <div className={styles.bar}>
+  /*
+   * ヘッダーの「登録」から最新の入力値を読むための参照。
+   * 入力のたびにヘッダーを作り直すと、useExercises が毎回新しい addExercise を返すため
+   * 「setHeader → 再描画 → setHeader」のループになる。ハンドラだけ ref で差し替える。
+   */
+  const registerRef = useRef(handleRegister)
+  useEffect(() => {
+    registerRef.current = handleRegister
+  })
+
+  // 入力状態で「登録」の有効／無効が変わるため、canRegister を依存に含める
+  useEffect(() => {
+    setHeader({
+      title: '種目を追加',
+      centered: true,
+      // navigate(-1) だと直接URLを開いたときアプリ外へ戻るため、遷移先を明示する
+      leftElement: (
         <button
-          className={styles.backButton}
-          onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
+          className="header-icon-btn"
           aria-label="戻る"
+          onClick={() => navigate(`/date/${dateStr}/exercises/select`)}
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={24} />
         </button>
-        <span className={styles.barTitle}>種目を追加</span>
+      ),
+      rightElement: (
         <button
-          className={styles.registerButton}
-          onClick={handleRegister}
+          className="header-text-btn"
           disabled={!canRegister}
+          onClick={() => registerRef.current()}
         >
           登録
         </button>
-      </div>
+      ),
+    })
+  }, [setHeader, navigate, dateStr, canRegister])
 
+  return (
+    <div className={styles.page}>
       {/* フォーム：部位・種目名は必須、筋肉・補助筋・説明は任意 */}
       <div className={styles.form}>
         <div className={styles.row}>
