@@ -1,23 +1,21 @@
 import { useState } from 'react'
 import { DEFAULT_EXERCISES } from '../data/defaultExercises'
 import type { Exercise, CategoryId } from '../types'
+import { isArrayOf, loadStoredValue, writeStoredValue } from '../utils/storage'
 
 export const STORAGE_KEY = 'strength-log-exercises'
 
 function loadExercises(): Exercise[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as Exercise[]
-  } catch {
-    // ignore
-  }
+  // 壊れていた場合は loadStoredValue が退避するので、ここで上書きしてもカスタム種目は失われない
+  const stored = loadStoredValue<Exercise[]>(STORAGE_KEY, isArrayOf)
+  if (stored) return stored
   // 初回: デフォルト種目を書き込んで返す
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_EXERCISES))
+  save(DEFAULT_EXERCISES)
   return DEFAULT_EXERCISES
 }
 
 function save(exercises: Exercise[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(exercises))
+  writeStoredValue(STORAGE_KEY, exercises)
 }
 
 export function useExercises() {

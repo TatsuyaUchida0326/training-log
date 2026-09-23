@@ -1,21 +1,16 @@
 import { useState, useCallback } from 'react'
 import type { TrainingRecord, TrainingSet } from '../types'
 import { hasFilledSets } from '../utils/training'
+import { isArrayOf, loadStoredValue, writeStoredValue } from '../utils/storage'
 
 export const STORAGE_KEY = 'strength-log-records'
 
 function loadRecords(): TrainingRecord[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as TrainingRecord[]
-  } catch {
-    // ignore
-  }
-  return []
+  return loadStoredValue<TrainingRecord[]>(STORAGE_KEY, isArrayOf) ?? []
 }
 
 function persist(records: TrainingRecord[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+  writeStoredValue(STORAGE_KEY, records)
 }
 
 export function useTrainingRecords() {

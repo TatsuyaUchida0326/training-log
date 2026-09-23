@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Settings, WeightUnit } from '../types'
+import { isPlainObject, loadStoredValue, writeStoredValue } from '../utils/storage'
 
 export const STORAGE_KEY = 'strength-log-settings'
 
@@ -14,27 +15,22 @@ export const DEFAULT_SETTINGS: Settings = {
 type StoredSettings = Partial<Settings> & { trainingDefaultSets?: number }
 
 function loadSettings(): Settings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return DEFAULT_SETTINGS
-    const stored = JSON.parse(raw) as StoredSettings
-    if (typeof stored.trainingDefaultSets === 'number') {
-      const { trainingDefaultSets, defaultSets, ...rest } = stored
-      return {
-        ...DEFAULT_SETTINGS,
-        ...rest,
-        requiredSets: defaultSets ?? DEFAULT_SETTINGS.requiredSets,
-        defaultSets: trainingDefaultSets,
-      }
+  const stored = loadStoredValue<StoredSettings>(STORAGE_KEY, isPlainObject)
+  if (!stored) return DEFAULT_SETTINGS
+  if (typeof stored.trainingDefaultSets === 'number') {
+    const { trainingDefaultSets, defaultSets, ...rest } = stored
+    return {
+      ...DEFAULT_SETTINGS,
+      ...rest,
+      requiredSets: defaultSets ?? DEFAULT_SETTINGS.requiredSets,
+      defaultSets: trainingDefaultSets,
     }
-    return { ...DEFAULT_SETTINGS, ...stored }
-  } catch {
-    return DEFAULT_SETTINGS
   }
+  return { ...DEFAULT_SETTINGS, ...stored }
 }
 
 function saveSettings(settings: Settings): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+  writeStoredValue(STORAGE_KEY, settings)
 }
 
 export function useSettings() {

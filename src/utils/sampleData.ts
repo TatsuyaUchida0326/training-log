@@ -3,6 +3,7 @@ import { STORAGE_KEY as BODY_RECORDS_KEY } from '../hooks/useBodyRecords'
 import { STORAGE_KEY as BODY_SETTINGS_KEY } from '../hooks/useBodySettings'
 import { STORAGE_KEY as RECORDS_KEY } from '../hooks/useTrainingRecords'
 import type { Exercise } from '../types'
+import { writeStoredValue } from './storage'
 
 /**
  * デモ用のサンプルデータを localStorage に上書き保存する。
@@ -12,7 +13,7 @@ import type { Exercise } from '../types'
  */
 export function applySampleData(exercises: Exercise[], today: Date): void {
   const { records, bodyRecords, bodySettings } = buildSampleData(exercises, today)
-  localStorage.setItem(RECORDS_KEY, JSON.stringify(records))
-  localStorage.setItem(BODY_RECORDS_KEY, JSON.stringify(bodyRecords))
-  localStorage.setItem(BODY_SETTINGS_KEY, JSON.stringify(bodySettings))
+  writeStoredValue(RECORDS_KEY, records)
+  writeStoredValue(BODY_RECORDS_KEY, bodyRecords)
+  writeStoredValue(BODY_SETTINGS_KEY, bodySettings)
 }
