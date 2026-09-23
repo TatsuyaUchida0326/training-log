@@ -82,6 +82,12 @@
   color: #fff;
 }
 
+/* 使い方への入口。1行だけのカードなので上下の余白を詰める */
+.guideSection {
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
 .dataSection {
   margin-top: 1rem;
 }
@@ -129,4 +135,9 @@
 .resetButton:hover {
   background: #ef4444;
   color: #fff;
+}
+
+/* ファイル選択は既定の見た目を使わず、隣のボタンから開く */
+.hiddenFileInput {
+  display: none;
 }

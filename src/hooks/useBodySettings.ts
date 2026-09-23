@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import type { BodySettings } from '../types'
+import { isPlainObject, loadStoredValue, writeStoredValue } from '../utils/storage'
 
 export const STORAGE_KEY = 'strength-log-body-settings'
 
-const DEFAULT_SETTINGS: BodySettings = {
+export const DEFAULT_BODY_SETTINGS: BodySettings = {
   height: 0,
   targetWeight: 0,
   muscleMassUnit: '%',
@@ -11,17 +12,13 @@ const DEFAULT_SETTINGS: BodySettings = {
 }
 
 function load(): BodySettings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) }
-  } catch {
-    // ignore
-  }
-  return DEFAULT_SETTINGS
+  const stored = loadStoredValue<Partial<BodySettings>>(STORAGE_KEY, isPlainObject)
+  if (!stored) return DEFAULT_BODY_SETTINGS
+  return { ...DEFAULT_BODY_SETTINGS, ...stored }
 }
 
 function persist(settings: BodySettings): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+  writeStoredValue(STORAGE_KEY, settings)
 }
 
 export function useBodySettings() {

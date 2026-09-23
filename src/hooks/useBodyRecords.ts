@@ -1,20 +1,15 @@
 import { useState } from 'react'
 import type { BodyRecord } from '../types'
+import { isArrayOf, loadStoredValue, writeStoredValue } from '../utils/storage'
 
 export const STORAGE_KEY = 'strength-log-body-records'
 
 function load(): BodyRecord[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as BodyRecord[]
-  } catch {
-    // ignore
-  }
-  return []
+  return loadStoredValue<BodyRecord[]>(STORAGE_KEY, isArrayOf) ?? []
 }
 
 function persist(records: BodyRecord[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records))
+  writeStoredValue(STORAGE_KEY, records)
 }
 
 const EMPTY_RECORD = (date: string): BodyRecord => ({
