@@ -32,21 +32,6 @@
   flex-shrink: 0;
 }
 
-.select {
-  flex: 1;
-  border: none;
-  font-size: 0.95rem;
-  font-family: inherit;
-  color: var(--color-text);
-  background: transparent;
-  text-align: right;
-  cursor: pointer;
-}
-
-.select:focus {
-  outline: none;
-}
-
 .input {
   flex: 1;
   min-height: 44px;
@@ -60,9 +45,11 @@
 }
 
 .input::placeholder {
-  color: #d1d5db;
+  color: var(--color-gray);
 }
 
 .input:focus {
   outline: none;
+  /* outline を消す代わりに、他の入力欄と同じ下線でフォーカス位置を示す */
+  box-shadow: inset 0 -2px 0 var(--color-primary);
 }

@@ -561,3 +561,27 @@ describe('SettingsPage — 使い方への入口', () => {
     expect(screen.getByTestId('guide-page')).toBeInTheDocument()
   })
 })
+
+describe('SettingsPage — アクセシビリティ（select のラベル関連付け）', () => {
+  it('「継続達成種目数」select が getByLabelText で取得できる', () => {
+    renderSettingsPage()
+    expect(screen.getByLabelText('継続達成種目数')).toBeInTheDocument()
+  })
+
+  it('「継続達成セット数」select が getByLabelText で取得できる', () => {
+    renderSettingsPage()
+    expect(screen.getByLabelText('継続達成セット数')).toBeInTheDocument()
+  })
+
+  it('「デフォルトセット数」select が getByLabelText で取得できる', () => {
+    renderSettingsPage()
+    expect(screen.getByLabelText('デフォルトセット数')).toBeInTheDocument()
+  })
+
+  it('getByLabelText で取得した要素は SELECT 要素である', () => {
+    renderSettingsPage()
+    expect(screen.getByLabelText('継続達成種目数').tagName).toBe('SELECT')
+    expect(screen.getByLabelText('継続達成セット数').tagName).toBe('SELECT')
+    expect(screen.getByLabelText('デフォルトセット数').tagName).toBe('SELECT')
+  })
+})

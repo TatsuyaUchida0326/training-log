@@ -103,7 +103,7 @@ describe('ExerciseSelectPage', () => {
   it('「Edit」ボタンをクリックすると削除ボタンが表示される', async () => {
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getAllByRole('button', { name: '削除' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /を削除$/ }).length).toBeGreaterThan(0)
   })
 
   it('編集モードで「End」ボタンが表示される', async () => {
@@ -116,7 +116,7 @@ describe('ExerciseSelectPage', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
-    const deleteButtons = screen.getAllByRole('button', { name: '削除' })
+    const deleteButtons = screen.getAllByRole('button', { name: /を削除$/ })
     await userEvent.click(deleteButtons[0])
     expect(mockDeleteExercise).toHaveBeenCalledTimes(1)
     confirmSpy.mockRestore()
@@ -151,7 +151,7 @@ describe('ExerciseSelectPage - 種目削除の確認ダイアログ', () => {
   async function renderAndClickFirstDelete(): Promise<void> {
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
-    await userEvent.click(screen.getAllByRole('button', { name: '削除' })[0])
+    await userEvent.click(screen.getAllByRole('button', { name: /を削除$/ })[0])
   }
 
   beforeEach(() => {
@@ -205,5 +205,47 @@ describe('ExerciseSelectPage - 種目削除の確認ダイアログ', () => {
     seedRecordsForFirstExercise(2, 3)
     await renderAndClickFirstDelete()
     expect(String(confirmSpy.mock.calls[0][0])).toMatch(/2\s*件/)
+  })
+})
+
+/** 種目名ボタンでの遷移確認用。記録画面のルートも含めて描画する */
+function renderPageWithEntryRoute() {
+  return render(
+    <PageHeaderProvider>
+      <HeaderSpy />
+      <MemoryRouter initialEntries={['/date/2026-04-16/exercises/select']}>
+        <Routes>
+          <Route path="/date/:dateStr/exercises/select" element={<ExerciseSelectPage />} />
+          <Route path="/date/:dateStr/exercises/add" element={<div data-testid="add-page" />} />
+          <Route
+            path="/date/:dateStr/exercises/:exerciseId"
+            element={<div data-testid="entry-page" />}
+          />
+          <Route path="/date/:dateStr" element={<div data-testid="detail-page" />} />
+        </Routes>
+      </MemoryRouter>
+    </PageHeaderProvider>
+  )
+}
+
+describe('ExerciseSelectPage - アクセシビリティ（種目名を button 化）', () => {
+  it('種目名が role="button" として取得できる', () => {
+    renderPage()
+    expect(screen.getByRole('button', { name: 'ベンチプレス' })).toBeInTheDocument()
+  })
+
+  it('通常モードで種目名ボタンをクリックすると記録画面へ遷移する', async () => {
+    renderPageWithEntryRoute()
+    await userEvent.click(screen.getByRole('button', { name: 'ベンチプレス' }))
+    expect(screen.getByTestId('entry-page')).toBeInTheDocument()
+  })
+
+  it('編集モードでは種目名が button ではなく通常のテキストになり、行クリックでも遷移しない', async () => {
+    renderPageWithEntryRoute()
+    await userEvent.click(screen.getByText('Edit'))
+    expect(screen.queryByRole('button', { name: 'ベンチプレス' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByText('ベンチプレス'))
+    expect(screen.queryByTestId('entry-page')).not.toBeInTheDocument()
+    expect(screen.getByText('End')).toBeInTheDocument()
   })
 })

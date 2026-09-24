@@ -115,6 +115,7 @@ export default function HistoryPage() {
           <button
             key={cat}
             className={`${styles.tab} ${selectedCategory === cat ? styles.tabActive : ''}`}
+            aria-pressed={selectedCategory === cat}
             onClick={() => handleCategorySelect(cat)}
           >
             {cat}
@@ -126,6 +127,7 @@ export default function HistoryPage() {
       <div className={styles.tabRow}>
         <button
           className={`${styles.tab} ${selectedExercise === ALL ? styles.tabActive : ''}`}
+          aria-pressed={selectedExercise === ALL}
           onClick={() => setSelectedExercise(ALL)}
         >
           ALL
@@ -134,6 +136,7 @@ export default function HistoryPage() {
           <button
             key={ex.id}
             className={`${styles.tab} ${selectedExercise === ex.id ? styles.tabActive : ''}`}
+            aria-pressed={selectedExercise === ex.id}
             onClick={() => setSelectedExercise(ex.id)}
           >
             {ex.name}
@@ -146,12 +149,14 @@ export default function HistoryPage() {
         <div className={styles.toggle}>
           <button
             className={`${styles.toggleBtn} ${viewMode === 'calendar' ? styles.toggleActive : ''}`}
+            aria-pressed={viewMode === 'calendar'}
             onClick={() => setViewMode('calendar')}
           >
             カレンダー
           </button>
           <button
             className={`${styles.toggleBtn} ${viewMode === 'graph' ? styles.toggleActive : ''}`}
+            aria-pressed={viewMode === 'graph'}
             onClick={() => setViewMode('graph')}
           >
             グラフ
@@ -193,7 +198,8 @@ export default function HistoryPage() {
             <p className={styles.emptyText}>記録がありません</p>
           ) : (
             <>
-              <ChartBlock title="最大重量" data={maxWeightPoints} unit={unit} color="#22c55e" />
+              {/* index.css の --color-primary と揃える */}
+              <ChartBlock title="最大重量" data={maxWeightPoints} unit={unit} color="#15803d" />
               <ChartBlock title="最大RM" data={maxRMPoints} unit={unit} color="#3b82f6" />
               <ChartBlock title="セット数" data={stats.totalSets} unit="set" color="#f59e0b" />
               <ChartBlock title="総負荷量" data={totalVolumePoints} unit={unit} color="#8b5cf6" />
@@ -265,13 +271,13 @@ function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
             dataKey="date"
             interval="preserveStartEnd"
             minTickGap={24}
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            tick={{ fontSize: 10, fill: '#6b7280' }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             domain={Y_DOMAIN}
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            tick={{ fontSize: 10, fill: '#6b7280' }}
             tickLine={false}
             axisLine={false}
             width={44}

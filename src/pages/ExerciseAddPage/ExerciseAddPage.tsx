@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useExercises } from '../../hooks/useExercises'
@@ -17,6 +17,12 @@ export default function ExerciseAddPage() {
   const [musclesInput, setMusclesInput] = useState('')
   const [musclesSecondaryInput, setMusclesSecondaryInput] = useState('')
   const [descriptionInput, setDescriptionInput] = useState('')
+
+  const categoryInputId = useId()
+  const nameInputId = useId()
+  const musclesInputId = useId()
+  const musclesSecondaryInputId = useId()
+  const descriptionInputId = useId()
 
   // 部位と種目名が入力されている場合のみ登録ボタンを有効化
   const canRegister = name.trim().length > 0 && categoryId.trim().length > 0
@@ -78,8 +84,9 @@ export default function ExerciseAddPage() {
       {/* フォーム：部位・種目名は必須、筋肉・補助筋・説明は任意 */}
       <div className={styles.form}>
         <div className={styles.row}>
-          <span className={styles.label}>部位</span>
+          <label className={styles.label} htmlFor={categoryInputId}>部位</label>
           <input
+            id={categoryInputId}
             className={styles.input}
             type="text"
             placeholder="例: 胸、背中"
@@ -88,8 +95,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <span className={styles.label}>種目名</span>
+          <label className={styles.label} htmlFor={nameInputId}>種目名</label>
           <input
+            id={nameInputId}
             className={styles.input}
             type="text"
             placeholder="種目名を入力"
@@ -98,8 +106,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <span className={styles.label}>対象筋肉</span>
+          <label className={styles.label} htmlFor={musclesInputId}>対象筋肉</label>
           <input
+            id={musclesInputId}
             className={styles.input}
             type="text"
             placeholder="例: 大胸筋, 上腕三頭筋"
@@ -108,8 +117,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <span className={styles.label}>補助筋</span>
+          <label className={styles.label} htmlFor={musclesSecondaryInputId}>補助筋</label>
           <input
+            id={musclesSecondaryInputId}
             className={styles.input}
             type="text"
             placeholder="例: 三角筋前部"
@@ -118,8 +128,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <span className={styles.label}>説明</span>
+          <label className={styles.label} htmlFor={descriptionInputId}>説明</label>
           <textarea
+            id={descriptionInputId}
             className={styles.input}
             placeholder="種目の説明を入力（任意）"
             value={descriptionInput}

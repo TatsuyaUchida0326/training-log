@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
+import { useDialog } from '../../hooks/useDialog'
 import { useExerciseDetail } from '../../hooks/useExerciseDetail'
 import type { Exercise } from '../../types'
 import type { ExerciseDetail } from '../../hooks/useExerciseDetail'
@@ -49,10 +50,21 @@ export default function ExerciseDetailModal({ exercise, onClose }: Props) {
     ? `https://www.youtube.com/watch?v=${videoId}`
     : `https://www.youtube.com/results?search_query=${encodeURIComponent(exercise.name + ' フォーム')}`
 
+  const titleId = useId()
+  const dialogRef = useDialog<HTMLDivElement>(onClose)
+
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <h2 className={styles.title}>{exercise.name}</h2>
+      <div
+        ref={dialogRef}
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 id={titleId} className={styles.title}>{exercise.name}</h2>
 
         {effectiveStatus === 'loading' && <p>読み込み中…</p>}
         {effectiveStatus === 'error' && <p>詳細情報を取得できませんでした</p>}

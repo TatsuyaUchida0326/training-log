@@ -35,3 +35,6 @@ tasks/
 /docs/insert_images_to_sheets.py
 /docs/update_descriptions.py
 /docs/screenshots/
+
+# TypeScript のビルドキャッシュ
+*.tsbuildinfo

@@ -139,3 +139,27 @@ describe('ExerciseAddPage', () => {
     expect(screen.getByTestId('select-page')).toBeInTheDocument()
   })
 })
+
+describe('ExerciseAddPage - アクセシビリティ（ラベル関連付け）', () => {
+  it('部位・種目名・対象筋肉・補助筋の入力欄が getByLabelText で取得できる', () => {
+    renderPage()
+    expect(screen.getByLabelText('部位')).toBeInTheDocument()
+    expect(screen.getByLabelText('種目名')).toBeInTheDocument()
+    expect(screen.getByLabelText('対象筋肉')).toBeInTheDocument()
+    expect(screen.getByLabelText('補助筋')).toBeInTheDocument()
+  })
+
+  it('説明の textarea が getByLabelText で取得できる', () => {
+    renderPage()
+    const description = screen.getByLabelText('説明')
+    expect(description).toBeInTheDocument()
+    expect(description.tagName).toBe('TEXTAREA')
+  })
+
+  it('getByLabelText(部位) と getByLabelText(種目名) に入力すると「登録」が有効になる', async () => {
+    renderPage()
+    await userEvent.type(screen.getByLabelText('部位'), '胸')
+    await userEvent.type(screen.getByLabelText('種目名'), 'テスト種目')
+    expect(registerButton()).toBeEnabled()
+  })
+})

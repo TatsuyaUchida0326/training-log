@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -195,5 +196,62 @@ describe('ExerciseDetailModal', () => {
     const link = screen.getByText(/フォーム動画を見る/)
     expect(link).toBeInTheDocument()
     expect(link.closest('a')).toHaveAttribute('href', expect.stringContaining('youtube.com/results?search_query='))
+  })
+})
+
+describe('ExerciseDetailModal - ダイアログとしてのアクセシビリティ', () => {
+  beforeEach(() => {
+    mockStatus = 'ok'
+    mockData = {
+      muscles: ['大胸筋'],
+      musclesSecondary: [],
+      descriptionJa: '説明文。',
+    }
+  })
+
+  it('role="dialog" かつ aria-modal="true" の要素が、種目名を名前として取得できる', () => {
+    renderModal()
+    expect(screen.getByRole('dialog', { name: 'ベンチプレス' })).toBeInTheDocument()
+  })
+
+  it('マウント時にダイアログ本体へフォーカスが移る', () => {
+    renderModal()
+    expect(screen.getByRole('dialog', { name: 'ベンチプレス' })).toHaveFocus()
+  })
+
+  it('Escapeキーで onClose が呼ばれる', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    renderModal({}, onClose)
+    await user.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ExerciseDetailModal - 閉じたときのフォーカス復帰', () => {
+  it('開く前にフォーカスしていたボタンへ、閉じたあとフォーカスが戻る', async () => {
+    mockStatus = 'ok'
+    mockData = { muscles: [], musclesSecondary: [], descriptionJa: '' }
+    const user = userEvent.setup()
+
+    function Harness() {
+      const [open, setOpen] = useState(true)
+      return (
+        <div>
+          <button>Opener</button>
+          {open && (
+            <ExerciseDetailModal exercise={makeExercise()} onClose={() => setOpen(false)} />
+          )}
+        </div>
+      )
+    }
+
+    render(<Harness />)
+    const openerButton = screen.getByRole('button', { name: 'Opener' })
+    openerButton.focus()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(openerButton).toHaveFocus()
   })
 })

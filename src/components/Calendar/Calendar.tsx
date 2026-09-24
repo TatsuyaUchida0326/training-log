@@ -12,14 +12,13 @@ import {
   addDays,
 } from 'date-fns'
 import { between } from '@holiday-jp/holiday_jp'
+import { WEEKDAYS, formatDateWithWeekday } from '../../utils/date'
 import type { CalendarProps } from '../../types'
 import styles from './Calendar.module.css'
 
 function isSameYearMonth(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
 }
-
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
 export default function Calendar({
   currentDate,
@@ -74,7 +73,7 @@ export default function Calendar({
         <div className={styles.titleGroup}>
           <button
             className={styles.navButton}
-            aria-label="prev"
+            aria-label="前の月"
             onClick={onPrevMonth}
           >
             <ChevronLeft size={18} />
@@ -84,7 +83,7 @@ export default function Calendar({
           </span>
           <button
             className={styles.navButton}
-            aria-label="next"
+            aria-label="次の月"
             onClick={onNextMonth}
           >
             <ChevronRight size={18} />
@@ -124,16 +123,27 @@ export default function Calendar({
             ? holidayMap.get(format(date, 'yyyy-MM-dd'))
             : undefined
           const isHoliday = !!holidayName
+          const hasRecord = marked || achieved
+
+          // アクセシブルネームは表示物と独立に組み立てる（絵文字や祝日名を個別に読み上げさせないため）
+          const ariaLabel =
+            formatDateWithWeekday(date) +
+            (holidayName ? `、${holidayName}` : '') +
+            (hasRecord ? '、記録あり' : '')
 
           return (
-            <div
+            <button
               key={format(date, 'yyyy-MM-dd')}
+              type="button"
               className={[
                 styles.cell,
                 !isCurrentMonth ? styles.otherMonth : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
+              aria-label={ariaLabel}
+              aria-current={isToday ? 'date' : undefined}
+              aria-pressed={isSelected}
               onClick={() => onDateSelect(date)}
             >
               <span
@@ -152,15 +162,16 @@ export default function Calendar({
               {holidayName && (
                 <span className={styles.holidayName}>{holidayName}</span>
               )}
-              {(marked || achieved) && (
+              {hasRecord && (
                 <span
                   data-testid="marked-dot"
+                  aria-hidden="true"
                   className={achieved ? styles.muscleIcon : styles.muscleIconGray}
                 >
                   {markIcon ?? '💪'}
                 </span>
               )}
-            </div>
+            </button>
           )
         })}
       </div>

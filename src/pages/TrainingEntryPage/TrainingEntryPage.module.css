@@ -81,13 +81,14 @@
   align-items: center;
   gap: 10px;
   font-size: 13px;
-  color: #6b7280;
+  /* .lastRecord の背景色の上に乗るため、コントラスト比を確保できる濃さにする */
+  color: #4b5563;
 }
 
 .lastSetNum {
   width: 16px;
   text-align: center;
-  color: #9ca3af;
+  color: #4b5563;
 }
 
 .lastSetDetail {
@@ -122,7 +123,7 @@
   border-bottom: 1px solid #e5e7eb;
   font-size: 11px;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--color-gray);
   text-align: center;
 }
 
@@ -136,7 +137,7 @@
   grid-row: auto;
   font-size: 11px;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--color-gray);
 }
 
 /* 見出しの空セルは高さを持たせない（セット行と同じ 44px を継ぐと見出しが間延びする） */
@@ -196,7 +197,7 @@
 }
 
 .numInput:focus {
-  border-bottom-color: #22c55e;
+  border-bottom-color: var(--color-primary);
 }
 
 /* Chrome/Safari: 数値入力の矢印を非表示 */
@@ -208,7 +209,7 @@
 
 .unitLabel {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-gray);
   white-space: nowrap;
 }
 
@@ -217,7 +218,7 @@
   grid-column: 2 / 4;
   grid-row: 2;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-gray);
   text-align: center;
 }
 
@@ -231,7 +232,7 @@
   justify-content: center;
   background: none;
   border: none;
-  color: #d1d5db;
+  color: var(--color-gray);
   font-size: 14px;
   cursor: pointer;
   padding: 0;
@@ -255,14 +256,14 @@
   border-bottom: 1px solid #e5e7eb;
   background: transparent;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-gray);
   padding: 4px 0;
   outline: none;
   box-sizing: border-box;
 }
 
 .memoInput:focus {
-  border-bottom-color: #22c55e;
+  border-bottom-color: var(--color-primary);
 }
 
 .setDivider {
@@ -276,7 +277,7 @@
   background: #fff;
   border: 1.5px dashed #d1d5db;
   border-radius: 10px;
-  color: #9ca3af;
+  color: var(--color-gray);
   font-size: 14px;
   font-weight: 600;
   padding: 12px;
@@ -291,13 +292,13 @@
 }
 
 .addSetButton:hover {
-  border-color: #22c55e;
-  color: #22c55e;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .errorText {
   padding: 16px;
-  color: #6b7280;
+  color: var(--color-gray);
   text-align: center;
 }
 
@@ -408,7 +409,7 @@
 
 .rmPopupSub {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--color-gray);
   margin-top: 10px;
   letter-spacing: 0.05em;
 }
