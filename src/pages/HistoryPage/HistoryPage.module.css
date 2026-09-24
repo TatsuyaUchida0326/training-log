@@ -28,7 +28,7 @@
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--color-gray);
   cursor: pointer;
   white-space: nowrap;
   border-bottom: 2px solid transparent;
@@ -68,7 +68,7 @@
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  /* 親 .toggle の背景 #f3f4f6 の上に乗るため、コントラスト比を確保できる濃さにする */
+  /* 親 .toggle の背景色の上に乗るため、コントラスト比を確保できる濃さにする */
   color: #4b5563;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -100,7 +100,7 @@
 
 .emptyText {
   text-align: center;
-  color: #6b7280;
+  color: var(--color-gray);
   font-size: 14px;
   padding: 40px 0;
 }

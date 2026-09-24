@@ -11,6 +11,9 @@ const FOCUSABLE_SELECTOR =
  * - Escape で閉じる、Tab/Shift+Tab はダイアログ内で循環させる（フォーカストラップ）
  * - アンマウント時、開く前にフォーカスしていた要素へフォーカスを戻す
  *
+ * 呼び出し側は返した ref を、ダイアログ本体の要素に `tabIndex={-1}` と合わせて渡すこと。
+ * tabIndex が無いとその要素はフォーカス不可のままで、マウント時の focus() が効かない。
+ *
  * onClose は ref で保持し、effect の依存配列を空にしてマウント時の1回だけ登録する。
  * 依存に onClose を入れると親の再描画のたびに effect が再実行され、
  * そのたびに本体へフォーカスが戻ってしまう（入力中のフォーカスを奪う不具合になる）ため。
@@ -25,7 +28,8 @@ export function useDialog<T extends HTMLElement>(onClose: () => void): RefObject
     if (!dialog) return
 
     // 閉じたときに戻す先として、開く直前にフォーカスされていた要素を控えておく
-    const previouslyFocused = document.activeElement as HTMLElement | null
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
     dialog.focus()
 
     function handleKeyDown(e: KeyboardEvent) {
@@ -49,7 +53,6 @@ export function useDialog<T extends HTMLElement>(onClose: () => void): RefObject
       const active = document.activeElement
 
       if (e.shiftKey) {
-        // 本体自身、または先頭要素からの Shift+Tab は末尾へ循環させる
         if (active === dialog || active === first) {
           e.preventDefault()
           last.focus()
@@ -67,12 +70,11 @@ export function useDialog<T extends HTMLElement>(onClose: () => void): RefObject
     document.addEventListener('keydown', handleKeyDown)
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
-      // 戻す先がまだ document 上に存在するときだけフォーカスを戻す（すでに消えていたら何もしない）
+      // 戻す先がまだ document 上に存在するときだけフォーカスを戻す
       if (previouslyFocused && document.contains(previouslyFocused)) {
         previouslyFocused.focus()
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return ref

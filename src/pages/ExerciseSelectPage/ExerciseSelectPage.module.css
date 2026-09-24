@@ -113,7 +113,7 @@
 }
 
 .exerciseName {
-  /* <button> 化に伴うブラウザ既定スタイルのリセット（見た目は span のときと同じにする） */
+  /* button 要素の既定スタイルをリセットし、テキストとして違和感のない見た目にする */
   appearance: none;
   background: none;
   border: none;

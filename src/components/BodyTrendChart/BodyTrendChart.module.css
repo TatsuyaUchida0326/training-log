@@ -24,7 +24,7 @@
 .targetLabel {
   font-size: 9px;
   font-weight: 400;
-  color: #6b7280;
+  color: var(--color-gray);
 }
 
 /* グラフは枠の幅に合わせて描く（useChartWidth で計測）。はみ出しは切り落とす */

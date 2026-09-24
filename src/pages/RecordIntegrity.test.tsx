@@ -108,7 +108,7 @@ describe('記録画面を開いただけでホームに影響しない', () => {
   it('何も入力せずに戻るとホームは「まだ記録がありません」のまま', async () => {
     renderFromEntryPage()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     await goBackToHome()
     expect(screen.getByText('まだ記録がありません')).toBeInTheDocument()
@@ -117,7 +117,7 @@ describe('記録画面を開いただけでホームに影響しない', () => {
   it('何も入力せずに戻るとカレンダーに記録マークが付かない', async () => {
     renderFromEntryPage()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     await goBackToHome()
     expect(screen.queryAllByTestId('marked-dot')).toHaveLength(0)
@@ -126,7 +126,7 @@ describe('記録画面を開いただけでホームに影響しない', () => {
   it('何も入力せずに戻ると継続力ゲージが 0 のまま', async () => {
     renderFromEntryPage()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     await goBackToHome()
     expect(screen.getByText('0 / 90')).toBeInTheDocument()
@@ -135,11 +135,11 @@ describe('記録画面を開いただけでホームに影響しない', () => {
   it('セットを追加してから何も入力せずに戻っても記録は残らない', async () => {
     renderFromEntryPage()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     await userEvent.click(screen.getByText('セットを追加'))
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(4)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(4)
     })
     await goBackToHome()
     expect(readStoredRecords()).toEqual([])
@@ -150,7 +150,7 @@ describe('記録画面を開いただけでホームに影響しない', () => {
 describe('入力した記録はホームに反映される', () => {
   it('1セットだけ入力して戻るとホームに種目と記録マークが出る', async () => {
     renderFromEntryPage()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fillSet(0, '60', '10')
     await waitFor(() => {
       expect(readStoredRecords()).toHaveLength(1)
@@ -162,7 +162,7 @@ describe('入力した記録はホームに反映される', () => {
 
   it('1セットだけでは達成条件に届かず継続力ゲージは 0 のまま', async () => {
     renderFromEntryPage()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fillSet(0, '60', '10')
     await waitFor(() => {
       expect(readStoredRecords()).toHaveLength(1)
@@ -173,7 +173,7 @@ describe('入力した記録はホームに反映される', () => {
 
   it('3セット入力して戻ると継続力ゲージが 1 になる', async () => {
     renderFromEntryPage()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fillSet(0, '60', '10')
     fillSet(1, '60', '10')
     fillSet(2, '60', '10')

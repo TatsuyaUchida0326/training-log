@@ -219,6 +219,8 @@ describe('BodyPage - アクセシビリティ（ラベル関連付け）', () =>
     fireEvent.blur(weightInput, { target: { value: '70' } })
     await user.click(screen.getByRole('button', { name: '体重をクリア' }))
     const stored = JSON.parse(localStorage.getItem('strength-log-body-records') ?? '[]')
-    expect(stored.find((r: { weight: number | null }) => 'weight' in r)?.weight ?? null).toBeNull()
+    expect(
+      stored.find((record: { weight: number | null }) => 'weight' in record)?.weight ?? null
+    ).toBeNull()
   })
 })

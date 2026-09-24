@@ -57,6 +57,12 @@ export default function ExerciseSelectPage() {
     deleteExercise(exercise.id)
   }
 
+  // 行クリックと種目名ボタンの両方から呼ばれる。編集モード中は遷移しない
+  function openRecordPage(exerciseId: string) {
+    if (isEditMode) return
+    navigate(`/date/${dateStr}/exercises/${exerciseId}`)
+  }
+
   function toggleExpand(cat: string) {
     setExpandedCategories((prev) => {
       const next = new Set(prev)
@@ -103,17 +109,13 @@ export default function ExerciseSelectPage() {
                     <div
                       key={ex.id}
                       className={styles.exerciseRow}
-                      onClick={() => {
-                        if (!isEditMode) {
-                          navigate(`/date/${dateStr}/exercises/${ex.id}`)
-                        }
-                      }}
+                      onClick={() => openRecordPage(ex.id)}
                       style={{ cursor: isEditMode ? 'default' : 'pointer' }}
                     >
                       {isEditMode && (
                         <button
                           className={styles.deleteButton}
-                          aria-label="削除"
+                          aria-label={`${ex.name}を削除`}
                           onClick={(e) => {
                             e.stopPropagation()
                             confirmAndDelete(ex)
@@ -122,23 +124,26 @@ export default function ExerciseSelectPage() {
                           －
                         </button>
                       )}
-                      <button
-                        type="button"
-                        className={styles.exerciseName}
-                        onClick={(e) => {
-                          // 行の onClick と二重に遷移させないため、行への伝播を止める
-                          e.stopPropagation()
-                          if (!isEditMode) {
-                            navigate(`/date/${dateStr}/exercises/${ex.id}`)
-                          }
-                        }}
-                      >
-                        {ex.name}
-                      </button>
+                      {isEditMode ? (
+                        // 編集モードでは遷移操作が無いため、Tab で止まる button ではなく span にする
+                        <span className={styles.exerciseName}>{ex.name}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.exerciseName}
+                          onClick={(e) => {
+                            // 行の onClick と二重に遷移させないため、行への伝播を止める
+                            e.stopPropagation()
+                            openRecordPage(ex.id)
+                          }}
+                        >
+                          {ex.name}
+                        </button>
+                      )}
                       {!isEditMode && (
                         <button
                           className={styles.infoButton}
-                          aria-label="詳細を見る"
+                          aria-label={`${ex.name}の詳細を見る`}
                           onClick={(e) => {
                             e.stopPropagation()
                             setDetailExercise(ex)

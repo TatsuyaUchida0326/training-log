@@ -57,7 +57,7 @@ describe('TrainingEntryPage - 表示', () => {
 
   it('重さ・回数の入力欄はセット番号つきのラベルを持つ', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     expect(screen.getByLabelText('1セット目の重さ')).toBeInTheDocument()
     expect(screen.getByLabelText('1セット目の回数')).toBeInTheDocument()
     expect(screen.getByLabelText('3セット目の重さ')).toBeInTheDocument()
@@ -66,7 +66,7 @@ describe('TrainingEntryPage - 表示', () => {
   it('デフォルト3セットが表示される', async () => {
     renderEntry()
     await waitFor(() => {
-      const deleteButtons = screen.getAllByLabelText('セット削除')
+      const deleteButtons = screen.getAllByLabelText(/セット目を削除$/)
       expect(deleteButtons).toHaveLength(3)
     })
   })
@@ -104,22 +104,22 @@ describe('TrainingEntryPage - セット操作', () => {
   it('「セットを追加」でセット数が増える', async () => {
     renderEntry()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     await userEvent.click(screen.getByText('セットを追加'))
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(4)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(4)
     })
   })
 
   it('セット削除ボタンでセット数が減る', async () => {
     renderEntry()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
-    await userEvent.click(screen.getAllByLabelText('セット削除')[0])
+    await userEvent.click(screen.getAllByLabelText(/セット目を削除$/)[0])
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(2)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(2)
     })
   })
 })
@@ -135,7 +135,7 @@ describe('TrainingEntryPage - 1RM 計算', () => {
 
   it('重さと回数を入力すると RM が計算される（Epley式）', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     // weight=100, reps=10 → RM = 100 * (1 + 10/30) = 133.3
     fireEvent.blur(weightInputs()[0], { target: { value: '100' } })
     fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
@@ -148,7 +148,7 @@ describe('TrainingEntryPage - 1RM 計算', () => {
 describe('TrainingEntryPage - 1RM トースト', () => {
   it('歴代最高を超えたとき「1RM 更新！」トーストが表示される', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '100' } })
     fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
     await waitFor(() => {
@@ -167,7 +167,7 @@ describe('TrainingEntryPage - 1RM トースト', () => {
       },
     ])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     // 同じ 100kg × 10reps を入力 → RM = 133.3 = 133.3 → 更新にならない
     fireEvent.blur(weightInputs()[0], { target: { value: '100' } })
     fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
@@ -195,7 +195,7 @@ describe('TrainingEntryPage - Last Record 表示', () => {
 
   it('前回記録がない場合「Last Record」セクションが表示されない', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     expect(screen.queryByText(/Last Record/)).not.toBeInTheDocument()
   })
 })
@@ -222,7 +222,7 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
   it('記録が無い日に画面を開いても localStorage に記録が作られない', async () => {
     renderEntry()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     expect(readStoredRecords()).toEqual([])
   })
@@ -231,14 +231,14 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
     seedSettings({ defaultSets: 4 })
     renderEntry()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(4)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(4)
     })
     expect(readStoredRecords()).toEqual([])
   })
 
   it('重さを入力して欄を離れた時点で記録が作られ、その値が保存される', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '60' } })
     await waitFor(() => {
       expect(readStoredRecords()).toHaveLength(1)
@@ -248,7 +248,7 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
 
   it('入力で作られた記録は日付・種目ID・既定セット数を持つ', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '60' } })
     await waitFor(() => {
       expect(readStoredRecords()).toHaveLength(1)
@@ -261,7 +261,7 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
 
   it('回数だけ入力して欄を離れても記録が作られる（自重種目）', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(repsInputs()[0], { target: { value: '12' } })
     await waitFor(() => {
       expect(readStoredRecords()).toHaveLength(1)
@@ -272,7 +272,7 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
 
   it('2セット目だけ入力したとき1セット目は空のまま保存される', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[1], { target: { value: '70' } })
     await waitFor(() => {
       expect(readStoredRecords()).toHaveLength(1)
@@ -285,21 +285,21 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
 
   it('空欄のまま欄を離れただけでは記録が作られない', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '' } })
     fireEvent.blur(repsInputs()[0], { target: { value: '' } })
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(3)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(3)
     })
     expect(readStoredRecords()).toEqual([])
   })
 
   it('「セットを追加」を押しただけでは記録が作られない', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     await userEvent.click(screen.getByText('セットを追加'))
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(4)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(4)
     })
     expect(readStoredRecords()).toEqual([])
   })
@@ -308,7 +308,7 @@ describe('TrainingEntryPage - 開いただけでは空の記録を保存しな�
     seedRecord([{ weight: 80, reps: 10 }])
     renderEntry()
     await waitFor(() => {
-      expect(screen.getAllByLabelText('セット削除')).toHaveLength(1)
+      expect(screen.getAllByLabelText(/セット目を削除$/)).toHaveLength(1)
     })
     expect(readStoredRecords()[0].sets).toHaveLength(1)
   })
@@ -318,7 +318,7 @@ describe('TrainingEntryPage - 空欄にしたら0として保存する', () => {
   it('値が入っている重さ欄を空にして離れると0が保存される', async () => {
     seedRecord([{ weight: 60, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '' } })
     await waitFor(() => {
       expect(readStoredRecords()[0].sets[0].weight).toBe(0)
@@ -328,7 +328,7 @@ describe('TrainingEntryPage - 空欄にしたら0として保存する', () => {
   it('値が入っている回数欄を空にして離れると0が保存される', async () => {
     seedRecord([{ weight: 60, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(repsInputs()[0], { target: { value: '' } })
     await waitFor(() => {
       expect(readStoredRecords()[0].sets[0].reps).toBe(0)
@@ -338,7 +338,7 @@ describe('TrainingEntryPage - 空欄にしたら0として保存する', () => {
   it('重さを空にしても回数の値は元のまま残る', async () => {
     seedRecord([{ weight: 60, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '' } })
     await waitFor(() => {
       expect(readStoredRecords()[0].sets[0].weight).toBe(0)
@@ -352,7 +352,7 @@ describe('TrainingEntryPage - lbs 設定での重さ入力', () => {
     seedSettings({ weightUnit: 'lbs' })
     seedRecord([{ weight: 35, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     expect(weightInputs()[0].value).toBe('77.2')
   })
 
@@ -360,7 +360,7 @@ describe('TrainingEntryPage - lbs 設定での重さ入力', () => {
     seedSettings({ weightUnit: 'lbs' })
     seedRecord([{ weight: 35, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '77.2' } })
     await waitFor(() => {
       expect(readStoredRecords()[0].sets[0].weight).toBe(35)
@@ -371,7 +371,7 @@ describe('TrainingEntryPage - lbs 設定での重さ入力', () => {
     seedSettings({ weightUnit: 'lbs' })
     seedRecord([{ weight: 32.5, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     // 32.5kg は lbs 表示で 71.7。往復換算のズレ（32.52kg）で RM が 43.3 → 43.4 に化ける値
     fireEvent.blur(weightInputs()[0], { target: { value: '71.7' } })
     await waitFor(() => {
@@ -384,7 +384,7 @@ describe('TrainingEntryPage - lbs 設定での重さ入力', () => {
     seedSettings({ weightUnit: 'lbs' })
     seedRecord([{ weight: 35, reps: 10 }])
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '110' } })
     await waitFor(() => {
       expect(readStoredRecords()[0].sets[0].weight).toBe(49.9)
@@ -415,19 +415,19 @@ describe('TrainingEntryPage - RM 欄の単位表示', () => {
 describe('TrainingEntryPage - アクセシビリティ（メモ欄のラベル）', () => {
   it('1セット目のメモ欄が getByLabelText("1セット目のメモ") で取得できる', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     expect(screen.getByLabelText('1セット目のメモ')).toBeInTheDocument()
   })
 
   it('3セット目のメモ欄が getByLabelText("3セット目のメモ") で取得できる', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     expect(screen.getByLabelText('3セット目のメモ')).toBeInTheDocument()
   })
 
   it('先に重さ・回数を入力して記録ができたあと、getByLabelText で取得したメモ欄に入力すると保存される', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     // メモ単独では記録を作らない仕様のため、先に重さ・回数を入力して記録を作っておく
     fireEvent.blur(weightInputs()[0], { target: { value: '60' } })
     fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
@@ -441,14 +441,14 @@ describe('TrainingEntryPage - アクセシビリティ（メモ欄のラベル�
 describe('TrainingEntryPage - 1RM 更新演出は role="status" 領域に描画される', () => {
   it('演出が出ていないときも role="status" の領域が常に存在する', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     expect(screen.getByRole('status')).toBeInTheDocument()
     expect(screen.getByRole('status')).toHaveTextContent('')
   })
 
   it('1RM 更新時、role="status" の領域内に「1RM 更新！」が入る', async () => {
     renderEntry()
-    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    await waitFor(() => screen.getAllByLabelText(/セット目を削除$/))
     fireEvent.blur(weightInputs()[0], { target: { value: '100' } })
     fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
     await waitFor(() => {

@@ -1,7 +1,8 @@
 import { useId } from 'react'
-import { getDay, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
 import { useDialog } from '../../hooks/useDialog'
 import { filledSets } from '../../utils/training'
+import { formatDateWithWeekday } from '../../utils/date'
 import type { TrainingRecord, Exercise } from '../../types'
 import styles from './CalendarDayPopup.module.css'
 
@@ -11,16 +12,6 @@ interface CalendarDayPopupProps {
   exercises: Exercise[]     // 全種目マスター（name/category取得用）
   onClose: () => void
   onNavigate: (date: string) => void
-}
-
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'] as const
-
-function formatDate(dateStr: string): string {
-  const date = parseISO(dateStr)
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-  const weekday = WEEKDAYS[getDay(date)]
-  return `${month}月${day}日（${weekday}）`
 }
 
 interface GroupedExercise {
@@ -73,7 +64,7 @@ export default function CalendarDayPopup({
   onClose,
   onNavigate,
 }: CalendarDayPopupProps) {
-  const displayDate = formatDate(date)
+  const displayDate = formatDateWithWeekday(parseISO(date))
   const grouped = groupByCategory(records, exercises)
   const titleId = useId()
   const dialogRef = useDialog<HTMLDivElement>(onClose)

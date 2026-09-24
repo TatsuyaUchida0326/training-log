@@ -18,11 +18,11 @@ export default function ExerciseAddPage() {
   const [musclesSecondaryInput, setMusclesSecondaryInput] = useState('')
   const [descriptionInput, setDescriptionInput] = useState('')
 
-  const categoryFieldId = useId()
-  const nameId = useId()
-  const musclesId = useId()
-  const musclesSecondaryId = useId()
-  const descriptionId = useId()
+  const categoryInputId = useId()
+  const nameInputId = useId()
+  const musclesInputId = useId()
+  const musclesSecondaryInputId = useId()
+  const descriptionInputId = useId()
 
   // 部位と種目名が入力されている場合のみ登録ボタンを有効化
   const canRegister = name.trim().length > 0 && categoryId.trim().length > 0
@@ -84,9 +84,9 @@ export default function ExerciseAddPage() {
       {/* フォーム：部位・種目名は必須、筋肉・補助筋・説明は任意 */}
       <div className={styles.form}>
         <div className={styles.row}>
-          <label className={styles.label} htmlFor={categoryFieldId}>部位</label>
+          <label className={styles.label} htmlFor={categoryInputId}>部位</label>
           <input
-            id={categoryFieldId}
+            id={categoryInputId}
             className={styles.input}
             type="text"
             placeholder="例: 胸、背中"
@@ -95,9 +95,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <label className={styles.label} htmlFor={nameId}>種目名</label>
+          <label className={styles.label} htmlFor={nameInputId}>種目名</label>
           <input
-            id={nameId}
+            id={nameInputId}
             className={styles.input}
             type="text"
             placeholder="種目名を入力"
@@ -106,9 +106,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <label className={styles.label} htmlFor={musclesId}>対象筋肉</label>
+          <label className={styles.label} htmlFor={musclesInputId}>対象筋肉</label>
           <input
-            id={musclesId}
+            id={musclesInputId}
             className={styles.input}
             type="text"
             placeholder="例: 大胸筋, 上腕三頭筋"
@@ -117,9 +117,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <label className={styles.label} htmlFor={musclesSecondaryId}>補助筋</label>
+          <label className={styles.label} htmlFor={musclesSecondaryInputId}>補助筋</label>
           <input
-            id={musclesSecondaryId}
+            id={musclesSecondaryInputId}
             className={styles.input}
             type="text"
             placeholder="例: 三角筋前部"
@@ -128,9 +128,9 @@ export default function ExerciseAddPage() {
           />
         </div>
         <div className={styles.row}>
-          <label className={styles.label} htmlFor={descriptionId}>説明</label>
+          <label className={styles.label} htmlFor={descriptionInputId}>説明</label>
           <textarea
-            id={descriptionId}
+            id={descriptionInputId}
             className={styles.input}
             placeholder="種目の説明を入力（任意）"
             value={descriptionInput}

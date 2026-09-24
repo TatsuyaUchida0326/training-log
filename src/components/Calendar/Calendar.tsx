@@ -12,14 +12,13 @@ import {
   addDays,
 } from 'date-fns'
 import { between } from '@holiday-jp/holiday_jp'
+import { WEEKDAYS, formatDateWithWeekday } from '../../utils/date'
 import type { CalendarProps } from '../../types'
 import styles from './Calendar.module.css'
 
 function isSameYearMonth(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
 }
-
-const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
 export default function Calendar({
   currentDate,
@@ -128,7 +127,7 @@ export default function Calendar({
 
           // アクセシブルネームは表示物と独立に組み立てる（絵文字や祝日名を個別に読み上げさせないため）
           const ariaLabel =
-            `${format(date, 'M月d日')}（${WEEKDAYS[dayOfWeek]}）` +
+            formatDateWithWeekday(date) +
             (holidayName ? `、${holidayName}` : '') +
             (hasRecord ? '、記録あり' : '')
 
@@ -144,7 +143,7 @@ export default function Calendar({
                 .join(' ')}
               aria-label={ariaLabel}
               aria-current={isToday ? 'date' : undefined}
-              aria-pressed={isSelected ? true : undefined}
+              aria-pressed={isSelected}
               onClick={() => onDateSelect(date)}
             >
               <span

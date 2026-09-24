@@ -187,12 +187,11 @@ describe('Calendar - アクセシビリティ（日付セルの button 化）', 
     )
   })
 
-  it('選択中でないセルの aria-pressed は無いか "false"', () => {
+  it('選択中でないセルの aria-pressed は "false"', () => {
     const selectedDate = new Date(2026, 3, 20)
     render(<Calendar {...defaultProps} selectedDate={selectedDate} />)
     const other = screen.getByRole('button', { name: '4月16日（木）' })
-    const pressed = other.getAttribute('aria-pressed')
-    expect(pressed === null || pressed === 'false').toBe(true)
+    expect(other).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('Enterキーで onDateSelect が呼ばれる', async () => {

@@ -207,8 +207,9 @@ export default function TrainingEntryPage() {
   }
 
   return (
-    <div className={styles.page}>
-      {/* 1RM更新アニメーション。role="status" はスクリーンリーダーに読み上げさせるため常に描画し、演出中だけ中身を入れる */}
+    <>
+      {/* 1RM更新アニメーション。role="status" はスクリーンリーダーに読み上げさせるため常に描画し、演出中だけ中身を入れる。
+          .page（flex column, gap）の子にすると常時ゲージ分の余白ができてしまうため、.page の外に出す */}
       <div role="status">
         {rmToast && (
           <>
@@ -226,125 +227,127 @@ export default function TrainingEntryPage() {
         )}
       </div>
 
-      {/* ヘッダーバー */}
-      <div className={styles.bar}>
-        <span className={styles.barTitle}>{exercise.name}</span>
-        <div className={styles.unitToggle}>
-          <span
-            className={`${styles.unitOption} ${unit === 'kg' ? styles.unitActive : ''}`}
-          >
-            kg
-          </span>
-          <span className={styles.unitSep}>/</span>
-          <span
-            className={`${styles.unitOption} ${unit === 'lbs' ? styles.unitActive : ''}`}
-          >
-            lbs
-          </span>
+      <div className={styles.page}>
+        {/* ヘッダーバー */}
+        <div className={styles.bar}>
+          <span className={styles.barTitle}>{exercise.name}</span>
+          <div className={styles.unitToggle}>
+            <span
+              className={`${styles.unitOption} ${unit === 'kg' ? styles.unitActive : ''}`}
+            >
+              kg
+            </span>
+            <span className={styles.unitSep}>/</span>
+            <span
+              className={`${styles.unitOption} ${unit === 'lbs' ? styles.unitActive : ''}`}
+            >
+              lbs
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.scrollArea}>
+          {/* Last Record */}
+          {lastRecord && (
+            <div className={styles.lastRecord}>
+              <div className={styles.lastRecordTitle}>
+                Last Record : {format(new Date(lastRecord.date), 'yyyy/MM/dd')}
+              </div>
+              <div className={styles.lastRecordSets}>
+                {lastRecordSets.map((set, index) => (
+                  <div key={set.id} className={styles.lastRecordRow}>
+                    <span className={styles.lastSetNum}>{index + 1}</span>
+                    <span className={styles.lastSetDetail}>
+                      {displayWeight(set.weight, unit)}&nbsp;{unit} × {set.reps}&nbsp;reps
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* セット入力エリア */}
+          {sets.length > 0 && (
+            <div className={styles.setsCard}>
+              {/* テーブルヘッダー */}
+              <div className={styles.tableHeader}>
+                <span className={styles.colSet}>セット</span>
+                <span className={styles.colWeight}>重さ</span>
+                <span className={styles.colReps}>回数</span>
+                {/* RM はセット行の2段目に移したため、見出しは置かない */}
+                <span className={styles.colAction} />
+              </div>
+
+              {sets.map((set, index) => {
+                const rm = calcRM(set.weight, set.reps)
+                const dispWeight = displayWeight(set.weight, unit)
+                return (
+                  <div key={set.id} className={styles.setBlock}>
+                    <div className={styles.setRow}>
+                      <span className={styles.colSet}>{index + 1}</span>
+                      <div className={styles.colWeight}>
+                        <input
+                          className={styles.numInput}
+                          type="text"
+                          inputMode="decimal"
+                          aria-label={`${index + 1}セット目の重さ`}
+                          defaultValue={dispWeight > 0 ? dispWeight : ''}
+                          placeholder="0"
+                          onInput={filterToDecimal}
+                          onBlur={(e) => handleWeightChange(set.id, e.target.value)}
+                          key={`w-${set.id}-${unit}`}
+                        />
+                        <span className={styles.unitLabel}>{unit}</span>
+                      </div>
+                      <div className={styles.colReps}>
+                        <input
+                          className={styles.numInput}
+                          type="text"
+                          inputMode="numeric"
+                          aria-label={`${index + 1}セット目の回数`}
+                          defaultValue={set.reps > 0 ? set.reps : ''}
+                          placeholder="0"
+                          onInput={filterToInteger}
+                          onBlur={(e) => handleRepsChange(set.id, e.target.value)}
+                          key={`r-${set.id}`}
+                        />
+                        <span className={styles.unitLabel}>回</span>
+                      </div>
+                      <span className={styles.colRm}>
+                        {rm > 0 ? `${displayWeight(rm, unit)} ${unit}` : '—'}
+                      </span>
+                      <button
+                        className={styles.colAction}
+                        aria-label={`${index + 1}セット目を削除`}
+                        onClick={() => handleDeleteSet(set.id)}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                    <div className={styles.memoRow}>
+                      <input
+                        className={styles.memoInput}
+                        type="text"
+                        placeholder="メモ"
+                        aria-label={`${index + 1}セット目のメモ`}
+                        defaultValue={set.memo}
+                        onBlur={(e) => handleMemoChange(set.id, e.target.value)}
+                        key={`m-${set.id}`}
+                      />
+                    </div>
+                    {index < sets.length - 1 && <hr className={styles.setDivider} />}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* ＋ セットを追加 */}
+          <button className={styles.addSetButton} onClick={handleAddSet}>
+            <Plus size={16} /> セットを追加
+          </button>
         </div>
       </div>
-
-      <div className={styles.scrollArea}>
-        {/* Last Record */}
-        {lastRecord && (
-          <div className={styles.lastRecord}>
-            <div className={styles.lastRecordTitle}>
-              Last Record : {format(new Date(lastRecord.date), 'yyyy/MM/dd')}
-            </div>
-            <div className={styles.lastRecordSets}>
-              {lastRecordSets.map((set, index) => (
-                <div key={set.id} className={styles.lastRecordRow}>
-                  <span className={styles.lastSetNum}>{index + 1}</span>
-                  <span className={styles.lastSetDetail}>
-                    {displayWeight(set.weight, unit)}&nbsp;{unit} × {set.reps}&nbsp;reps
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* セット入力エリア */}
-        {sets.length > 0 && (
-          <div className={styles.setsCard}>
-            {/* テーブルヘッダー */}
-            <div className={styles.tableHeader}>
-              <span className={styles.colSet}>セット</span>
-              <span className={styles.colWeight}>重さ</span>
-              <span className={styles.colReps}>回数</span>
-              {/* RM はセット行の2段目に移したため、見出しは置かない */}
-              <span className={styles.colAction} />
-            </div>
-
-            {sets.map((set, index) => {
-              const rm = calcRM(set.weight, set.reps)
-              const dispWeight = displayWeight(set.weight, unit)
-              return (
-                <div key={set.id} className={styles.setBlock}>
-                  <div className={styles.setRow}>
-                    <span className={styles.colSet}>{index + 1}</span>
-                    <div className={styles.colWeight}>
-                      <input
-                        className={styles.numInput}
-                        type="text"
-                        inputMode="decimal"
-                        aria-label={`${index + 1}セット目の重さ`}
-                        defaultValue={dispWeight > 0 ? dispWeight : ''}
-                        placeholder="0"
-                        onInput={filterToDecimal}
-                        onBlur={(e) => handleWeightChange(set.id, e.target.value)}
-                        key={`w-${set.id}-${unit}`}
-                      />
-                      <span className={styles.unitLabel}>{unit}</span>
-                    </div>
-                    <div className={styles.colReps}>
-                      <input
-                        className={styles.numInput}
-                        type="text"
-                        inputMode="numeric"
-                        aria-label={`${index + 1}セット目の回数`}
-                        defaultValue={set.reps > 0 ? set.reps : ''}
-                        placeholder="0"
-                        onInput={filterToInteger}
-                        onBlur={(e) => handleRepsChange(set.id, e.target.value)}
-                        key={`r-${set.id}`}
-                      />
-                      <span className={styles.unitLabel}>回</span>
-                    </div>
-                    <span className={styles.colRm}>
-                      {rm > 0 ? `${displayWeight(rm, unit)} ${unit}` : '—'}
-                    </span>
-                    <button
-                      className={styles.colAction}
-                      aria-label="セット削除"
-                      onClick={() => handleDeleteSet(set.id)}
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                  <div className={styles.memoRow}>
-                    <input
-                      className={styles.memoInput}
-                      type="text"
-                      placeholder="メモ"
-                      aria-label={`${index + 1}セット目のメモ`}
-                      defaultValue={set.memo}
-                      onBlur={(e) => handleMemoChange(set.id, e.target.value)}
-                      key={`m-${set.id}`}
-                    />
-                  </div>
-                  {index < sets.length - 1 && <hr className={styles.setDivider} />}
-                </div>
-              )
-            })}
-          </div>
-        )}
-
-        {/* ＋ セットを追加 */}
-        <button className={styles.addSetButton} onClick={handleAddSet}>
-          <Plus size={16} /> セットを追加
-        </button>
-      </div>
-    </div>
+    </>
   )
 }

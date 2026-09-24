@@ -578,7 +578,7 @@ describe('SettingsPage — アクセシビリティ（select のラベル関連�
     expect(screen.getByLabelText('デフォルトセット数')).toBeInTheDocument()
   })
 
-  it('getByLabelText で取得した要素は role=combobox である', () => {
+  it('getByLabelText で取得した要素は SELECT 要素である', () => {
     renderSettingsPage()
     expect(screen.getByLabelText('継続達成種目数').tagName).toBe('SELECT')
     expect(screen.getByLabelText('継続達成セット数').tagName).toBe('SELECT')

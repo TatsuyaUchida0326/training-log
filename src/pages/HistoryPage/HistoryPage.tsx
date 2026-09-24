@@ -198,6 +198,7 @@ export default function HistoryPage() {
             <p className={styles.emptyText}>記録がありません</p>
           ) : (
             <>
+              {/* index.css の --color-primary と揃える */}
               <ChartBlock title="最大重量" data={maxWeightPoints} unit={unit} color="#15803d" />
               <ChartBlock title="最大RM" data={maxRMPoints} unit={unit} color="#3b82f6" />
               <ChartBlock title="セット数" data={stats.totalSets} unit="set" color="#f59e0b" />
@@ -270,13 +271,13 @@ function ChartBlock({ title, data, unit, color }: ChartBlockProps) {
             dataKey="date"
             interval="preserveStartEnd"
             minTickGap={24}
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            tick={{ fontSize: 10, fill: '#6b7280' }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
             domain={Y_DOMAIN}
-            tick={{ fontSize: 10, fill: '#9ca3af' }}
+            tick={{ fontSize: 10, fill: '#6b7280' }}
             tickLine={false}
             axisLine={false}
             width={44}

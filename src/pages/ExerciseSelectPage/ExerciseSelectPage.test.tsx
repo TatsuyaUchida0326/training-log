@@ -103,7 +103,7 @@ describe('ExerciseSelectPage', () => {
   it('「Edit」ボタンをクリックすると削除ボタンが表示される', async () => {
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
-    expect(screen.getAllByRole('button', { name: '削除' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: /を削除$/ }).length).toBeGreaterThan(0)
   })
 
   it('編集モードで「End」ボタンが表示される', async () => {
@@ -116,7 +116,7 @@ describe('ExerciseSelectPage', () => {
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
-    const deleteButtons = screen.getAllByRole('button', { name: '削除' })
+    const deleteButtons = screen.getAllByRole('button', { name: /を削除$/ })
     await userEvent.click(deleteButtons[0])
     expect(mockDeleteExercise).toHaveBeenCalledTimes(1)
     confirmSpy.mockRestore()
@@ -151,7 +151,7 @@ describe('ExerciseSelectPage - 種目削除の確認ダイアログ', () => {
   async function renderAndClickFirstDelete(): Promise<void> {
     renderPage()
     await userEvent.click(screen.getByText('Edit'))
-    await userEvent.click(screen.getAllByRole('button', { name: '削除' })[0])
+    await userEvent.click(screen.getAllByRole('button', { name: /を削除$/ })[0])
   }
 
   beforeEach(() => {
@@ -240,12 +240,12 @@ describe('ExerciseSelectPage - アクセシビリティ（種目名を button �
     expect(screen.getByTestId('entry-page')).toBeInTheDocument()
   })
 
-  it('編集モードでは種目名ボタンをクリックしても遷移しない', async () => {
+  it('編集モードでは種目名が button ではなく通常のテキストになり、行クリックでも遷移しない', async () => {
     renderPageWithEntryRoute()
     await userEvent.click(screen.getByText('Edit'))
-    await userEvent.click(screen.getByRole('button', { name: 'ベンチプレス' }))
+    expect(screen.queryByRole('button', { name: 'ベンチプレス' })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByText('ベンチプレス'))
     expect(screen.queryByTestId('entry-page')).not.toBeInTheDocument()
     expect(screen.getByText('End')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'ベンチプレス' })).toBeInTheDocument()
   })
 })
