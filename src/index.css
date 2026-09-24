@@ -1,11 +1,11 @@
 :root {
-  --color-primary: #22c55e;
-  --color-primary-dark: #16a34a;
+  --color-primary: #15803d;
+  --color-primary-dark: #166534;
   --color-bg: #f9fafb;
   --color-text: #111827;
-  --color-gray: #9ca3af;
-  --color-sunday: #ef4444;
-  --color-saturday: #3b82f6;
+  --color-gray: #6b7280;
+  --color-sunday: #dc2626;
+  --color-saturday: #2563eb;
 
   /* レイアウト寸法（スマホ⇄PC で共有する） */
   --bottom-nav-height: 56px;

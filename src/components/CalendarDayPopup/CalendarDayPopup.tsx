@@ -1,4 +1,6 @@
+import { useId } from 'react'
 import { getDay, parseISO } from 'date-fns'
+import { useDialog } from '../../hooks/useDialog'
 import { filledSets } from '../../utils/training'
 import type { TrainingRecord, Exercise } from '../../types'
 import styles from './CalendarDayPopup.module.css'
@@ -73,6 +75,8 @@ export default function CalendarDayPopup({
 }: CalendarDayPopupProps) {
   const displayDate = formatDate(date)
   const grouped = groupByCategory(records, exercises)
+  const titleId = useId()
+  const dialogRef = useDialog<HTMLDivElement>(onClose)
 
   return (
     <div
@@ -81,15 +85,20 @@ export default function CalendarDayPopup({
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         className={styles.card}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ヘッダー */}
         <div className={styles.header}>
-          <span className={styles.dateText}>{displayDate}</span>
+          <span id={titleId} className={styles.dateText}>{displayDate}</span>
           <button
             className={styles.closeButton}
-            aria-label="close"
+            aria-label="閉じる"
             onClick={onClose}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

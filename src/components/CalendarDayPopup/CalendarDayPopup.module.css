@@ -19,6 +19,9 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   padding: 0;
   animation: popIn 200ms ease-out;
+  /* ダイアログ本体自身にフォーカスを当てるための tabIndex=-1 に伴う既定の枠を消す
+     （ボタン等、本体以外のフォーカス表示はそのまま残す） */
+  outline: none;
 }
 
 @keyframes popIn {

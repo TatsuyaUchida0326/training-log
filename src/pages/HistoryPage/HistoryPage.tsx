@@ -193,7 +193,7 @@ export default function HistoryPage() {
             <p className={styles.emptyText}>記録がありません</p>
           ) : (
             <>
-              <ChartBlock title="最大重量" data={maxWeightPoints} unit={unit} color="#22c55e" />
+              <ChartBlock title="最大重量" data={maxWeightPoints} unit={unit} color="#15803d" />
               <ChartBlock title="最大RM" data={maxRMPoints} unit={unit} color="#3b82f6" />
               <ChartBlock title="セット数" data={stats.totalSets} unit="set" color="#f59e0b" />
               <ChartBlock title="総負荷量" data={totalVolumePoints} unit={unit} color="#8b5cf6" />

@@ -28,8 +28,8 @@
 
 .navItem[data-active='true'] {
   background: rgba(255, 255, 255, 0.12);
-  color: #90caf9;
-  border-top-color: #90caf9;
+  color: #e3f2fd;
+  border-top-color: #e3f2fd;
 }
 
 .navLabel {

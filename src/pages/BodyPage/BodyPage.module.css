@@ -68,7 +68,7 @@
 .cardLabel {
   font-size: 11px;
   font-weight: 700;
-  color: #9ca3af;
+  color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding: 10px 16px 4px;
@@ -113,7 +113,7 @@
 }
 
 .numInput:focus {
-  border-bottom-color: #22c55e;
+  border-bottom-color: var(--color-primary);
 }
 
 .numInput::-webkit-outer-spin-button,
@@ -123,7 +123,7 @@
 }
 
 .numInput::placeholder {
-  color: #d1d5db;
+  color: #6b7280;
   font-weight: 400;
 }
 
@@ -177,7 +177,7 @@
 }
 
 .memoInput:focus {
-  border-bottom-color: #22c55e;
+  border-bottom-color: var(--color-primary);
 }
 
 /* ── 計算値行 ── */
@@ -213,6 +213,19 @@
 }
 
 .calcEmpty {
-  color: #9ca3af;
+  color: #6b7280;
   font-weight: 400;
+}
+
+/* スクリーンリーダー専用（視覚的には非表示だが読み上げ・ラベル関連付けには使う） */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

@@ -82,7 +82,7 @@
 
 .emptyText {
   padding: 20px 14px;
-  color: #9ca3af;
+  color: #6b7280;
   font-size: 13px;
   text-align: center;
 }
@@ -98,7 +98,7 @@
 
 .categoryLabel {
   background: #f0fdf4;
-  color: #16a34a;
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 700;
   padding: 4px 14px;
@@ -132,7 +132,7 @@
 
 .rmLabel {
   font-size: 12px;
-  color: #22c55e;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -153,7 +153,7 @@
 .setNum {
   width: 14px;
   text-align: right;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .setDetail {

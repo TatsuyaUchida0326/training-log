@@ -174,12 +174,9 @@ export default function TrainingEntryPage() {
   }
 
   function handleMemoChange(setId: string, memo: string) {
-    if (record) {
-      updateSet(record.id, setId, { memo })
-      return
-    }
-    // 記録が無いあいだはメモだけで記録を作らず、下書きに保持する
-    setDraftSets((prev) => prev.map((set) => (set.id === setId ? { ...set, memo } : set)))
+    // 重さ・回数と同じく、メモだけの入力でも記録を作って保存する（スクリーンリーダー等で
+    // 重さ・回数を後から入力する場合にもメモが失われないようにするため）
+    saveSetUpdate(setId, { memo })
   }
 
   function handleAddSet() {
@@ -208,21 +205,23 @@ export default function TrainingEntryPage() {
 
   return (
     <div className={styles.page}>
-      {/* 1RM更新アニメーション */}
-      {rmToast && (
-        <>
-          <div key={`overlay-${rmToast.key}`} className={styles.rmOverlay} />
-          <div key={`popup-${rmToast.key}`} className={styles.rmPopup}>
-            <span className={styles.rmPopupIcon}>🏆</span>
-            <div className={styles.rmPopupLabel}>1RM 更新！</div>
-            <div>
-              <span className={styles.rmPopupValue}>{displayWeight(rmToast.rm, unit)}</span>
-              <span className={styles.rmPopupUnit}>{unit}</span>
+      {/* 1RM更新アニメーション。role="status" はスクリーンリーダーに読み上げさせるため常に描画し、演出中だけ中身を入れる */}
+      <div role="status">
+        {rmToast && (
+          <>
+            <div key={`overlay-${rmToast.key}`} className={styles.rmOverlay} />
+            <div key={`popup-${rmToast.key}`} className={styles.rmPopup}>
+              <span className={styles.rmPopupIcon}>🏆</span>
+              <div className={styles.rmPopupLabel}>1RM 更新！</div>
+              <div>
+                <span className={styles.rmPopupValue}>{displayWeight(rmToast.rm, unit)}</span>
+                <span className={styles.rmPopupUnit}>{unit}</span>
+              </div>
+              <div className={styles.rmPopupSub}>NEW PERSONAL RECORD</div>
             </div>
-            <div className={styles.rmPopupSub}>NEW PERSONAL RECORD</div>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
 
       {/* ヘッダーバー */}
       <div className={styles.bar}>
@@ -325,6 +324,7 @@ export default function TrainingEntryPage() {
                       className={styles.memoInput}
                       type="text"
                       placeholder="メモ"
+                      aria-label={`${index + 1}セット目のメモ`}
                       defaultValue={set.memo}
                       onBlur={(e) => handleMemoChange(set.id, e.target.value)}
                       key={`m-${set.id}`}

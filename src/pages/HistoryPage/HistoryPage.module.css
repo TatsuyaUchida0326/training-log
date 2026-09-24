@@ -36,13 +36,13 @@
 }
 
 .tab:hover {
-  color: #22c55e;
+  color: var(--color-primary);
 }
 
 .tabActive {
-  color: #22c55e;
+  color: var(--color-primary);
   font-weight: 700;
-  border-bottom-color: #22c55e;
+  border-bottom-color: var(--color-primary);
 }
 
 /* ── カレンダー / グラフ 切り替え ── */
@@ -68,7 +68,8 @@
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #6b7280;
+  /* 親 .toggle の背景 #f3f4f6 の上に乗るため、コントラスト比を確保できる濃さにする */
+  color: #4b5563;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -99,7 +100,7 @@
 
 .emptyText {
   text-align: center;
-  color: #9ca3af;
+  color: #6b7280;
   font-size: 14px;
   padding: 40px 0;
 }

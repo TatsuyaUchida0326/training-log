@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useExercises } from '../../hooks/useExercises'
@@ -17,6 +17,9 @@ export default function SettingsPage() {
   const { setHeader } = usePageHeader()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const requiredExercisesId = useId()
+  const requiredSetsId = useId()
+  const defaultSetsId = useId()
   useEffect(() => {
     setHeader({ title: '設定', centered: true })
   }, [setHeader])
@@ -79,8 +82,9 @@ export default function SettingsPage() {
         <p className={styles.sectionTitle}>記録設定</p>
 
         <div className={styles.row}>
-          <span className={styles.label}>継続達成種目数</span>
+          <label className={styles.label} htmlFor={requiredExercisesId}>継続達成種目数</label>
           <select
+            id={requiredExercisesId}
             className={styles.select}
             value={settings.requiredExercises}
             onChange={(e) => updateRequiredExercises(Number(e.target.value))}
@@ -94,8 +98,9 @@ export default function SettingsPage() {
         </div>
 
         <div className={styles.row}>
-          <span className={styles.label}>継続達成セット数</span>
+          <label className={styles.label} htmlFor={requiredSetsId}>継続達成セット数</label>
           <select
+            id={requiredSetsId}
             className={styles.select}
             value={settings.requiredSets}
             onChange={(e) => updateRequiredSets(Number(e.target.value))}
@@ -109,8 +114,9 @@ export default function SettingsPage() {
         </div>
 
         <div className={styles.row}>
-          <span className={styles.label}>デフォルトセット数</span>
+          <label className={styles.label} htmlFor={defaultSetsId}>デフォルトセット数</label>
           <select
+            id={defaultSetsId}
             className={styles.select}
             value={settings.defaultSets}
             onChange={(e) => updateDefaultSets(Number(e.target.value))}
@@ -129,12 +135,14 @@ export default function SettingsPage() {
             <button
               className={`${styles.toggleButton} ${settings.weightUnit === 'kg' ? styles.active : ''}`}
               onClick={() => updateWeightUnit('kg')}
+              aria-pressed={settings.weightUnit === 'kg'}
             >
               kg
             </button>
             <button
               className={`${styles.toggleButton} ${settings.weightUnit === 'lbs' ? styles.active : ''}`}
               onClick={() => updateWeightUnit('lbs')}
+              aria-pressed={settings.weightUnit === 'lbs'}
             >
               lbs
             </button>

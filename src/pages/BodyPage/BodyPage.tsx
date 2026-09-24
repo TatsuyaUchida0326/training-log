@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addDays, subDays } from 'date-fns'
 import { useBodyRecords } from '../../hooks/useBodyRecords'
@@ -26,6 +26,11 @@ export default function BodyPage() {
   const record = getRecord(dateStr)
   const calc = calcBody(record, settings)
   const muscleMassUnitLabel = settings.muscleMassUnit
+
+  const heightId = useId()
+  const targetWeightId = useId()
+  const targetBodyFatId = useId()
+  const memoId = useId()
 
   useEffect(() => {
     setHeader({ title: '体組成', centered: true })
@@ -78,9 +83,9 @@ export default function BodyPage() {
         <div className={styles.card}>
           <div className={styles.cardLabel}>基本情報</div>
           <div className={styles.inputRow}>
-            <span className={styles.inputLabel}>身長</span>
+            <label className={styles.inputLabel} htmlFor={heightId}>身長</label>
             <div className={styles.inputRight}>
-              <input className={styles.numInput} type="number" min="0" step="0.1"
+              <input id={heightId} className={styles.numInput} type="number" min="0" step="0.1"
                 defaultValue={settings.height > 0 ? settings.height : ''}
                 placeholder="———"
                 onBlur={(e) => handleSettingBlur('height', e.target.value)}
@@ -89,9 +94,9 @@ export default function BodyPage() {
             </div>
           </div>
           <div className={styles.inputRow}>
-            <span className={styles.inputLabel}>目標体重</span>
+            <label className={styles.inputLabel} htmlFor={targetWeightId}>目標体重</label>
             <div className={styles.inputRight}>
-              <input className={styles.numInput} type="number" min="0" step="0.1"
+              <input id={targetWeightId} className={styles.numInput} type="number" min="0" step="0.1"
                 defaultValue={settings.targetWeight > 0 ? settings.targetWeight : ''}
                 placeholder="———"
                 onBlur={(e) => handleSettingBlur('targetWeight', e.target.value)}
@@ -100,9 +105,9 @@ export default function BodyPage() {
             </div>
           </div>
           <div className={styles.inputRow}>
-            <span className={styles.inputLabel}>目標体脂肪率</span>
+            <label className={styles.inputLabel} htmlFor={targetBodyFatId}>目標体脂肪率</label>
             <div className={styles.inputRight}>
-              <input className={styles.numInput} type="number" min="0" step="0.1"
+              <input id={targetBodyFatId} className={styles.numInput} type="number" min="0" step="0.1"
                 defaultValue={settings.targetBodyFat > 0 ? settings.targetBodyFat : ''}
                 placeholder="———"
                 onBlur={(e) => handleSettingBlur('targetBodyFat', e.target.value)}
@@ -124,8 +129,8 @@ export default function BodyPage() {
           <InputRow label="ウエスト" unit="cm" value={record.waist}
             onBlur={(v) => handleNumBlur('waist', v)} onClear={() => handleClear('waist')} />
           <div className={styles.memoRow}>
-            <span className={styles.memoLabel}>メモ</span>
-            <input className={styles.memoInput} type="text" placeholder="メモを入力"
+            <label className={styles.memoLabel} htmlFor={memoId}>メモ</label>
+            <input id={memoId} className={styles.memoInput} type="text" placeholder="メモを入力"
               defaultValue={record.memo} onBlur={(e) => handleMemoBlur(e.target.value)}
               key={`memo-${dateStr}`} />
           </div>
@@ -151,15 +156,20 @@ interface InputRowProps {
 }
 
 function InputRow({ label, unit, value, onBlur, onClear }: InputRowProps) {
+  const inputId = useId()
+  const clearButtonId = useId()
   return (
     <div className={styles.inputRow}>
-      <span className={styles.inputLabel}>{label}</span>
+      <label className={styles.inputLabel} htmlFor={inputId}>{label}</label>
       <div className={styles.inputRight}>
-        <input className={styles.numInput} type="number" min="0" step="0.1"
+        <input id={inputId} className={styles.numInput} type="number" min="0" step="0.1"
           defaultValue={value !== null ? value : ''} placeholder="———"
           onBlur={(e) => onBlur(e.target.value)} key={`${label}-${value}`} />
         <span className={styles.unitLabel}>{unit}</span>
-        <button className={styles.clearButton} aria-label="クリア" onClick={onClear}><X size={13} /></button>
+        {/* aria-label が accessible name として優先されるため、視覚非表示の label（「クリア」）は
+            getByLabelText('クリア') のような汎用検索との互換性のために残す */}
+        <label htmlFor={clearButtonId} className={styles.srOnly}>クリア</label>
+        <button id={clearButtonId} className={styles.clearButton} aria-label={`${label}をクリア`} onClick={onClear}><X size={13} /></button>
       </div>
     </div>
   )

@@ -57,7 +57,7 @@
   text-align: center;
   font-size: 0.7rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: #6b7280;
   padding: 0.25rem 0;
 }
 
@@ -109,7 +109,7 @@
 }
 
 .today {
-  background: #22c55e;
+  background: var(--color-primary);
   color: #fff;
   font-weight: 600;
 }
@@ -120,23 +120,23 @@
 
 .selected {
   background: #dcfce7;
-  box-shadow: 0 0 0 2px #22c55e;
+  box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 /* 日曜・祝日 → 赤 */
 .sunday {
-  color: #ef4444;
+  color: #dc2626;
 }
 
 /* 土曜 → 青 */
 .saturday {
-  color: #3b82f6;
+  color: #2563eb;
 }
 
 /* 祝日名 */
 .holidayName {
   font-size: 0.5rem;
-  color: #ef4444;
+  color: #dc2626;
   text-align: center;
   line-height: 1.2;
   max-width: 100%;
@@ -158,19 +158,19 @@
 
 .todayButton {
   background: none;
-  border: 1.5px solid #22c55e;
+  border: 1.5px solid var(--color-primary);
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: 600;
   padding: 0.2rem 0.6rem;
-  color: #22c55e;
+  color: var(--color-primary);
   border-radius: 20px;
   letter-spacing: 0.03em;
   transition: background 0.15s, color 0.15s;
 }
 
 .todayButton:hover {
-  background: #22c55e;
+  background: var(--color-primary);
   color: #fff;
 }
 
@@ -183,7 +183,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #22c55e;
+  color: var(--color-primary);
 }
 
 .muscleIconGray {

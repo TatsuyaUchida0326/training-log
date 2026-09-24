@@ -51,8 +51,8 @@
 
 .tabInner[data-active='true'] {
   background: rgba(255, 255, 255, 0.12);
-  color: #90caf9;
-  border-left-color: #90caf9;
+  color: #e3f2fd;
+  border-left-color: #e3f2fd;
 }
 
 .tabInner[data-active='false']:hover {
