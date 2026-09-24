@@ -122,7 +122,19 @@ export default function ExerciseSelectPage() {
                           －
                         </button>
                       )}
-                      <span className={styles.exerciseName}>{ex.name}</span>
+                      <button
+                        type="button"
+                        className={styles.exerciseName}
+                        onClick={(e) => {
+                          // 行の onClick と二重に遷移させないため、行への伝播を止める
+                          e.stopPropagation()
+                          if (!isEditMode) {
+                            navigate(`/date/${dateStr}/exercises/${ex.id}`)
+                          }
+                        }}
+                      >
+                        {ex.name}
+                      </button>
                       {!isEditMode && (
                         <button
                           className={styles.infoButton}

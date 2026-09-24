@@ -73,6 +73,14 @@
 }
 
 .cell {
+  /* <button> 化に伴うブラウザ既定スタイルのリセット（見た目は div のときと同じにする） */
+  appearance: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  margin: 0;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -80,12 +88,18 @@
   padding: 0.85rem 0;
   cursor: pointer;
   position: relative;
+  border: none;
   border-left: 1px solid #f3f4f6;
 }
 
 /* 各行の先頭列は左線なし */
 .cell:nth-child(7n + 1) {
   border-left: none;
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 
 .dayCircle {

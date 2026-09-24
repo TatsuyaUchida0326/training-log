@@ -45,6 +45,8 @@
 
 .select:focus {
   outline: none;
+  /* outline を消す代わりに、他の入力欄と同じ下線でフォーカス位置を示す */
+  box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
 .input {
@@ -65,4 +67,6 @@
 
 .input:focus {
   outline: none;
+  /* outline を消す代わりに、他の入力欄と同じ下線でフォーカス位置を示す */
+  box-shadow: inset 0 -2px 0 var(--color-primary);
 }

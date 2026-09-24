@@ -113,9 +113,23 @@
 }
 
 .exerciseName {
+  /* <button> 化に伴うブラウザ既定スタイルのリセット（見た目は span のときと同じにする） */
+  appearance: none;
+  background: none;
+  border: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+
   flex: 1;
   font-size: 0.95rem;
   color: var(--color-text);
+}
+
+.exerciseName:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 /* ── すべて表示 / フッター行 ── */

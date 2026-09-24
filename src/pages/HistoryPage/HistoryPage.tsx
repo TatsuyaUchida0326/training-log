@@ -115,6 +115,7 @@ export default function HistoryPage() {
           <button
             key={cat}
             className={`${styles.tab} ${selectedCategory === cat ? styles.tabActive : ''}`}
+            aria-pressed={selectedCategory === cat}
             onClick={() => handleCategorySelect(cat)}
           >
             {cat}
@@ -126,6 +127,7 @@ export default function HistoryPage() {
       <div className={styles.tabRow}>
         <button
           className={`${styles.tab} ${selectedExercise === ALL ? styles.tabActive : ''}`}
+          aria-pressed={selectedExercise === ALL}
           onClick={() => setSelectedExercise(ALL)}
         >
           ALL
@@ -134,6 +136,7 @@ export default function HistoryPage() {
           <button
             key={ex.id}
             className={`${styles.tab} ${selectedExercise === ex.id ? styles.tabActive : ''}`}
+            aria-pressed={selectedExercise === ex.id}
             onClick={() => setSelectedExercise(ex.id)}
           >
             {ex.name}
@@ -146,12 +149,14 @@ export default function HistoryPage() {
         <div className={styles.toggle}>
           <button
             className={`${styles.toggleBtn} ${viewMode === 'calendar' ? styles.toggleActive : ''}`}
+            aria-pressed={viewMode === 'calendar'}
             onClick={() => setViewMode('calendar')}
           >
             カレンダー
           </button>
           <button
             className={`${styles.toggleBtn} ${viewMode === 'graph' ? styles.toggleActive : ''}`}
+            aria-pressed={viewMode === 'graph'}
             onClick={() => setViewMode('graph')}
           >
             グラフ

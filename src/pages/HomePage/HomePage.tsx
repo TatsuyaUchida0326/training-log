@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { addMonths, subMonths, format } from 'date-fns'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import Calendar from '../../components/Calendar/Calendar'
 import ContinuityGauge from '../../components/ContinuityGauge/ContinuityGauge'
 import TrophyBadge from '../../components/TrophyBadge/TrophyBadge'
@@ -153,12 +153,10 @@ export default function HomePage() {
               <div key={categoryId} className={styles.categoryBlock}>
                 <div className={styles.categoryLabel}>{categoryId}</div>
                 {exList.map((ex) => (
-                  <div
+                  <Link
                     key={ex.exerciseId}
                     className={styles.exerciseCard}
-                    onClick={() =>
-                      navigate(`/date/${todayStr}/exercises/${ex.exerciseId}`)
-                    }
+                    to={`/date/${todayStr}/exercises/${ex.exerciseId}`}
                   >
                     <div className={styles.exerciseHeader}>
                       <span className={styles.exerciseName}>{ex.name}</span>
@@ -178,7 +176,7 @@ export default function HomePage() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ))

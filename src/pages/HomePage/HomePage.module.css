@@ -107,6 +107,8 @@
 
 /* 種目カード */
 .exerciseCard {
+  /* <Link>（<a>）化のため、div のときと同じブロック表示にする */
+  display: block;
   padding: 10px 14px;
   border-top: 1px solid #f9fafb;
   cursor: pointer;
