@@ -411,3 +411,45 @@ describe('TrainingEntryPage - RM 欄の単位表示', () => {
     })
   })
 })
+
+describe('TrainingEntryPage - アクセシビリティ（メモ欄のラベル）', () => {
+  it('1セット目のメモ欄が getByLabelText("1セット目のメモ") で取得できる', async () => {
+    renderEntry()
+    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    expect(screen.getByLabelText('1セット目のメモ')).toBeInTheDocument()
+  })
+
+  it('3セット目のメモ欄が getByLabelText("3セット目のメモ") で取得できる', async () => {
+    renderEntry()
+    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    expect(screen.getByLabelText('3セット目のメモ')).toBeInTheDocument()
+  })
+
+  it('getByLabelText で取得したメモ欄に入力すると保存される', async () => {
+    renderEntry()
+    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    fireEvent.blur(screen.getByLabelText('1セット目のメモ'), { target: { value: '調子が良い' } })
+    await waitFor(() => {
+      expect(readStoredRecords()[0]?.sets[0]?.memo).toBe('調子が良い')
+    })
+  })
+})
+
+describe('TrainingEntryPage - 1RM 更新演出は role="status" 領域に描画される', () => {
+  it('演出が出ていないときも role="status" の領域が常に存在する', async () => {
+    renderEntry()
+    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('')
+  })
+
+  it('1RM 更新時、role="status" の領域内に「1RM 更新！」が入る', async () => {
+    renderEntry()
+    await waitFor(() => screen.getAllByLabelText('セット削除'))
+    fireEvent.blur(weightInputs()[0], { target: { value: '100' } })
+    fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('1RM 更新！')
+    })
+  })
+})

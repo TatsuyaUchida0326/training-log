@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -102,16 +103,12 @@ describe('CalendarDayPopup', () => {
     expect(screen.getByText('デッドリフト')).toBeInTheDocument()
   })
 
-  it('Xボタン（aria-label="close" または role="button"）クリックで onClose が呼ばれる', async () => {
+  it('閉じるボタン（aria-label="閉じる"）クリックで onClose が呼ばれる', async () => {
     const user = userEvent.setup()
     const onClose = vi.fn()
     renderPopup({ onClose })
 
-    // aria-label="close" のボタン、または "×" / "✕" を探す
-    const closeButton =
-      screen.queryByRole('button', { name: /close/i }) ??
-      screen.queryByLabelText(/close/i) ??
-      screen.getByRole('button', { name: /[×✕xX]/ })
+    const closeButton = screen.getByRole('button', { name: /閉じる/i })
 
     await user.click(closeButton)
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -179,5 +176,59 @@ describe('CalendarDayPopup - 空セットの除外', () => {
       ],
     })
     expect(screen.getByText('1set')).toBeInTheDocument()
+  })
+})
+
+describe('CalendarDayPopup - ダイアログとしてのアクセシビリティ', () => {
+  it('role="dialog" かつ aria-modal="true" の要素が、日付テキストを名前として取得できる', () => {
+    renderPopup()
+    expect(
+      screen.getByRole('dialog', { name: '4月22日（水）' })
+    ).toBeInTheDocument()
+  })
+
+  it('マウント時にダイアログ本体へフォーカスが移る', () => {
+    renderPopup()
+    expect(screen.getByRole('dialog', { name: '4月22日（水）' })).toHaveFocus()
+  })
+
+  it('Escapeキーで onClose が呼ばれる', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    renderPopup({ onClose })
+    await user.keyboard('{Escape}')
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('CalendarDayPopup - 閉じたときのフォーカス復帰', () => {
+  it('開く前にフォーカスしていたボタンへ、閉じたあとフォーカスが戻る', async () => {
+    const user = userEvent.setup()
+
+    function Harness() {
+      const [open, setOpen] = useState(true)
+      return (
+        <div>
+          <button>Opener</button>
+          {open && (
+            <CalendarDayPopup
+              date={DATE}
+              records={RECORDS}
+              exercises={EXERCISES}
+              onClose={() => setOpen(false)}
+              onNavigate={vi.fn()}
+            />
+          )}
+        </div>
+      )
+    }
+
+    render(<Harness />)
+    const openerButton = screen.getByRole('button', { name: 'Opener' })
+    openerButton.focus()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(openerButton).toHaveFocus()
   })
 })

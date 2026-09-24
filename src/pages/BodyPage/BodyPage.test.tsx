@@ -175,3 +175,50 @@ describe('BodyPage - calcBody 計算値', () => {
     expect(screen.getByText('64 kg')).toBeInTheDocument()
   })
 })
+
+describe('BodyPage - アクセシビリティ（ラベル関連付け）', () => {
+  it('身長・目標体重・目標体脂肪率の入力欄が getByLabelText で取得できる', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('身長')).toBeInTheDocument()
+    expect(screen.getByLabelText('目標体重')).toBeInTheDocument()
+    expect(screen.getByLabelText('目標体脂肪率')).toBeInTheDocument()
+  })
+
+  it('体重・体脂肪・筋肉量・ウエストの入力欄が getByLabelText で取得できる', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('体重')).toBeInTheDocument()
+    expect(screen.getByLabelText('体脂肪')).toBeInTheDocument()
+    expect(screen.getByLabelText('筋肉量')).toBeInTheDocument()
+    expect(screen.getByLabelText('ウエスト')).toBeInTheDocument()
+  })
+
+  it('メモの入力欄が getByLabelText で取得できる', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('メモ')).toBeInTheDocument()
+  })
+
+  it('各入力欄のラベルは対応する input と関連付いている（同一要素であること）', () => {
+    renderBodyPage()
+    const byLabel = screen.getByLabelText('体重')
+    const byPlaceholder = screen.getAllByPlaceholderText('———')[3] // 身長・目標体重・目標体脂肪率の後の体重欄
+    expect(byLabel).toBe(byPlaceholder)
+  })
+
+  it('体重・体脂肪・筋肉量・ウエストそれぞれに「◯◯をクリア」という名前のクリアボタンがある', () => {
+    renderBodyPage()
+    expect(screen.getByRole('button', { name: '体重をクリア' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '体脂肪をクリア' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '筋肉量をクリア' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'ウエストをクリア' })).toBeInTheDocument()
+  })
+
+  it('「体重をクリア」ボタンを押すと体重の値がクリアされる', async () => {
+    const user = userEvent.setup()
+    renderBodyPage()
+    const weightInput = screen.getByLabelText('体重') as HTMLInputElement
+    fireEvent.blur(weightInput, { target: { value: '70' } })
+    await user.click(screen.getByRole('button', { name: '体重をクリア' }))
+    const stored = JSON.parse(localStorage.getItem('strength-log-body-records') ?? '[]')
+    expect(stored.find((r: { weight: number | null }) => 'weight' in r)?.weight ?? null).toBeNull()
+  })
+})
