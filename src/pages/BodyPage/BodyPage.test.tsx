@@ -81,7 +81,7 @@ describe('BodyPage - 入力と自動計算', () => {
 
   it('クリアボタンが計測値行ごとに存在する（4つ）', () => {
     renderBodyPage()
-    const clearBtns = screen.getAllByLabelText('クリア')
+    const clearBtns = screen.getAllByRole('button', { name: /をクリア$/ })
     expect(clearBtns).toHaveLength(4)
   })
 

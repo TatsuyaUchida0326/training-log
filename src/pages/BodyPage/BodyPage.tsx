@@ -157,7 +157,6 @@ interface InputRowProps {
 
 function InputRow({ label, unit, value, onBlur, onClear }: InputRowProps) {
   const inputId = useId()
-  const clearButtonId = useId()
   return (
     <div className={styles.inputRow}>
       <label className={styles.inputLabel} htmlFor={inputId}>{label}</label>
@@ -166,10 +165,7 @@ function InputRow({ label, unit, value, onBlur, onClear }: InputRowProps) {
           defaultValue={value !== null ? value : ''} placeholder="———"
           onBlur={(e) => onBlur(e.target.value)} key={`${label}-${value}`} />
         <span className={styles.unitLabel}>{unit}</span>
-        {/* aria-label が accessible name として優先されるため、視覚非表示の label（「クリア」）は
-            getByLabelText('クリア') のような汎用検索との互換性のために残す */}
-        <label htmlFor={clearButtonId} className={styles.srOnly}>クリア</label>
-        <button id={clearButtonId} className={styles.clearButton} aria-label={`${label}をクリア`} onClick={onClear}><X size={13} /></button>
+        <button className={styles.clearButton} aria-label={`${label}をクリア`} onClick={onClear}><X size={13} /></button>
       </div>
     </div>
   )

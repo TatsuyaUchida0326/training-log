@@ -216,16 +216,3 @@
   color: #6b7280;
   font-weight: 400;
 }
-
-/* スクリーンリーダー専用（視覚的には非表示だが読み上げ・ラベル関連付けには使う） */
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}

@@ -425,9 +425,12 @@ describe('TrainingEntryPage - アクセシビリティ（メモ欄のラベル�
     expect(screen.getByLabelText('3セット目のメモ')).toBeInTheDocument()
   })
 
-  it('getByLabelText で取得したメモ欄に入力すると保存される', async () => {
+  it('先に重さ・回数を入力して記録ができたあと、getByLabelText で取得したメモ欄に入力すると保存される', async () => {
     renderEntry()
     await waitFor(() => screen.getAllByLabelText('セット削除'))
+    // メモ単独では記録を作らない仕様のため、先に重さ・回数を入力して記録を作っておく
+    fireEvent.blur(weightInputs()[0], { target: { value: '60' } })
+    fireEvent.blur(repsInputs()[0], { target: { value: '10' } })
     fireEvent.blur(screen.getByLabelText('1セット目のメモ'), { target: { value: '調子が良い' } })
     await waitFor(() => {
       expect(readStoredRecords()[0]?.sets[0]?.memo).toBe('調子が良い')

@@ -174,9 +174,12 @@ export default function TrainingEntryPage() {
   }
 
   function handleMemoChange(setId: string, memo: string) {
-    // 重さ・回数と同じく、メモだけの入力でも記録を作って保存する（スクリーンリーダー等で
-    // 重さ・回数を後から入力する場合にもメモが失われないようにするため）
-    saveSetUpdate(setId, { memo })
+    if (record) {
+      updateSet(record.id, setId, { memo })
+      return
+    }
+    // 記録が無いあいだはメモだけで記録を作らず、下書きに保持する
+    setDraftSets((prev) => prev.map((set) => (set.id === setId ? { ...set, memo } : set)))
   }
 
   function handleAddSet() {
