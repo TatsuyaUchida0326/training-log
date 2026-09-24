@@ -207,3 +207,45 @@ describe('ExerciseSelectPage - 種目削除の確認ダイアログ', () => {
     expect(String(confirmSpy.mock.calls[0][0])).toMatch(/2\s*件/)
   })
 })
+
+/** 種目名ボタンでの遷移確認用。記録画面のルートも含めて描画する */
+function renderPageWithEntryRoute() {
+  return render(
+    <PageHeaderProvider>
+      <HeaderSpy />
+      <MemoryRouter initialEntries={['/date/2026-04-16/exercises/select']}>
+        <Routes>
+          <Route path="/date/:dateStr/exercises/select" element={<ExerciseSelectPage />} />
+          <Route path="/date/:dateStr/exercises/add" element={<div data-testid="add-page" />} />
+          <Route
+            path="/date/:dateStr/exercises/:exerciseId"
+            element={<div data-testid="entry-page" />}
+          />
+          <Route path="/date/:dateStr" element={<div data-testid="detail-page" />} />
+        </Routes>
+      </MemoryRouter>
+    </PageHeaderProvider>
+  )
+}
+
+describe('ExerciseSelectPage - アクセシビリティ（種目名を button 化）', () => {
+  it('種目名が role="button" として取得できる', () => {
+    renderPage()
+    expect(screen.getByRole('button', { name: 'ベンチプレス' })).toBeInTheDocument()
+  })
+
+  it('通常モードで種目名ボタンをクリックすると記録画面へ遷移する', async () => {
+    renderPageWithEntryRoute()
+    await userEvent.click(screen.getByRole('button', { name: 'ベンチプレス' }))
+    expect(screen.getByTestId('entry-page')).toBeInTheDocument()
+  })
+
+  it('編集モードでは種目名ボタンをクリックしても遷移しない', async () => {
+    renderPageWithEntryRoute()
+    await userEvent.click(screen.getByText('Edit'))
+    await userEvent.click(screen.getByRole('button', { name: 'ベンチプレス' }))
+    expect(screen.queryByTestId('entry-page')).not.toBeInTheDocument()
+    expect(screen.getByText('End')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'ベンチプレス' })).toBeInTheDocument()
+  })
+})

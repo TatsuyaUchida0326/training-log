@@ -53,8 +53,7 @@ describe('Calendar', () => {
     const onPrevMonth = vi.fn()
     render(<Calendar {...defaultProps} onPrevMonth={onPrevMonth} />)
 
-    // aria-label または テキスト "<" のボタンを探す
-    const prevButton = screen.getByRole('button', { name: /prev|previous|＜|</i })
+    const prevButton = screen.getByRole('button', { name: '前の月' })
     await user.click(prevButton)
 
     expect(onPrevMonth).toHaveBeenCalledTimes(1)
@@ -65,7 +64,7 @@ describe('Calendar', () => {
     const onNextMonth = vi.fn()
     render(<Calendar {...defaultProps} onNextMonth={onNextMonth} />)
 
-    const nextButton = screen.getByRole('button', { name: /next|＞|>/i })
+    const nextButton = screen.getByRole('button', { name: '次の月' })
     await user.click(nextButton)
 
     expect(onNextMonth).toHaveBeenCalledTimes(1)
@@ -136,5 +135,93 @@ describe('Calendar', () => {
     const dotClasses = Array.from(dots).map((d) => d.className)
     expect(dotClasses.some((c) => c.includes('muscleIconGray'))).toBe(true)
     expect(dotClasses.some((c) => c.includes('muscleIcon') && !c.includes('Gray'))).toBe(true)
+  })
+})
+
+describe('Calendar - アクセシビリティ（日付セルの button 化）', () => {
+  it('日付セルは type="button" の button であり、"M月D日（曜日）" 形式のアクセシブルネームを持つ', () => {
+    render(<Calendar {...defaultProps} />)
+    const cell = screen.getByRole('button', { name: '4月16日（木）' })
+    expect(cell).toBeInTheDocument()
+    expect(cell.tagName).toBe('BUTTON')
+    expect(cell).toHaveAttribute('type', 'button')
+  })
+
+  it('祝日のセルは「、祝日名」がアクセシブルネームに続く', () => {
+    render(<Calendar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: '4月29日（水）、昭和の日' })).toBeInTheDocument()
+  })
+
+  it('記録がある日（markedDates）は「、記録あり」がアクセシブルネームに続く', () => {
+    render(<Calendar {...defaultProps} markedDates={['2026-04-20']} />)
+    expect(screen.getByRole('button', { name: '4月20日（月）、記録あり' })).toBeInTheDocument()
+  })
+
+  it('記録がある日（achievedDates）は「、記録あり」がアクセシブルネームに続く', () => {
+    render(<Calendar {...defaultProps} achievedDates={['2026-04-15']} />)
+    expect(screen.getByRole('button', { name: '4月15日（水）、記録あり' })).toBeInTheDocument()
+  })
+
+  it('今日のセルに aria-current="date" が付く', () => {
+    render(<Calendar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: '4月16日（木）' })).toHaveAttribute(
+      'aria-current',
+      'date'
+    )
+  })
+
+  it('今日以外のセルには aria-current="date" が付かない', () => {
+    render(<Calendar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: '4月10日（金）' })).not.toHaveAttribute(
+      'aria-current',
+      'date'
+    )
+  })
+
+  it('選択中のセルに aria-pressed="true" が付く', () => {
+    const selectedDate = new Date(2026, 3, 20)
+    render(<Calendar {...defaultProps} selectedDate={selectedDate} />)
+    expect(screen.getByRole('button', { name: '4月20日（月）' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it('選択中でないセルの aria-pressed は無いか "false"', () => {
+    const selectedDate = new Date(2026, 3, 20)
+    render(<Calendar {...defaultProps} selectedDate={selectedDate} />)
+    const other = screen.getByRole('button', { name: '4月16日（木）' })
+    const pressed = other.getAttribute('aria-pressed')
+    expect(pressed === null || pressed === 'false').toBe(true)
+  })
+
+  it('Enterキーで onDateSelect が呼ばれる', async () => {
+    const user = userEvent.setup()
+    const onDateSelect = vi.fn()
+    render(<Calendar {...defaultProps} onDateSelect={onDateSelect} />)
+    screen.getByRole('button', { name: '4月16日（木）' }).focus()
+    await user.keyboard('{Enter}')
+    expect(onDateSelect).toHaveBeenCalledTimes(1)
+  })
+
+  it('Spaceキーで onDateSelect が呼ばれる', async () => {
+    const user = userEvent.setup()
+    const onDateSelect = vi.fn()
+    render(<Calendar {...defaultProps} onDateSelect={onDateSelect} />)
+    screen.getByRole('button', { name: '4月16日（木）' }).focus()
+    await user.keyboard(' ')
+    expect(onDateSelect).toHaveBeenCalledTimes(1)
+  })
+
+  it('💪 アイコンは aria-hidden="true" でアクセシブルネームに混ざらない', () => {
+    render(<Calendar {...defaultProps} markedDates={['2026-04-20']} />)
+    const icon = screen.getByTestId('marked-dot')
+    expect(icon).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('前月・次月ボタンのアクセシブルネームは「前の月」「次の月」', () => {
+    render(<Calendar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: '前の月' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '次の月' })).toBeInTheDocument()
   })
 })

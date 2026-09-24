@@ -243,3 +243,50 @@ describe('HistoryPage - グラフの重量単位', () => {
     expect(maxYAxisTick('総負荷量')).toBeLessThan(3968)
   })
 })
+
+describe('HistoryPage - アクセシビリティ（選択中タブの aria-pressed）', () => {
+  it('既定で部位タブの "ALL" が aria-pressed="true"、他は "false"', () => {
+    renderHistoryPage()
+    const categoryAll = screen.getAllByRole('button', { name: 'ALL' })[0]
+    expect(categoryAll).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: '胸' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('部位タブを選ぶと選んだタブが aria-pressed="true" になり、ALLは "false" になる', async () => {
+    renderHistoryPage()
+    await userEvent.click(screen.getByRole('button', { name: '胸' }))
+    expect(screen.getByRole('button', { name: '胸' })).toHaveAttribute('aria-pressed', 'true')
+    const allButtons = screen.getAllByRole('button', { name: 'ALL' })
+    // 部位タブ列のALLは選択解除される
+    expect(allButtons[0]).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('種目タブを選ぶと選んだ種目が aria-pressed="true" になる', async () => {
+    renderHistoryPage()
+    await userEvent.click(screen.getByRole('button', { name: '胸' }))
+    await userEvent.click(screen.getByRole('button', { name: 'ベンチプレス' }))
+    expect(screen.getByRole('button', { name: 'ベンチプレス' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+  })
+
+  it('カレンダー/グラフ切り替えの選択中ボタンに aria-pressed="true" が付く', () => {
+    renderHistoryPage()
+    expect(screen.getByRole('button', { name: 'カレンダー' })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    )
+    expect(screen.getByRole('button', { name: 'グラフ' })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('グラフに切り替えると aria-pressed が入れ替わる', async () => {
+    renderHistoryPage()
+    await userEvent.click(screen.getByRole('button', { name: 'グラフ' }))
+    expect(screen.getByRole('button', { name: 'グラフ' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'カレンダー' })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
+  })
+})

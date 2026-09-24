@@ -156,3 +156,21 @@ describe('HomePage - 削除済み種目の記録', () => {
     expect(screen.getByText('0 / 90')).toBeInTheDocument()
   })
 })
+
+describe('HomePage - アクセシビリティ（今日の種目カードはリンク）', () => {
+  it('今日の種目カードが role="link" として取得でき、記録画面への href を持つ', () => {
+    seedBenchPress()
+    seedTodayRecord([{ weight: 60, reps: 10 }])
+    renderHomePage()
+    const link = screen.getByRole('link', { name: /ベンチプレス/ })
+    expect(link).toHaveAttribute('href', `/date/${todayStr()}/exercises/ex-bench`)
+  })
+
+  it('リンクをクリックすると記録画面へ遷移する', async () => {
+    seedBenchPress()
+    seedTodayRecord([{ weight: 60, reps: 10 }])
+    renderHomePage()
+    await userEvent.click(screen.getByRole('link', { name: /ベンチプレス/ }))
+    expect(screen.getByTestId('entry-page')).toBeInTheDocument()
+  })
+})
