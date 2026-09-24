@@ -27,3 +27,11 @@ dist-ssr
 # AI エージェント用のローカル設定・作業メモ（公開しない）
 CLAUDE.md
 tasks/
+
+# 初期（2026-04、wger 時代）の仕様書・作業スクリプト・スクリーンショット。手元の控えとして残し、公開しない
+/Strength Log 仕様書*.xlsx
+/docs/specification.md
+/docs/seed_data.mjs
+/docs/insert_images_to_sheets.py
+/docs/update_descriptions.py
+/docs/screenshots/
