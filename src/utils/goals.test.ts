@@ -233,7 +233,7 @@ describe('calcGoalProgress — 向きと残り（baseline あり）', () => {
     const records = [makeBodyRecord('2026-09-01', { weight: 68.2 })]
     const settings = makeSettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
     expect(calcGoalProgress(records, settings)).toEqual([
-      { metric: 'weight', current: 68.2, target: 65, remaining: 3.2, status: 'decrease' },
+      { metric: 'weight', current: 68.2, target: 65, remaining: 3.2, status: 'decrease', source: 'base' },
     ])
   })
 
@@ -245,7 +245,7 @@ describe('calcGoalProgress — 向きと残り（baseline あり）', () => {
       goalBaselines: { muscleMass: 36 },
     })
     expect(calcGoalProgress(records, settings)).toEqual([
-      { metric: 'muscleMass', current: 38.5, target: 40, remaining: 1.5, status: 'increase' },
+      { metric: 'muscleMass', current: 38.5, target: 40, remaining: 1.5, status: 'increase', source: 'base' },
     ])
   })
 
@@ -253,7 +253,7 @@ describe('calcGoalProgress — 向きと残り（baseline あり）', () => {
     const records = [makeBodyRecord('2026-09-01', { bodyFat: 20 })]
     const settings = makeSettings({ targetBodyFat: 15, goalBaselines: { bodyFat: 22 } })
     expect(calcGoalProgress(records, settings)).toEqual([
-      { metric: 'bodyFat', current: 20, target: 15, remaining: 5, status: 'decrease' },
+      { metric: 'bodyFat', current: 20, target: 15, remaining: 5, status: 'decrease', source: 'base' },
     ])
   })
 
@@ -293,6 +293,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
     const settings = makeSettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -303,6 +304,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       current: 63.4,
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -312,6 +314,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
     const settings = makeSettings({ targetMuscleMassKg: 40, goalBaselines: { muscleMass: 36 } })
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -321,6 +324,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
     const settings = makeSettings({ targetMuscleMassKg: 40, goalBaselines: { muscleMass: 36 } })
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -330,6 +334,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
     const settings = makeSettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'decrease',
+      source: 'base',
       remaining: 0.1,
     })
   })
@@ -341,6 +346,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
       const records = [makeBodyRecord('2026-09-01', { weight: 68 })]
       expect(calcGoalProgress(records, settings)[0]).toMatchObject({
         status: 'decrease',
+        source: 'base',
         remaining: 3,
       })
     })
@@ -349,6 +355,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
       const records = [makeBodyRecord('2026-09-01', { weight: 63 })]
       expect(calcGoalProgress(records, settings)[0]).toMatchObject({
         status: 'increase',
+        source: 'base',
         remaining: 2,
       })
     })
@@ -357,6 +364,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
       const records = [makeBodyRecord('2026-09-01', { weight: 65 })]
       expect(calcGoalProgress(records, settings)[0]).toMatchObject({
         status: 'achieved',
+        source: 'base',
         remaining: 0,
       })
     })
@@ -365,6 +373,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
       const records = [makeBodyRecord('2026-09-01', { weight: 65.04 })]
       expect(calcGoalProgress(records, settings)[0]).toMatchObject({
         status: 'achieved',
+        source: 'base',
         remaining: 0,
       })
     })
@@ -374,6 +383,7 @@ describe('calcGoalProgress — 達成と境界値', () => {
       const records = [makeBodyRecord('2026-09-01', { weight: 68 })]
       expect(calcGoalProgress(records, rounded)[0]).toMatchObject({
         status: 'decrease',
+        source: 'base',
         remaining: 3,
       })
     })
@@ -404,6 +414,7 @@ describe('calcGoalProgress — 小数1桁の丸め', () => {
     const settings = makeSettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -413,6 +424,7 @@ describe('calcGoalProgress — 小数1桁の丸め', () => {
     const settings = makeSettings({ targetMuscleMassKg: 40, goalBaselines: { muscleMass: 36 } })
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -433,6 +445,7 @@ describe('calcGoalProgress — baseline が無いとき（旧データ・記録�
       target: 65,
       remaining: 3,
       status: 'decrease',
+      source: 'base',
     })
   })
 
@@ -440,6 +453,7 @@ describe('calcGoalProgress — baseline が無いとき（旧データ・記録�
     const records = [makeBodyRecord('2026-09-01', { weight: 60 })]
     expect(calcGoalProgress(records, makeSettings({ targetWeight: 65 }))[0]).toMatchObject({
       status: 'increase',
+      source: 'base',
       remaining: 5,
     })
   })
@@ -448,6 +462,7 @@ describe('calcGoalProgress — baseline が無いとき（旧データ・記録�
     const records = [makeBodyRecord('2026-09-01', { weight: 65 })]
     expect(calcGoalProgress(records, makeSettings({ targetWeight: 65 }))[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -456,6 +471,7 @@ describe('calcGoalProgress — baseline が無いとき（旧データ・記録�
     const records = [makeBodyRecord('2026-09-01', { weight: 65.04 })]
     expect(calcGoalProgress(records, makeSettings({ targetWeight: 65 }))[0]).toMatchObject({
       status: 'achieved',
+      source: 'base',
       remaining: 0,
     })
   })
@@ -494,6 +510,7 @@ describe('calcGoalProgress — goalBaselines が壊れていても例外を投�
     expect(() => calcGoalProgress(records, settings)).not.toThrow()
     expect(calcGoalProgress(records, settings)[0]).toMatchObject({
       status: 'decrease',
+      source: 'base',
       remaining: 3,
     })
   })
@@ -524,7 +541,7 @@ describe('calcGoalProgress — 筋肉量の単位', () => {
       goalBaselines: { muscleMass: 25 },
     })
     expect(calcGoalProgress(records, settings)).toEqual([
-      { metric: 'muscleMass', current: 28, target: 30, remaining: 2, status: 'increase' },
+      { metric: 'muscleMass', current: 28, target: 30, remaining: 2, status: 'increase', source: 'base' },
     ])
   })
 
@@ -568,7 +585,7 @@ describe('calcGoalProgress — 表示する値に先に丸めてから計算す�
       goalBaselines: { muscleMass: 20 },
     })
     expect(calcGoalProgress(records, settings)).toEqual([
-      { metric: 'muscleMass', current: 24.6, target: 27, remaining: 2.4, status: 'increase' },
+      { metric: 'muscleMass', current: 24.6, target: 27, remaining: 2.4, status: 'increase', source: 'base' },
     ])
   })
 
@@ -576,7 +593,7 @@ describe('calcGoalProgress — 表示する値に先に丸めてから計算す�
     const records = [makeBodyRecord('2026-09-01', { weight: 68.24 })]
     const settings = makeSettings({ targetWeight: 65.04, goalBaselines: { weight: 70 } })
     expect(calcGoalProgress(records, settings)).toEqual([
-      { metric: 'weight', current: 68.2, target: 65, remaining: 3.2, status: 'decrease' },
+      { metric: 'weight', current: 68.2, target: 65, remaining: 3.2, status: 'decrease', source: 'base' },
     ])
   })
 
@@ -599,6 +616,7 @@ describe('calcGoalProgress — 表示する値に先に丸めてから計算す�
       target: 70,
       remaining: 0,
       status: 'achieved',
+      source: 'base',
     })
   })
 
@@ -610,6 +628,7 @@ describe('calcGoalProgress — 表示する値に先に丸めてから計算す�
       current: 65.1,
       remaining: 0.1,
       status: 'decrease',
+      source: 'base',
     })
   })
 

@@ -19,6 +19,7 @@ const WEIGHT_DECREASE: GoalProgress = {
   target: 65,
   remaining: 3.2,
   status: 'decrease',
+  source: 'base',
 }
 
 function countdown(id: string, name: string, date: string, daysLeft: number): ContestCountdown {
