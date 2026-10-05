@@ -2,12 +2,11 @@ import type { Contest } from '../types'
 
 /**
  * 大会のテスト用ヘルパー。
- * storageKeys.ts / seed.ts に足さず別ファイルにしているのは、フックの実装前でも
- * 既存テスト（storageKeys.ts / seed.ts を import している）を壊さないため。
- * 実装後に storageKeys.ts へ寄せてもよい（その場合はこのファイルから再 export するだけで済む）。
+ * キー名の定義は storageKeys.ts に集約し、ここからは再 export する。
  */
-export { STORAGE_KEY as CONTESTS_KEY } from '../hooks/useContests'
-import { STORAGE_KEY as CONTESTS_KEY } from '../hooks/useContests'
+import { CONTESTS_KEY } from './storageKeys'
+
+export { CONTESTS_KEY }
 
 let sequence = 0
 

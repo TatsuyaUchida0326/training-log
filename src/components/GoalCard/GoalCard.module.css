@@ -1,10 +1,20 @@
 /* ホームの他のカードと同じ白地・角丸・影。外側の余白は置く側が className で付ける */
 .card {
-  list-style: none;
   padding: 12px 16px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.list {
+  list-style: none;
+}
+
+/* 大会のリストと目標のリストの間も、行と同じ区切り線 */
+.list:not(:first-child) {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f3f4f6;
 }
 
 .row {
@@ -38,6 +48,15 @@
   color: var(--color-text);
 }
 
+/* 長い名前は2行まで折り返し、それ以上は … で省略する（全文は DOM に残る）。anywhere は区切りの無い長い名前で横にはみ出さないため */
+.contestName {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
 .detail {
   font-size: 12px;
   color: var(--color-gray);
@@ -55,6 +74,21 @@
   font-weight: 700;
 }
 
+/* 先頭の大会は一番近い予定なので数字を一回り大きくする */
+.leadValue {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.more {
+  display: block;
+  margin-top: 4px;
+  text-align: right;
+  font-size: 12px;
+  color: #1e3a6e;
+  text-decoration: underline;
+}
+
 .achieved {
   flex-shrink: 0;
   padding: 3px 10px;
@@ -66,9 +100,10 @@
   white-space: nowrap;
 }
 
-/* PC 幅は1行ずつ縦に積むと横に間延びするので、3項目を横に並べる（行の区切り線は要らない） */
+/* PC 幅は1行ずつ縦に積むと横に間延びするので、3項目を横に並べる（行の区切り線は要らない）。
+   大会が上の段、目標が下の段になる */
 @media (min-width: 900px) {
-  .card {
+  .list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     column-gap: 32px;

@@ -1,15 +1,17 @@
 import { useId } from 'react'
 import { parseISO } from 'date-fns'
+import { Flag } from 'lucide-react'
 import { useDialog } from '../../hooks/useDialog'
 import { filledSets } from '../../utils/training'
 import { formatDateWithWeekday } from '../../utils/date'
-import type { TrainingRecord, Exercise } from '../../types'
+import type { Contest, TrainingRecord, Exercise } from '../../types'
 import styles from './CalendarDayPopup.module.css'
 
 interface CalendarDayPopupProps {
   date: string              // 'YYYY-MM-DD'
   records: TrainingRecord[] // その日のレコード（全種目）
   exercises: Exercise[]     // 全種目マスター（name/category取得用）
+  contests?: Contest[]      // その日の大会（見出しの下に名前を全文で出す）
   onClose: () => void
   onNavigate: (date: string) => void
 }
@@ -61,11 +63,14 @@ export default function CalendarDayPopup({
   date,
   records,
   exercises,
+  contests = [],
   onClose,
   onNavigate,
 }: CalendarDayPopupProps) {
   const displayDate = formatDateWithWeekday(parseISO(date))
   const grouped = groupByCategory(records, exercises)
+  // 大会だけの日は種目の一覧が空になる。空の枠が余白として残らないよう、ボディごと出さない
+  const showBody = grouped.length > 0 || contests.length === 0
   const titleId = useId()
   const dialogRef = useDialog<HTMLDivElement>(onClose)
 
@@ -103,24 +108,37 @@ export default function CalendarDayPopup({
           </button>
         </div>
 
+        {contests.length > 0 && (
+          <ul role="list" className={styles.contests}>
+            {contests.map((contest) => (
+              <li key={contest.id} className={styles.contest}>
+                <Flag size={14} aria-hidden="true" className={styles.contestIcon} />
+                <span>{contest.name}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
         {/* ボディ */}
-        <div className={styles.body}>
-          {grouped.map((group, groupIndex) => (
-            <div key={group.categoryId}>
-              <div
-                className={`${styles.categoryLabel} ${groupIndex === 0 ? styles.categoryLabelFirst : ''}`}
-              >
-                {group.categoryId}
-              </div>
-              {group.items.map((item) => (
-                <div key={item.name} className={styles.exerciseRow}>
-                  <span className={styles.exerciseName}>{item.name}</span>
-                  <span className={styles.setCount}>{`${item.setCount}set`}</span>
+        {showBody && (
+          <div className={styles.body}>
+            {grouped.map((group, groupIndex) => (
+              <div key={group.categoryId}>
+                <div
+                  className={`${styles.categoryLabel} ${groupIndex === 0 ? styles.categoryLabelFirst : ''}`}
+                >
+                  {group.categoryId}
                 </div>
-              ))}
-            </div>
-          ))}
-        </div>
+                {group.items.map((item) => (
+                  <div key={item.name} className={styles.exerciseRow}>
+                    <span className={styles.exerciseName}>{item.name}</span>
+                    <span className={styles.setCount}>{`${item.setCount}set`}</span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* フッター */}
         <div className={styles.footer}>

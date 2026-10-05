@@ -2,6 +2,7 @@ import { useState, useEffect, useId } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addDays, subDays } from 'date-fns'
 import type { GoalMetric } from '../../types'
+import ContestEditor from '../../components/ContestEditor/ContestEditor'
 import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
@@ -128,6 +129,9 @@ export default function BodyPage() {
           <InputRow label="目標筋肉量" unit="kg" value={positiveOrNull(settings.targetMuscleMassKg)}
             onBlur={(v) => handleGoalBlur('muscleMass', v)} />
         </div>
+
+        {/* 大会・イベントカード */}
+        <ContestEditor />
 
         {/* 計測値入力カード */}
         <div className={styles.card}>

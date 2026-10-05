@@ -1,4 +1,5 @@
 import type React from 'react'
+import type { ContestCountdown } from '../utils/contests'
 
 export type TabName = 'home' | 'history' | 'body' | 'settings'
 
@@ -66,6 +67,13 @@ export interface BodySettings {
   goalBaselines: GoalBaselines
 }
 
+/** 大会（コンテスト・受験など、日付の決まった予定） */
+export interface Contest {
+  id: string
+  name: string
+  date: string  // 'YYYY-MM-DD'
+}
+
 export interface CalendarProps {
   currentDate: Date
   onPrevMonth: () => void
@@ -76,6 +84,8 @@ export interface CalendarProps {
   markedDates?: string[]          // 記録あり日（条件未達含む）'YYYY-MM-DD' 形式
   achievedDates?: string[]        // 条件達成日（フルカラー表示）'YYYY-MM-DD' 形式
   markIcon?: React.ReactNode      // マークアイコンの上書き（デフォルト 💪）
+  contests?: Contest[]            // 大会のある日に印と名前を出す
+  countdown?: ContestCountdown    // 一番近い大会までの残り日数。カレンダーの上に1行で出す
 }
 
 export interface SidebarProps {

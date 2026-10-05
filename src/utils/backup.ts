@@ -2,10 +2,12 @@ import { format } from 'date-fns'
 import { DEFAULT_EXERCISES } from '../data/defaultExercises'
 import { STORAGE_KEY as BODY_RECORDS_KEY } from '../hooks/useBodyRecords'
 import { DEFAULT_BODY_SETTINGS, STORAGE_KEY as BODY_SETTINGS_KEY } from '../hooks/useBodySettings'
+import { STORAGE_KEY as CONTESTS_KEY } from '../hooks/useContests'
 import { STORAGE_KEY as EXERCISES_KEY } from '../hooks/useExercises'
 import { DEFAULT_SETTINGS, STORAGE_KEY as SETTINGS_KEY } from '../hooks/useSettings'
 import { STORAGE_KEY as RECORDS_KEY } from '../hooks/useTrainingRecords'
-import type { BodyRecord, BodySettings, Exercise, Settings, TrainingRecord } from '../types'
+import type { BodyRecord, BodySettings, Contest, Exercise, Settings, TrainingRecord } from '../types'
+import { sanitizeContests } from './contests'
 import { isArrayOf, isPlainObject, peekStoredValue, writeStoredValue } from './storage'
 
 /** 他アプリの JSON を取り込んでしまわないための目印 */
@@ -16,7 +18,7 @@ export const BACKUP_VERSION = 1
 
 /**
  * 記録は種目 ID を参照しているので、種目一覧を含めないと復元しても種目名が出ない。
- * 5種類すべてをひとまとめにして書き出す。
+ * 6種類すべてをひとまとめにして書き出す。
  */
 export interface BackupData {
   records: TrainingRecord[]
@@ -24,6 +26,7 @@ export interface BackupData {
   settings: Settings
   bodyRecords: BodyRecord[]
   bodySettings: BodySettings
+  contests: Contest[]
 }
 
 export interface Backup {
@@ -48,6 +51,7 @@ export function buildBackup(now: Date = new Date()): Backup {
         ...DEFAULT_BODY_SETTINGS,
         ...(peekStoredValue(BODY_SETTINGS_KEY, isPlainObject) ?? {}),
       },
+      contests: peekStoredValue<Contest[]>(CONTESTS_KEY, isArrayOf) ?? [],
     },
   }
 }
@@ -86,6 +90,8 @@ export function parseBackup(text: string): Backup | null {
       settings: data.settings as unknown as Settings,
       bodyRecords: data.bodyRecords as BodyRecord[],
       bodySettings: data.bodySettings as unknown as BodySettings,
+      // 大会は後から足した項目。無い・配列でない古い/壊れたバックアップでも、他のデータを道連れにせず空として読む
+      contests: isArrayOf<Contest>(data.contests) ? data.contests : [],
     },
   }
 }
@@ -97,6 +103,8 @@ export function restoreBackup(backup: Backup): void {
   writeStoredValue(SETTINGS_KEY, backup.data.settings)
   writeStoredValue(BODY_RECORDS_KEY, backup.data.bodyRecords)
   writeStoredValue(BODY_SETTINGS_KEY, backup.data.bodySettings)
+  // ファイルは利用者が編集できるので、読み込み時と同じ検査を通してから書く
+  writeStoredValue(CONTESTS_KEY, sanitizeContests(backup.data.contests))
 }
 
 /** 書き出すファイル名。日付が入っていれば世代が分かる */

@@ -11,6 +11,7 @@ import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
 import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
+import { useContests } from '../../hooks/useContests'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import {
   calcRM,
@@ -21,6 +22,7 @@ import {
   recordsOfExistingExercises,
 } from '../../utils/training'
 import { calcContinuityStreak, getQualifyingDates } from '../../utils/continuity'
+import { upcomingContests } from '../../utils/contests'
 import { calcGoalProgress } from '../../utils/goals'
 import styles from './HomePage.module.css'
 
@@ -39,6 +41,7 @@ export default function HomePage() {
   const { exercises } = useExercises()
   const { records: bodyRecords } = useBodyRecords()
   const { settings: bodySettings } = useBodySettings()
+  const { contests } = useContests()
 
   const unit = settings.weightUnit
   const today = new Date()
@@ -107,10 +110,12 @@ export default function HomePage() {
 
   // 目標までの残り。目標を設定していなければ空で、画面には何も出ない
   const goals = calcGoalProgress(bodyRecords, bodySettings)
+  // これからの大会（近い順）。登録が無ければ空で、画面には何も出ない
+  const upcoming = upcomingContests(contests, today)
 
   return (
     <div className={styles.page}>
-      <GoalCard goals={goals} className={styles.goalCard} />
+      <GoalCard goals={goals} contests={upcoming} className={styles.goalCard} />
 
       <Calendar
         currentDate={currentDate}
@@ -124,6 +129,8 @@ export default function HomePage() {
         }}
         markedDates={markedDates}
         achievedDates={achievedDates}
+        // 残り日数はカードに出るので、カレンダーには印だけ（countdown は渡さない）
+        contests={contests}
       />
 
       <div className={styles.mainRow}>

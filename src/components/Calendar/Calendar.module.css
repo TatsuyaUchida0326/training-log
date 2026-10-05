@@ -147,6 +147,21 @@
   color: var(--color-saturday);
 }
 
+/* 大会のある日は日付の丸に紺の輪を付ける */
+.contestDay {
+  box-shadow: 0 0 0 2px #1e3a6e;
+}
+
+/* 今日の緑の丸には、白の隙間を空けて外側に重ねる */
+.today.contestDay {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1e3a6e;
+}
+
+/* 選択中の緑の輪とは、大会の輪を外側に重ねて両方見えるようにする */
+.selected.contestDay {
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px #1e3a6e;
+}
+
 /* 祝日名 */
 .holidayName {
   font-size: 0.5rem;
@@ -162,6 +177,60 @@
 
 .otherMonth .holidayName {
   display: none;
+}
+
+/* 大会名・「他N件」。祝日名と同じ大きさ・1行で、はみ出しは … で省略する */
+.contestName {
+  font-size: 0.5rem;
+  color: #1e3a6e;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+/*
+ * 大会のある月では、セルの中身を上から詰める。
+ * 既定の中央寄せのままだと、大会名や祝日名で背が伸びたセルだけ日付の丸が上にずれ、同じ行の丸が揃わない。
+ * 大会を登録していない人のカレンダーは、今まで通りの中央寄せのまま。
+ */
+.gridWithContests .cell {
+  justify-content: flex-start;
+}
+
+/* 一番近い大会までの残り日数（カレンダーの一番上・右寄せ・1行） */
+.countdown {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 12px;
+  color: #1e3a6e;
+}
+
+.countdownIcon {
+  flex-shrink: 0;
+}
+
+/* 名前が長いときだけ … で省略し、「まで あと ◯ 日」は必ず見せる */
+.countdownName {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.countdownFixed {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.countdown strong {
+  font-weight: 700;
 }
 
 .titleGroup {

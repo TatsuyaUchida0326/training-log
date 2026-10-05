@@ -17,6 +17,7 @@ import CalendarDayPopup from '../../components/CalendarDayPopup/CalendarDayPopup
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
 import { useSettings } from '../../hooks/useSettings'
+import { useContests } from '../../hooks/useContests'
 import { CATEGORIES } from '../../data/defaultExercises'
 import {
   displayWeight,
@@ -24,6 +25,7 @@ import {
   hasFilledSets,
   recordsOfExistingExercises,
 } from '../../utils/training'
+import { groupContestsByDate, upcomingContests } from '../../utils/contests'
 import { calcHistoryStats } from '../../utils/historyStats'
 import type { GraphPoint } from '../../utils/historyStats'
 import styles from './HistoryPage.module.css'
@@ -53,7 +55,12 @@ export default function HistoryPage() {
   const { records } = useTrainingRecords()
   const { exercises } = useExercises()
   const { settings } = useSettings()
+  const { contests } = useContests()
   const unit = settings.weightUnit
+
+  // 一番近い大会までの残り日数はカレンダーの上に出す。大会が無ければ undefined（何も出さない）
+  const nearestContest = upcomingContests(contests, new Date())[0]
+  const contestsByDate = useMemo(() => groupContestsByDate(contests), [contests])
 
   // 削除済み種目の記録はカレンダーの印にもグラフにも出さない
   const visibleRecords = useMemo(
@@ -178,7 +185,8 @@ export default function HistoryPage() {
                 const hasRecords = visibleRecords.some(
                   (record) => record.date === dateStr && hasFilledSets(record),
                 )
-                if (hasRecords) {
+                // 記録が無くても大会がある日は、大会名を見せるためにポップアップを開く
+                if (hasRecords || contestsByDate.has(dateStr)) {
                   setPopupDate(dateStr)
                 } else {
                   setSelectedDate(date)
@@ -187,6 +195,8 @@ export default function HistoryPage() {
               }}
             achievedDates={stats.trainedDates}
             markIcon={<Dumbbell size={16} strokeWidth={2.5} />}
+            contests={contests}
+            countdown={nearestContest}
           />
         </div>
       )}
@@ -212,6 +222,7 @@ export default function HistoryPage() {
           date={popupDate}
           records={visibleRecords.filter((record) => record.date === popupDate)}
           exercises={exercises}
+          contests={contestsByDate.get(popupDate)}
           onClose={() => setPopupDate(null)}
           onNavigate={(date) => {
             setPopupDate(null)
