@@ -5,7 +5,18 @@ import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import { calcBody } from '../../utils/body'
+import { latestGoalValues, withGoalBaseline } from '../../utils/goals'
+import type { GoalMetric } from '../../types'
 import styles from './BodyPage.module.css'
+
+// 目標の設定項目と、それが対応する体組成の項目
+const GOAL_METRICS = {
+  targetWeight: 'weight',
+  targetBodyFat: 'bodyFat',
+  targetMuscleMass: 'muscleMass',
+} as const satisfies Record<string, GoalMetric>
+
+type GoalField = keyof typeof GOAL_METRICS
 
 function toDateStr(date: Date): string {
   return format(date, 'yyyy-MM-dd')
@@ -19,7 +30,7 @@ export default function BodyPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const dateStr = toDateStr(currentDate)
 
-  const { getRecord, updateField, clearField } = useBodyRecords()
+  const { records, getRecord, updateField, clearField } = useBodyRecords()
   const { settings, updateSettings } = useBodySettings()
   const { setHeader } = usePageHeader()
 
@@ -30,6 +41,7 @@ export default function BodyPage() {
   const heightInputId = useId()
   const targetWeightInputId = useId()
   const targetBodyFatInputId = useId()
+  const targetMuscleMassInputId = useId()
   const memoInputId = useId()
 
   useEffect(() => {
@@ -52,9 +64,27 @@ export default function BodyPage() {
     updateField(dateStr, 'memo', memo)
   }
 
-  function handleSettingBlur(field: 'height' | 'targetWeight' | 'targetBodyFat', raw: string) {
+  function parseSettingValue(raw: string): number {
     const val = parseFloat(raw)
-    updateSettings({ [field]: !isNaN(val) && val > 0 ? val : 0 })
+    return !isNaN(val) && val > 0 ? val : 0
+  }
+
+  function handleHeightBlur(raw: string) {
+    updateSettings({ height: parseSettingValue(raw) })
+  }
+
+  // 目標を変えたときだけ、目標を入れた時点の値（baseline）も一緒に保存する。
+  // 同じ値で blur し直しただけで baseline を上書きすると、減らす・増やすの向きが狂うため
+  function handleGoalBlur(field: GoalField, raw: string) {
+    const target = parseSettingValue(raw)
+    if (target === settings[field]) return
+
+    const metric = GOAL_METRICS[field]
+    const current = latestGoalValues(records, settings)[metric]
+    updateSettings({
+      [field]: target,
+      goalBaselines: withGoalBaseline(settings.goalBaselines, metric, target, current),
+    })
   }
 
   return (
@@ -88,7 +118,7 @@ export default function BodyPage() {
               <input id={heightInputId} className={styles.numInput} type="number" min="0" step="0.1"
                 defaultValue={settings.height > 0 ? settings.height : ''}
                 placeholder="———"
-                onBlur={(e) => handleSettingBlur('height', e.target.value)}
+                onBlur={(e) => handleHeightBlur(e.target.value)}
                 key={`height-${settings.height}`} />
               <span className={styles.unitLabel}>cm</span>
             </div>
@@ -99,7 +129,7 @@ export default function BodyPage() {
               <input id={targetWeightInputId} className={styles.numInput} type="number" min="0" step="0.1"
                 defaultValue={settings.targetWeight > 0 ? settings.targetWeight : ''}
                 placeholder="———"
-                onBlur={(e) => handleSettingBlur('targetWeight', e.target.value)}
+                onBlur={(e) => handleGoalBlur('targetWeight', e.target.value)}
                 key={`tw-${settings.targetWeight}`} />
               <span className={styles.unitLabel}>kg</span>
             </div>
@@ -110,9 +140,20 @@ export default function BodyPage() {
               <input id={targetBodyFatInputId} className={styles.numInput} type="number" min="0" step="0.1"
                 defaultValue={settings.targetBodyFat > 0 ? settings.targetBodyFat : ''}
                 placeholder="———"
-                onBlur={(e) => handleSettingBlur('targetBodyFat', e.target.value)}
+                onBlur={(e) => handleGoalBlur('targetBodyFat', e.target.value)}
                 key={`tbf-${settings.targetBodyFat}`} />
               <span className={styles.unitLabel}>%</span>
+            </div>
+          </div>
+          <div className={styles.inputRow}>
+            <label className={styles.inputLabel} htmlFor={targetMuscleMassInputId}>目標筋肉量</label>
+            <div className={styles.inputRight}>
+              <input id={targetMuscleMassInputId} className={styles.numInput} type="number" min="0" step="0.1"
+                defaultValue={settings.targetMuscleMass > 0 ? settings.targetMuscleMass : ''}
+                placeholder="———"
+                onBlur={(e) => handleGoalBlur('targetMuscleMass', e.target.value)}
+                key={`tmm-${settings.targetMuscleMass}`} />
+              <span className={styles.unitLabel}>kg</span>
             </div>
           </div>
         </div>

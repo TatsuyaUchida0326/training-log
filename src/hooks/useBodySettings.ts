@@ -9,6 +9,8 @@ export const DEFAULT_BODY_SETTINGS: BodySettings = {
   targetWeight: 0,
   muscleMassUnit: '%',
   targetBodyFat: 0,
+  targetMuscleMass: 0,
+  goalBaselines: {},
 }
 
 function load(): BodySettings {

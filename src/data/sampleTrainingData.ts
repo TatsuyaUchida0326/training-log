@@ -230,6 +230,10 @@ const SAMPLE_BODY_SETTINGS: BodySettings = {
   targetWeight: 72,
   muscleMassUnit: '%',
   targetBodyFat: 18,
+  // 筋肉量は kg で持つ。期間の最初は 74.8kg × 33.2% ≒ 24.8kg、最後は 73.3kg × 34.2% ≒ 25.1kg
+  targetMuscleMass: 27,
+  // 目標を入れた時点＝期間の最初の値。減らす目標（体重・体脂肪率）と増やす目標（筋肉量）が揃う
+  goalBaselines: { weight: START_WEIGHT_KG, bodyFat: START_BODY_FAT_PERCENT, muscleMass: 24.8 },
 }
 
 /**

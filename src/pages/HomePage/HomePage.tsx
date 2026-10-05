@@ -5,6 +5,7 @@ import Calendar from '../../components/Calendar/Calendar'
 import ContinuityGauge from '../../components/ContinuityGauge/ContinuityGauge'
 import TrophyBadge from '../../components/TrophyBadge/TrophyBadge'
 import BodyTrendChart from '../../components/BodyTrendChart/BodyTrendChart'
+import GoalCard from '../../components/GoalCard/GoalCard'
 import { useSettings } from '../../hooks/useSettings'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
 import { useExercises } from '../../hooks/useExercises'
@@ -20,6 +21,7 @@ import {
   recordsOfExistingExercises,
 } from '../../utils/training'
 import { calcContinuityStreak, getQualifyingDates } from '../../utils/continuity'
+import { calcGoalProgress } from '../../utils/goals'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
@@ -103,8 +105,17 @@ export default function HomePage() {
     date: format(new Date(t.date), 'M/d'),
   }))
 
+  // 目標までの残り。目標を設定していなければ空で、画面には何も出ない
+  const goals = calcGoalProgress(bodyRecords, bodySettings)
+
   return (
     <div className={styles.page}>
+      {goals.length > 0 && (
+        <div className={styles.goalCell}>
+          <GoalCard goals={goals} />
+        </div>
+      )}
+
       <Calendar
         currentDate={currentDate}
         onPrevMonth={() => setCurrentDate((d) => subMonths(d, 1))}

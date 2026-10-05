@@ -48,11 +48,19 @@ export interface BodyRecord {
   memo: string
 }
 
+/** 目標を持てる体組成の項目 */
+export type GoalMetric = 'weight' | 'bodyFat' | 'muscleMass'
+
+/** 目標を入れた時点の値（項目ごと）。減らす目標か増やす目標かの判定に使う */
+export type GoalBaselines = Partial<Record<GoalMetric, number>>
+
 export interface BodySettings {
   height: number        // cm（0 = 未設定）
   targetWeight: number  // kg（0 = 未設定）
   muscleMassUnit: '%' | 'kg'
   targetBodyFat: number // %（0 = 未設定）
+  targetMuscleMass: number // kg（0 = 未設定）。記録の単位が % でも kg で持ち、筋重量 kg と比べる
+  goalBaselines: GoalBaselines
 }
 
 export interface CalendarProps {

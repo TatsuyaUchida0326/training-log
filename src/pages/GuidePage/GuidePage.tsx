@@ -154,6 +154,10 @@ export default function GuidePage() {
         <p className={styles.paragraph}>
           ホームには体重と体脂肪率の推移グラフが出ます。目標値を設定していれば、基準線として表示されます。
         </p>
+        <p className={styles.paragraph}>
+          目標体重・目標体脂肪率・目標筋肉量のどれかを入れると、ホームの一番上に目標までの残りが出ます（例：体重
+          あと 3.2kg 減）。筋肉量を % で記録している場合は、「体重 × 筋肉量%」で kg に直して目標と比べます。目標を入れなければ、何も表示されません。
+        </p>
       </GuideSection>
 
       <GuideSection title="種目を追加する・消す">
