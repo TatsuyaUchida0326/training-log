@@ -58,11 +58,11 @@ describe('buildBackup', () => {
     localStorage.clear()
   })
 
-  it('5種類のデータをすべて含む', () => {
+  it('6種類のデータをすべて含む', () => {
     seedAllData()
     const backup = buildBackup()
     expect(Object.keys(backup.data).sort()).toEqual(
-      ['bodyRecords', 'bodySettings', 'exercises', 'records', 'settings'].sort(),
+      ['bodyRecords', 'bodySettings', 'contests', 'exercises', 'records', 'settings'].sort(),
     )
   })
 
