@@ -2,3 +2,14 @@
 export function roundToOneDecimal(value: number): number {
   return Math.round(value * 10) / 10
 }
+
+/** localStorage の値は型どおりとは限らない。文字列・null・NaN などで計算が壊れないよう、数値として使えるかを見る */
+export function isUsableNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+}
+
+/** 入力欄の文字を正の数にする。空欄・0 以下・数値でないものは 0（未設定・未入力）として扱う */
+export function parsePositiveNumber(raw: string): number {
+  const value = parseFloat(raw)
+  return !isNaN(value) && value > 0 ? value : 0
+}

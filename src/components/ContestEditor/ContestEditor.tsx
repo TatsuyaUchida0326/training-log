@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useContests } from '../../hooks/useContests'
-import type { Contest } from '../../types'
+import type { Contest, GoalMetric, GoalValues } from '../../types'
 import {
   MAX_CONTEST_DATE,
   MAX_CONTEST_NAME_LENGTH,
@@ -10,14 +10,20 @@ import {
   isValidContestDate,
   isValidContestName,
 } from '../../utils/contests'
+import { withContestTarget } from '../../utils/goals'
 import ContestRow from './ContestRow'
 import styles from './ContestEditor.module.css'
+
+interface ContestEditorProps {
+  /** いまの値（体重・体脂肪率・筋肉量）。今は表示に使わない。目標の欄の横に「いまの値」を出すための受け口 */
+  currentValues?: GoalValues
+}
 
 /**
  * 大会・イベントの登録と編集（一覧と追加フォーム）。カードの枠と見出しは置く側が描く。
  * 保存はフックが受け持つ。
  */
-export default function ContestEditor() {
+export default function ContestEditor(_props: ContestEditorProps) {
   const { contests, addContest, updateContest, removeContest } = useContests()
   const [newName, setNewName] = useState('')
   const [newDate, setNewDate] = useState('')
@@ -52,6 +58,11 @@ export default function ContestEditor() {
     newNameRef.current?.focus()
   }
 
+  // 目標を入れた日（向きの起点）に使うので、「今日」は保存する瞬間の日付を取る
+  function handleTargetChange(contest: Contest, metric: GoalMetric, target: number) {
+    updateContest(contest.id, withContestTarget(contest, metric, target, new Date()))
+  }
+
   function handleRemove(contest: Contest) {
     if (!window.confirm(`「${contest.name}」を削除しますか？`)) return
     removeContest(contest.id)
@@ -71,6 +82,7 @@ export default function ContestEditor() {
               contest={contest}
               isEnded={daysUntil(contest.date, today) < 0}
               onUpdate={(changes) => updateContest(contest.id, changes)}
+              onTargetChange={(metric, target) => handleTargetChange(contest, metric, target)}
               onRemove={() => handleRemove(contest)}
               onDateFocus={() => setPinnedIds(sortedContests.map((item) => item.id))}
               onDateBlur={() => setPinnedIds(null)}

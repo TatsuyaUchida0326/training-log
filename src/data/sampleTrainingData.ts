@@ -235,6 +235,11 @@ const SAMPLE_BODY_SETTINGS: BodySettings = {
   goalBaselines: { weight: START_WEIGHT_KG, bodyFat: START_BODY_FAT_PERCENT, muscleMass: START_MUSCLE_MASS_KG },
 }
 
+/** サンプル期間の最初の日（今日から数えて SAMPLE_PERIOD_DAYS 日前まで遡った日） */
+export function samplePeriodStart(today: Date): Date {
+  return subDays(startOfDay(today), SAMPLE_PERIOD_DAYS - 1)
+}
+
 /**
  * 今日を基準に直近 35 日ぶんのトレーニング記録と体組成記録を作る。
  * 種目は名前で引き、見つからないものは飛ばすので、空の種目一覧を渡しても落ちない。
@@ -243,7 +248,7 @@ export function buildSampleData(
   exercises: Exercise[],
   today: Date,
 ): { records: TrainingRecord[]; bodyRecords: BodyRecord[]; bodySettings: BodySettings } {
-  const startDate = subDays(startOfDay(today), SAMPLE_PERIOD_DAYS - 1)
+  const startDate = samplePeriodStart(today)
 
   return {
     records: buildTrainingRecords(exercises, startDate, createSeededRandom(TRAINING_RANDOM_SEED)),

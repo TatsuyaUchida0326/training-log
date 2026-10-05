@@ -71,6 +71,8 @@ export interface Contest {
   id: string
   name: string
   date: string  // 'YYYY-MM-DD'
+  targets?: GoalValues  // この大会の目標。無い項目はふだんの目標（BodySettings）を使う
+  targetsSetOn?: Partial<Record<GoalMetric, string>>  // 項目ごとに目標を最後に変えた日（'YYYY-MM-DD'）。向き（減らす・増やす）の起点に使う
 }
 
 /** 「あと何日」を添えた、これからの大会 */

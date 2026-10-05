@@ -109,7 +109,7 @@ export default function HomePage() {
   }))
 
   // 目標までの残り。目標を設定していなければ空で、画面には何も出ない
-  const goals = calcGoalProgress(bodyRecords, bodySettings)
+  const goals = calcGoalProgress(bodyRecords, bodySettings, { contests, today })
   // これからの大会（近い順）。登録が無ければ空で、画面には何も出ない
   const upcomingCountdowns = upcomingContests(contests, today)
 

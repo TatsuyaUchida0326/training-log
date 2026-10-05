@@ -35,6 +35,43 @@
   padding-bottom: 0;
 }
 
+/* 入れ子の目標を持つ行は、1行目（名前と残り日数）と入れ子を縦に積む。1行目の並びは .row と同じ */
+.rowWithNested {
+  display: block;
+}
+
+.rowLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* 大会の行の中の目標。左に 10px 字下げし、2px の縦線から 10px あけて、大会の行の続きだと分かるようにする */
+.nestedList {
+  list-style: none;
+  margin: 8px 0 0 10px;
+  padding-left: 10px;
+  border-left: 2px solid #e5e7eb;
+}
+
+/* 入れ子の行は上下を詰め、数字は独立のとき（20px）より小さくする。行どうしの区切り線は .row のまま */
+.nestedList > .row {
+  padding: 5px 0;
+}
+
+.nestedList > .row:first-child {
+  padding-top: 0;
+}
+
+.nestedList > .row:last-child {
+  padding-bottom: 0;
+}
+
+.nestedList .remainingValue {
+  font-size: 17px;
+}
+
 /* min-width: 0 は必須。無いと右側の nowrap に押されて 375px 幅で横スクロールが出る */
 .label {
   display: flex;
@@ -114,8 +151,27 @@
 
   .row,
   .row:first-child,
-  .row:last-child {
+  .row:last-child,
+  .nestedList > .row,
+  .nestedList > .row:first-child,
+  .nestedList > .row:last-child {
     padding: 4px 0;
     border-top: none;
+  }
+
+  /* 入れ子のある大会の行は横いっぱいにし、大会の行を上、目標を下に3列で並べる。
+     大会の行は他の大会と同じ幅（3列の1列分 = 全体から列の間 32px × 2 を引いて3等分）に収める */
+  .rowWithNested {
+    grid-column: 1 / -1;
+  }
+
+  .rowWithNested > .rowLine {
+    max-width: calc((100% - 64px) / 3);
+  }
+
+  .nestedList {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 32px;
   }
 }
