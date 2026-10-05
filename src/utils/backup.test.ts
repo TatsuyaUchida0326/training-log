@@ -1,3 +1,4 @@
+import { renderHook } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
   BACKUP_APP_NAME,
@@ -8,7 +9,7 @@ import {
   restoreBackup,
 } from './backup'
 import { DEFAULT_SETTINGS } from '../hooks/useSettings'
-import { DEFAULT_BODY_SETTINGS } from '../hooks/useBodySettings'
+import { DEFAULT_BODY_SETTINGS, useBodySettings } from '../hooks/useBodySettings'
 import {
   BODY_RECORDS_KEY,
   BODY_SETTINGS_KEY,
@@ -191,5 +192,66 @@ describe('restoreBackup', () => {
 describe('buildBackupFileName', () => {
   it('日付入りのファイル名を返す', () => {
     expect(buildBackupFileName(new Date(2026, 8, 23))).toBe('strength-log-backup-2026-09-23.json')
+  })
+})
+
+describe('バックアップ — 目標筋肉量と目標の向き（bodySettings の新項目）', () => {
+  const GOAL_SETTINGS = {
+    ...DEFAULT_BODY_SETTINGS,
+    height: 172,
+    targetWeight: 65,
+    targetMuscleMassKg: 45,
+    goalBaselines: { weight: 70, muscleMass: 40 },
+  }
+
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('書き出しに targetMuscleMassKg と goalBaselines が含まれる', () => {
+    localStorage.setItem(BODY_SETTINGS_KEY, JSON.stringify(GOAL_SETTINGS))
+    const { bodySettings } = buildBackup().data
+    expect(bodySettings.targetMuscleMassKg).toBe(45)
+    expect(bodySettings.goalBaselines).toEqual({ weight: 70, muscleMass: 40 })
+  })
+
+  it('書き出し → 取り込み → 復元で、新項目が往復する', () => {
+    localStorage.setItem(BODY_SETTINGS_KEY, JSON.stringify(GOAL_SETTINGS))
+    const exported = buildBackup()
+    localStorage.clear()
+
+    restoreBackup(parseBackup(JSON.stringify(exported))!)
+
+    const restored = JSON.parse(localStorage.getItem(BODY_SETTINGS_KEY)!)
+    expect(restored.targetMuscleMassKg).toBe(45)
+    expect(restored.goalBaselines).toEqual({ weight: 70, muscleMass: 40 })
+    expect(buildBackup().data.bodySettings).toEqual(GOAL_SETTINGS)
+  })
+
+  it('新項目の無い古いバックアップでも読み込め、復元後は既定値が補われる', () => {
+    const legacyBodySettings = {
+      height: 172,
+      targetWeight: 70,
+      muscleMassUnit: 'kg',
+      targetBodyFat: 15,
+    }
+    const legacyBackup = JSON.stringify({
+      ...buildBackup(),
+      data: { ...buildBackup().data, bodySettings: legacyBodySettings },
+    })
+
+    const parsed = parseBackup(legacyBackup)
+    expect(parsed).not.toBeNull()
+    restoreBackup(parsed!)
+
+    expect(buildBackup().data.bodySettings).toEqual({
+      ...legacyBodySettings,
+      targetMuscleMassKg: 0,
+      goalBaselines: {},
+    })
+    const { result } = renderHook(() => useBodySettings())
+    expect(result.current.settings.height).toBe(172)
+    expect(result.current.settings.targetMuscleMassKg).toBe(0)
+    expect(result.current.settings.goalBaselines).toEqual({})
   })
 })

@@ -2,6 +2,7 @@ import { format, subDays } from 'date-fns'
 import { describe, it, expect } from 'vitest'
 import { DEFAULT_EXERCISES } from './defaultExercises'
 import { buildSampleData, SAMPLE_PERIOD_DAYS } from './sampleTrainingData'
+import { calcGoalProgress } from '../utils/goals'
 import { isFilledSet } from '../utils/training'
 
 const TODAY = new Date(2026, 8, 23) // 2026-09-23（水）
@@ -159,5 +160,27 @@ describe('buildSampleData — 体組成記録', () => {
     expect(lastDate >= format(subDays(otherToday, SAMPLE_PERIOD_DAYS - 1), 'yyyy-MM-dd')).toBe(
       true,
     )
+  })
+})
+
+describe('buildSampleData — 体組成の設定（目標）', () => {
+  it('目標筋肉量（kg）が入っている', () => {
+    const { bodySettings } = build()
+    expect(bodySettings.targetMuscleMassKg).toBeGreaterThan(0)
+  })
+
+  it('目標体重・目標体脂肪率も入っている', () => {
+    const { bodySettings } = build()
+    expect(bodySettings.targetWeight).toBeGreaterThan(0)
+    expect(bodySettings.targetBodyFat).toBeGreaterThan(0)
+  })
+
+  it('サンプルデータを calcGoalProgress に通すと3項目とも返る', () => {
+    const { bodyRecords, bodySettings } = build()
+    expect(calcGoalProgress(bodyRecords, bodySettings).map((goal) => goal.metric)).toEqual([
+      'weight',
+      'bodyFat',
+      'muscleMass',
+    ])
   })
 })
