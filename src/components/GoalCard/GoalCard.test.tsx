@@ -93,9 +93,9 @@ describe('GoalCard — 行の表示', () => {
     expect(row).not.toHaveTextContent('kg')
   })
 
-  it('体脂肪率の残りは 5.0 と減る向きで出る（単位表記は実装に任せる）', () => {
+  it('体脂肪率の残りは「あと 5.0 % 減」と % 付きで出る', () => {
     render(<GoalCard goals={[BODY_FAT_DECREASE]} />)
-    expect(getRows()[0]).toHaveTextContent(/あと\s*5\.0\s*%?\s*減/)
+    expect(getRows()[0]).toHaveTextContent(/あと\s*5\.0\s*%\s*減/)
   })
 
   it('数値は常に小数1桁（整数の 70 → 70.0、残り 5 → 5.0）', () => {

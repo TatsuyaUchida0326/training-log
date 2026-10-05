@@ -329,12 +329,49 @@ describe('calcGoalProgress — 達成と境界値', () => {
     })
   })
 
-  it('baseline と目標が同じ値なら achieved', () => {
-    const records = [makeBodyRecord('2026-09-01', { weight: 68 })]
+  describe('baseline と目標が同じ値のとき（向きを決められないので baseline 無しと同じ扱い）', () => {
     const settings = makeSettings({ targetWeight: 65, goalBaselines: { weight: 65 } })
-    const [goal] = calcGoalProgress(records, settings)
-    expect(goal.status).toBe('achieved')
-    expect(goal.remaining).toBe(0)
+
+    it('現在が目標より上なら decrease（維持目標のあとに増えたら「あと ◯ 減」）', () => {
+      const records = [makeBodyRecord('2026-09-01', { weight: 68 })]
+      expect(calcGoalProgress(records, settings)[0]).toMatchObject({
+        status: 'decrease',
+        remaining: 3,
+      })
+    })
+
+    it('現在が目標より下なら increase', () => {
+      const records = [makeBodyRecord('2026-09-01', { weight: 63 })]
+      expect(calcGoalProgress(records, settings)[0]).toMatchObject({
+        status: 'increase',
+        remaining: 2,
+      })
+    })
+
+    it('現在が目標ちょうどなら achieved（remaining 0）', () => {
+      const records = [makeBodyRecord('2026-09-01', { weight: 65 })]
+      expect(calcGoalProgress(records, settings)[0]).toMatchObject({
+        status: 'achieved',
+        remaining: 0,
+      })
+    })
+
+    it('丸めて 0 になる差なら achieved', () => {
+      const records = [makeBodyRecord('2026-09-01', { weight: 65.04 })]
+      expect(calcGoalProgress(records, settings)[0]).toMatchObject({
+        status: 'achieved',
+        remaining: 0,
+      })
+    })
+
+    it('小数1桁に丸めて同じ値（baseline 65.04 と目標 65）も同じ扱い', () => {
+      const rounded = makeSettings({ targetWeight: 65, goalBaselines: { weight: 65.04 } })
+      const records = [makeBodyRecord('2026-09-01', { weight: 68 })]
+      expect(calcGoalProgress(records, rounded)[0]).toMatchObject({
+        status: 'decrease',
+        remaining: 3,
+      })
+    })
   })
 })
 
