@@ -1,11 +1,9 @@
-import { render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { screen, within } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import GoalCard from './GoalCard'
-import { contestRows } from '../../test/contests'
+import { FIVE_COUNTDOWNS, contestRows, countdown } from '../../test/contests'
 import { setupFixedClock } from '../../test/fixedClock'
+import { renderGoalCard as renderCard } from '../../test/renderGoalCard'
 import type { GoalProgress } from '../../utils/goals'
-import type { ContestCountdown } from '../../types'
 
 // 「今年以外の年は年を付ける」の「今年」が実時間に依存するため 2026-10-05 に固定する
 setupFixedClock(new Date(2026, 9, 5, 12))
@@ -19,21 +17,10 @@ const WEIGHT_DECREASE: GoalProgress = {
   target: 65,
   remaining: 3.2,
   status: 'decrease',
-}
-
-function countdown(id: string, name: string, date: string, daysLeft: number): ContestCountdown {
-  return { contest: { id, name, date }, daysLeft }
+  source: 'base',
 }
 
 const BODY_CONTEST = countdown('c1', 'ボディコンテスト', '2026-10-17', 12)
-
-function renderCard(props: Parameters<typeof GoalCard>[0]) {
-  return render(
-    <MemoryRouter>
-      <GoalCard {...props} />
-    </MemoryRouter>,
-  )
-}
 
 describe('GoalCard — 大会のみ・何も無いとき', () => {
   it('goals も countdowns も空なら何も描画しない', () => {
@@ -208,13 +195,7 @@ describe('GoalCard — 大会の行', () => {
 })
 
 describe('GoalCard — 4件以上は先頭3件まで + 「ほか ◯ 件」', () => {
-  const FIVE = [
-    countdown('c1', '大会いち', '2026-10-06', 1),
-    countdown('c2', '大会に', '2026-10-07', 2),
-    countdown('c3', '大会さん', '2026-10-08', 3),
-    countdown('c4', '大会よん', '2026-10-09', 4),
-    countdown('c5', '大会ご', '2026-10-10', 5),
-  ]
+  const FIVE = FIVE_COUNTDOWNS
 
   it('1〜3件なら全部を行にし、リンクは出ない', () => {
     for (const count of [1, 2, 3]) {

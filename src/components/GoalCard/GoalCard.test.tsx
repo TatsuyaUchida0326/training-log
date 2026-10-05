@@ -9,6 +9,7 @@ const WEIGHT_DECREASE: GoalProgress = {
   target: 65,
   remaining: 3.2,
   status: 'decrease',
+  source: 'base',
 }
 
 const BODY_FAT_DECREASE: GoalProgress = {
@@ -17,6 +18,7 @@ const BODY_FAT_DECREASE: GoalProgress = {
   target: 15,
   remaining: 5,
   status: 'decrease',
+  source: 'base',
 }
 
 const MUSCLE_INCREASE: GoalProgress = {
@@ -25,6 +27,7 @@ const MUSCLE_INCREASE: GoalProgress = {
   target: 39.5,
   remaining: 1,
   status: 'increase',
+  source: 'base',
 }
 
 function getRows(): HTMLElement[] {
@@ -123,7 +126,7 @@ describe('GoalCard — 行の表示', () => {
   it('数値は常に小数1桁（整数の 70 → 70.0、残り 5 → 5.0）', () => {
     render(
       <GoalCard
-        goals={[{ metric: 'weight', current: 70, target: 65, remaining: 5, status: 'decrease' }]}
+        goals={[{ metric: 'weight', current: 70, target: 65, remaining: 5, status: 'decrease', source: 'base' }]}
       />,
     )
     const [row] = getRows()
@@ -134,7 +137,7 @@ describe('GoalCard — 行の表示', () => {
   it('達成: 「達成」が出て「あと」は出ない', () => {
     render(
       <GoalCard
-        goals={[{ metric: 'weight', current: 64.8, target: 65, remaining: 0, status: 'achieved' }]}
+        goals={[{ metric: 'weight', current: 64.8, target: 65, remaining: 0, status: 'achieved', source: 'base' }]}
       />,
     )
     const [row] = getRows()
@@ -155,6 +158,7 @@ describe('GoalCard — 行の表示', () => {
       target: 15,
       remaining: 0,
       status: 'achieved',
+      source: 'base',
     }
     render(<GoalCard goals={[WEIGHT_DECREASE, achieved]} />)
     const rows = getRows()

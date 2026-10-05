@@ -51,6 +51,76 @@
   font-family: inherit;
 }
 
+/* 大会ごとの目標の置き場。flex-basis 100% で、どの幅でも名前・日付・削除の行の下の段に出る
+   （広い画面でも、開くボタンが日付の右に並んで削除ボタンの位置が行ごとにずれることはない） */
+.below {
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
+/* 開くボタン。タップ領域は 44px 以上 */
+.targetsToggle {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: var(--color-navy);
+  text-decoration: underline;
+}
+
+.targetsToggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+}
+
+.targetsHeading {
+  margin: 0 4px 2px;
+  font-size: 12px;
+  color: var(--color-gray);
+}
+
+/* 3つの入力を横に3等分する。minmax(0, 1fr) は、入力欄の最小幅で列が広がって 375px 幅からはみ出すのを防ぐ */
+.targetsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 4px 8px;
+}
+
+.targetField {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.targetLabel {
+  font-size: 11px;
+  color: var(--color-gray);
+}
+
+.targetInputRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.targetInput {
+  flex: 1 1 0;
+  text-align: right;
+}
+
+.targetInput::-webkit-outer-spin-button,
+.targetInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.targetUnit {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--color-gray);
+}
+
 /* 過ぎた大会の印。文字色は背景（#f3f4f6）に対して 4.5:1 以上 */
 .ended {
   flex-shrink: 0;

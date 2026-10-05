@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import { useContests } from '../../hooks/useContests'
-import type { Contest } from '../../types'
+import type { BodyRecord, BodySettings, Contest, GoalMetric } from '../../types'
 import {
   MAX_CONTEST_DATE,
   MAX_CONTEST_NAME_LENGTH,
@@ -10,15 +10,22 @@ import {
   isValidContestDate,
   isValidContestName,
 } from '../../utils/contests'
+import { latestMeasuredValues } from '../../utils/goals'
 import ContestRow from './ContestRow'
 import styles from './ContestEditor.module.css'
+
+interface ContestEditorProps {
+  /** 目標を入れたときのいまの値（起点の値）と、過ぎた大会を消すときの起点の引き継ぎに使う */
+  bodyRecords: BodyRecord[]
+  bodySettings: BodySettings
+}
 
 /**
  * 大会・イベントの登録と編集（一覧と追加フォーム）。カードの枠と見出しは置く側が描く。
  * 保存はフックが受け持つ。
  */
-export default function ContestEditor() {
-  const { contests, addContest, updateContest, removeContest } = useContests()
+export default function ContestEditor({ bodyRecords, bodySettings }: ContestEditorProps) {
+  const { contests, addContest, updateContest, setContestTarget, removeContest, fillMissingOrigins } = useContests()
   const [newName, setNewName] = useState('')
   const [newDate, setNewDate] = useState('')
   const [announcement, setAnnouncement] = useState('')
@@ -26,6 +33,19 @@ export default function ContestEditor() {
   const [pinnedIds, setPinnedIds] = useState<string[] | null>(null)
   const newNameRef = useRef<HTMLInputElement>(null)
   const today = new Date()
+
+  const currentValues = useMemo(
+    () => latestMeasuredValues(bodyRecords, bodySettings),
+    [bodyRecords, bodySettings],
+  )
+
+  // 記録より先に目標を入れる人がいる。そのとき起点には日付だけが入り、値が無い。
+  // 値を補わないと、最初の記録を同じ日に直したときに向きが変わってしまうので、記録が入ったときに埋める。
+  // 埋めたあとは何もしない（埋める項目が無ければ保存しない）ので、contests の更新で繰り返さない。
+  useEffect(() => {
+    fillMissingOrigins(currentValues, new Date())
+    // fillMissingOrigins は毎回作り直される関数なので依存に入れない（入れると毎回再実行される）
+  }, [currentValues, contests])
 
   // 日付の昇順。同じ日は登録順（sort は安定ソート）
   const sortedContests = useMemo(
@@ -52,9 +72,14 @@ export default function ContestEditor() {
     newNameRef.current?.focus()
   }
 
+  // 起点の日付に使うので、「今日」は保存する瞬間の日付を取る
+  function handleTargetChange(contest: Contest, metric: GoalMetric, target: number) {
+    setContestTarget(contest.id, metric, target, { today: new Date(), current: currentValues[metric] })
+  }
+
   function handleRemove(contest: Contest) {
     if (!window.confirm(`「${contest.name}」を削除しますか？`)) return
-    removeContest(contest.id)
+    removeContest(contest.id, { records: bodyRecords, settings: bodySettings, today: new Date() })
     setAnnouncement(`「${contest.name}」を削除しました`)
     // 押したボタンが消えるとフォーカスが失われるので、追加フォームの名前欄へ移す
     newNameRef.current?.focus()
@@ -71,6 +96,7 @@ export default function ContestEditor() {
               contest={contest}
               isEnded={daysUntil(contest.date, today) < 0}
               onUpdate={(changes) => updateContest(contest.id, changes)}
+              onTargetChange={(metric, target) => handleTargetChange(contest, metric, target)}
               onRemove={() => handleRemove(contest)}
               onDateFocus={() => setPinnedIds(sortedContests.map((item) => item.id))}
               onDateBlur={() => setPinnedIds(null)}

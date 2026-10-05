@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import type { Contest } from '../../types'
+import type { Contest, GoalMetric } from '../../types'
 import {
   MAX_CONTEST_DATE,
   MAX_CONTEST_NAME_LENGTH,
@@ -8,12 +8,14 @@ import {
   isValidContestDate,
   isValidContestName,
 } from '../../utils/contests'
+import ContestTargets from './ContestTargets'
 import styles from './ContestEditor.module.css'
 
 interface ContestRowProps {
   contest: Contest
   isEnded: boolean // 日付が過ぎている
   onUpdate: (changes: Partial<Pick<Contest, 'name' | 'date'>>) => void
+  onTargetChange: (metric: GoalMetric, target: number) => void // 0 は「目標を消す」
   onRemove: () => void
   onDateFocus: () => void
   onDateBlur: () => void
@@ -24,6 +26,7 @@ export default function ContestRow({
   contest,
   isEnded,
   onUpdate,
+  onTargetChange,
   onRemove,
   onDateFocus,
   onDateBlur,
@@ -77,6 +80,7 @@ export default function ContestRow({
           <X size={16} aria-hidden="true" />
         </button>
       </div>
+      <ContestTargets contest={contest} onTargetChange={onTargetChange} />
     </li>
   )
 }

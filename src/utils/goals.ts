@@ -1,13 +1,23 @@
-import type {
-  BodyRecord,
-  BodySettings,
-  GoalBaselines,
-  GoalMetric,
-  GoalValues,
-} from '../types'
-import { calcBody } from './body'
-import { roundToOneDecimal } from './number'
+import type { BodyRecord, BodySettings, GoalBaselines, GoalMetric, GoalValues } from '../types'
+import {
+  contestBaseline,
+  nearestContestTargets,
+  type GoalContestOptions,
+  type NearestContestTargets,
+} from './contestGoals'
+import { GOAL_METRICS, GOAL_TARGET_FIELDS } from './goalMetrics'
+import { latestMeasuredValues } from './measuredValues'
+import { isPositiveNumber, isUsableNumber, roundToOneDecimal } from './number'
 import { isPlainObject } from './storage'
+
+// 記録から値を読む部分は measuredValues.ts、大会ごとの目標は contestGoals.ts にある。画面はここから import する
+export { latestMeasuredValues }
+export {
+  contestTargetChanges,
+  fillMissingContestOrigins,
+  removeContestCarryingOrigins,
+} from './contestGoals'
+export type { GoalContestOptions }
 
 export type GoalDirection = 'decrease' | 'increase'
 export type GoalStatus = GoalDirection | 'achieved'
@@ -18,60 +28,14 @@ export interface GoalProgress {
   target: number    // 目標の値。小数1桁
   remaining: number // 目標までの残り（0 以上）。current と target の差と一致する
   status: GoalStatus
-}
-
-/** 項目と、目標を持つ設定項目の対応。表示順（体重 → 体脂肪率 → 筋肉量）もこの並び */
-export const GOAL_TARGET_FIELDS = {
-  weight: 'targetWeight',
-  bodyFat: 'targetBodyFat',
-  muscleMass: 'targetMuscleMassKg',
-} as const satisfies Record<GoalMetric, keyof BodySettings>
-
-const GOAL_METRICS = Object.keys(GOAL_TARGET_FIELDS) as GoalMetric[]
-
-/** localStorage の値は型どおりとは限らない。文字列・null・NaN などで計算が壊れないよう、数値として使えるかを見る */
-export function isUsableNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
+  source: 'contest' | 'base' // 目標の出どころ。一番近い大会の目標か、基本情報のふだんの目標か
+  contestId?: string         // source が 'contest' のとき、その大会の id（カードが大会の行を探す手がかり）
 }
 
 /** 設定した目標。未設定（0）や数値でない値は 0 として返す */
 function targetOf(metric: GoalMetric, settings: BodySettings): number {
   const target = settings[GOAL_TARGET_FIELDS[metric]]
-  return isUsableNumber(target) && target > 0 ? target : 0
-}
-
-function usableOrNull(value: unknown): number | null {
-  return isUsableNumber(value) ? value : null
-}
-
-/**
- * 項目ごとの現在値。その項目が入っている一番新しい日付の記録から取る（配列の並びには依存しない）。
- * 一度も記録していない項目、数値でない値の日は「値なし」として古い日へ遡る。丸めない（baseline に生の値を残すため）。
- */
-export function latestMeasuredValues(records: BodyRecord[], settings: BodySettings): GoalValues {
-  // 日付は 'YYYY-MM-DD' なので文字列比較で新しい順になる。元の配列は並べ替えない
-  const newestFirst = [...records].sort((a, b) => b.date.localeCompare(a.date))
-  const readers: Record<GoalMetric, (record: BodyRecord) => number | null> = {
-    weight: (record) => usableOrNull(record.weight),
-    bodyFat: (record) => usableOrNull(record.bodyFat),
-    muscleMass: (record) =>
-      calcBody(
-        { ...record, weight: usableOrNull(record.weight), muscleMass: usableOrNull(record.muscleMass) },
-        settings,
-      ).muscleMassKg,
-  }
-
-  const values: GoalValues = {}
-  for (const metric of GOAL_METRICS) {
-    for (const record of newestFirst) {
-      const value = readers[metric](record)
-      if (value !== null) {
-        values[metric] = value
-        break
-      }
-    }
-  }
-  return values
+  return isPositiveNumber(target) ? target : 0
 }
 
 /** 保存データが壊れていても落ちないよう、数値の baseline だけを取り出す */
@@ -98,23 +62,72 @@ function directionOf(current: number, target: number, baseline: number | undefin
 }
 
 /**
+ * 項目ごとの、使う目標とその出どころ。一番近い大会にその項目の目標があれば大会、無ければふだんの目標。
+ * どちらにも無い項目は含めない。ホームのカードとグラフの目標線が同じ目標になるよう、決め方はここだけに置く。
+ */
+function chooseTargets(
+  settings: BodySettings,
+  nearest: NearestContestTargets | undefined,
+): Partial<Record<GoalMetric, { target: number; source: GoalProgress['source'] }>> {
+  const chosen: Partial<Record<GoalMetric, { target: number; source: GoalProgress['source'] }>> = {}
+  for (const metric of GOAL_METRICS) {
+    const contestTarget = nearest?.targets[metric]
+    if (contestTarget !== undefined) {
+      chosen[metric] = { target: contestTarget, source: 'contest' }
+    } else if (targetOf(metric, settings) > 0) {
+      chosen[metric] = { target: targetOf(metric, settings), source: 'base' }
+    }
+  }
+  return chosen
+}
+
+/**
+ * ホームのグラフの目標線に使う、項目ごとの目標（丸める前の値）。
+ * カードと同じく、一番近い大会にその項目の目標があればその値、無ければふだんの目標。どちらも無い項目は含めない。
+ */
+export function effectiveGoalTargets(settings: BodySettings, options?: GoalContestOptions): GoalValues {
+  const targets: GoalValues = {}
+  for (const [metric, chosen] of Object.entries(chooseTargets(settings, nearestContestTargets(options)))) {
+    targets[metric as GoalMetric] = chosen.target
+  }
+  return targets
+}
+
+/**
  * ホームに出す「目標までの残り」。目標を設定した項目のうち、現在値がある項目だけを
  * 体重 → 体脂肪率 → 筋肉量の順で返す。何も無ければ空（目標を設定しない人には何も出さない）。
  * 画面には小数1桁で出すので、丸めた値どうしで残りと達成を決める（画面の引き算と合わせるため）。
+ *
+ * options を渡すと、一番近いこれからの大会の目標を項目ごとに優先する（無い項目はふだんの目標）。
+ * 「今日」は呼び出し側から受け取る（この関数の中で現在時刻を引かない）。
  */
-export function calcGoalProgress(records: BodyRecord[], settings: BodySettings): GoalProgress[] {
+export function calcGoalProgress(
+  records: BodyRecord[],
+  settings: BodySettings,
+  options?: GoalContestOptions,
+): GoalProgress[] {
   const measured = latestMeasuredValues(records, settings)
   const baselines = validBaselines(settings.goalBaselines)
+  const nearest = nearestContestTargets(options)
+  const chosen = chooseTargets(settings, nearest)
   const goals: GoalProgress[] = []
 
   for (const metric of GOAL_METRICS) {
-    const rawTarget = targetOf(metric, settings)
+    const choice = chosen[metric]
     const rawCurrent = measured[metric]
-    if (rawTarget === 0 || rawCurrent === undefined) continue
+    if (!choice || rawCurrent === undefined) continue
 
-    const target = roundToOneDecimal(rawTarget)
+    // 大会の目標の向きは起点（contestGoals.ts）から決める。
+    // ふだんの目標は保存済みの goalBaselines のまま。大会が過ぎてふだんの目標に戻ったときは、入れた時点の向きのまま。
+    // 大会の目標と同じ考え方に揃えるのは別の PR（保存の形を変える必要があるため）
+    const baseline =
+      choice.source === 'contest' && nearest
+        ? contestBaseline(nearest, metric, records, settings)
+        : baselines[metric]
+
+    const target = roundToOneDecimal(choice.target)
     const current = roundToOneDecimal(rawCurrent)
-    const direction = directionOf(current, target, baselines[metric])
+    const direction = directionOf(current, target, baseline)
     const achieved = direction === 'decrease' ? current <= target : current >= target
 
     goals.push({
@@ -123,6 +136,8 @@ export function calcGoalProgress(records: BodyRecord[], settings: BodySettings):
       target,
       remaining: achieved ? 0 : roundToOneDecimal(Math.abs(current - target)),
       status: achieved ? 'achieved' : direction,
+      source: choice.source,
+      ...(choice.source === 'contest' && nearest && { contestId: nearest.contest.id }),
     })
   }
   return goals

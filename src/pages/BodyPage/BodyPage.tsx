@@ -7,19 +7,14 @@ import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import { calcBody } from '../../utils/body'
+import { GOAL_METRICS, GOAL_TARGET_FIELDS, METRIC_LABELS, METRIC_UNITS } from '../../utils/goalMetrics'
+import { parsePositiveNumber } from '../../utils/number'
 import {
-  GOAL_TARGET_FIELDS,
   fillMissingGoalBaselines,
   latestMeasuredValues,
   withGoalBaseline,
 } from '../../utils/goals'
 import styles from './BodyPage.module.css'
-
-/** 入力欄の文字を正の数にする。空欄・0 以下・数値でないものは 0（未設定・未入力）として扱う */
-function parsePositiveNumber(raw: string): number {
-  const val = parseFloat(raw)
-  return !isNaN(val) && val > 0 ? val : 0
-}
 
 function toDateStr(date: Date): string {
   return format(date, 'yyyy-MM-dd')
@@ -122,18 +117,18 @@ export default function BodyPage() {
           <div className={styles.cardLabel}>基本情報</div>
           <InputRow label="身長" unit="cm" value={positiveOrNull(settings.height)}
             onBlur={handleHeightBlur} />
-          <InputRow label="目標体重" unit="kg" value={positiveOrNull(settings.targetWeight)}
-            onBlur={(v) => handleGoalBlur('weight', v)} />
-          <InputRow label="目標体脂肪率" unit="%" value={positiveOrNull(settings.targetBodyFat)}
-            onBlur={(v) => handleGoalBlur('bodyFat', v)} />
-          <InputRow label="目標筋肉量" unit="kg" value={positiveOrNull(settings.targetMuscleMassKg)}
-            onBlur={(v) => handleGoalBlur('muscleMass', v)} />
+          <div className={styles.subLabel}>ふだんの目標</div>
+          {GOAL_METRICS.map((metric) => (
+            <InputRow key={metric} label={`目標${METRIC_LABELS[metric]}`} unit={METRIC_UNITS[metric]}
+              value={positiveOrNull(settings[GOAL_TARGET_FIELDS[metric]])}
+              onBlur={(v) => handleGoalBlur(metric, v)} />
+          ))}
         </div>
 
         {/* 大会・イベントカード */}
         <div className={styles.card}>
           <div className={styles.cardLabel}>大会・イベント</div>
-          <ContestEditor />
+          <ContestEditor bodyRecords={records} bodySettings={settings} />
         </div>
 
         {/* 計測値入力カード */}
