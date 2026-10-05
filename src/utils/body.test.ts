@@ -16,7 +16,7 @@ const baseSettings: BodySettings = {
   targetWeight: 75,
   muscleMassUnit: '%',
   targetBodyFat: 0,
-  targetMuscleMass: 0,
+  targetMuscleMassKg: 0,
   goalBaselines: {},
 }
 
@@ -66,5 +66,36 @@ describe('calcBody', () => {
     const result = calcBody({ ...baseRecord, bodyFat: null }, baseSettings)
     expect(result.bodyFatMass).toBeNull()
     expect(result.leanBodyMass).toBeNull()
+  })
+})
+
+describe('calcBody — 筋重量（kg 単位は体重が無くても出す）', () => {
+  const kgSettings: BodySettings = { ...baseSettings, muscleMassUnit: 'kg' }
+
+  it('単位 kg なら体重が無くても筋重量を返す', () => {
+    const result = calcBody({ ...baseRecord, weight: null, muscleMass: 36 }, kgSettings)
+    expect(result.muscleMassKg).toBe(36)
+  })
+
+  it('単位 kg の筋重量は小数2桁に丸める', () => {
+    const result = calcBody({ ...baseRecord, weight: null, muscleMass: 36.456 }, kgSettings)
+    expect(result.muscleMassKg).toBe(36.46)
+  })
+
+  it('単位 kg でも、体重が無ければ BMI・体脂肪量・除脂肪体重は null のまま', () => {
+    const result = calcBody({ ...baseRecord, weight: null, muscleMass: 36 }, kgSettings)
+    expect(result.bmi).toBeNull()
+    expect(result.bodyFatMass).toBeNull()
+    expect(result.leanBodyMass).toBeNull()
+  })
+
+  it('単位 kg でも、筋肉量が null なら筋重量は null', () => {
+    const result = calcBody({ ...baseRecord, weight: null, muscleMass: null }, kgSettings)
+    expect(result.muscleMassKg).toBeNull()
+  })
+
+  it('単位 % は従来どおり体重が必要（体重が無ければ null）', () => {
+    const result = calcBody({ ...baseRecord, weight: null, muscleMass: 40 }, baseSettings)
+    expect(result.muscleMassKg).toBeNull()
   })
 })

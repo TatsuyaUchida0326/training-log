@@ -96,4 +96,29 @@ describe('目標の設定からホーム表示まで', () => {
     visitHomePage()
     expect(screen.queryByRole('list', GOAL_LIST)).not.toBeInTheDocument()
   })
+
+  it('目標を先に入れ、そのあと記録した人: 68.2 → ホームは「あと 3.2 kg 減」、64.5 を記録すると「達成」', () => {
+    enterOnBodyPage('目標体重', '65') // 記録はまだ無い
+    enterOnBodyPage('体重', '68.2')
+
+    const first = visitHomePage()
+    expect(screen.getByRole('list', GOAL_LIST)).toHaveTextContent(/あと\s*3\.2\s*kg\s*減/)
+    first.unmount()
+
+    enterOnBodyPage('体重', '64.5')
+
+    visitHomePage()
+    const list = screen.getByRole('list', GOAL_LIST)
+    expect(list).toHaveTextContent('達成')
+    expect(list).not.toHaveTextContent('あと')
+  })
+
+  it('目標を先に入れた人が、増えた体重を記録しても「減らす目標」のまま', () => {
+    enterOnBodyPage('目標体重', '65')
+    enterOnBodyPage('体重', '68.2')
+    enterOnBodyPage('体重', '70')
+
+    visitHomePage()
+    expect(screen.getByRole('list', GOAL_LIST)).toHaveTextContent(/あと\s*5\.0\s*kg\s*減/)
+  })
 })

@@ -228,7 +228,7 @@ describe('HomePage - 目標までの残り', () => {
       muscleMassUnit: '%',
       targetWeight: 65,
       targetBodyFat: 15,
-      targetMuscleMass: 30,
+      targetMuscleMassKg: 30,
       goalBaselines: { weight: 70, bodyFat: 22, muscleMass: 25 },
     })
     // 筋肉量 = 70kg × 40% = 28kg
@@ -287,12 +287,95 @@ describe('HomePage - 目標までの残り', () => {
         targetWeight: 65,
         muscleMassUnit: '%',
         targetBodyFat: 0,
-        targetMuscleMass: 0,
+        targetMuscleMassKg: 0,
         goalBaselines: 'broken',
       }),
     )
     seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68 })])
     renderHomePage()
     expect(screen.getByRole('list', GOAL_LIST)).toHaveTextContent(/あと\s*3\.0\s*kg\s*減/)
+  })
+})
+
+describe('HomePage - 目標までの残り（数値でない保存値）', () => {
+  const GOAL_LIST = { name: '目標までの残り' }
+
+  function seedRawBodySettings(overrides: Record<string, unknown>): void {
+    localStorage.setItem(
+      BODY_SETTINGS_KEY,
+      JSON.stringify({
+        height: 0,
+        targetWeight: 0,
+        muscleMassUnit: 'kg',
+        targetBodyFat: 0,
+        targetMuscleMassKg: 0,
+        goalBaselines: {},
+        ...overrides,
+      }),
+    )
+  }
+
+  function seedRawBodyRecords(records: unknown[]): void {
+    seedBodyRecords(records as Parameters<typeof seedBodyRecords>[0])
+  }
+
+  it('目標体重が文字列でも画面は落ちず、その行は出ない', () => {
+    seedRawBodySettings({ targetWeight: '65' })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68 })])
+    expect(() => renderHomePage()).not.toThrow()
+    expect(screen.queryByRole('list', GOAL_LIST)).not.toBeInTheDocument()
+    expect(screen.getByText('今日のトレーニング')).toBeInTheDocument()
+  })
+
+  it('文字列の目標があっても、正常な目標の行は出る', () => {
+    seedRawBodySettings({ targetWeight: '65', targetBodyFat: 15, goalBaselines: { bodyFat: 22 } })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68, bodyFat: 20 })])
+    renderHomePage()
+    const rows = within(screen.getByRole('list', GOAL_LIST)).getAllByRole('listitem')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toHaveTextContent('体脂肪率')
+  })
+
+  it('目標が null でも画面は落ちず、行は出ない', () => {
+    seedRawBodySettings({ targetWeight: null })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68 })])
+    expect(() => renderHomePage()).not.toThrow()
+    expect(screen.queryByRole('list', GOAL_LIST)).not.toBeInTheDocument()
+  })
+
+  it('一番新しい記録の体重が文字列なら、その日は値なしとして古い日の値で出す', () => {
+    seedRawBodySettings({ targetWeight: 65, goalBaselines: { weight: 72 } })
+    seedRawBodyRecords([
+      makeBodyRecord('2026-09-01', { weight: 70 }),
+      { ...makeBodyRecord('2026-09-02'), weight: '68.2' },
+    ])
+    renderHomePage()
+    expect(screen.getByRole('list', GOAL_LIST)).toHaveTextContent(/70\.0\s*→\s*目標\s*65\.0\s*kg/)
+  })
+
+  it('体重の記録が文字列だけなら画面は落ちず、体重の行は出ない', () => {
+    seedRawBodySettings({ targetWeight: 65 })
+    seedRawBodyRecords([{ ...makeBodyRecord('2026-09-02'), weight: '68.2' }])
+    expect(() => renderHomePage()).not.toThrow()
+    expect(screen.queryByRole('list', GOAL_LIST)).not.toBeInTheDocument()
+  })
+
+  it('weight のキーが無い記録があっても画面は落ちず、古い日の値で出す', () => {
+    seedRawBodySettings({ targetWeight: 65, goalBaselines: { weight: 72 } })
+    seedRawBodyRecords([
+      makeBodyRecord('2026-09-01', { weight: 70 }),
+      { date: '2026-09-02', bodyFat: 20, muscleMass: null, waist: null, memo: '' },
+    ])
+    renderHomePage()
+    expect(screen.getByRole('list', GOAL_LIST)).toHaveTextContent(/70\.0\s*→\s*目標\s*65\.0\s*kg/)
+  })
+})
+
+describe('HomePage - 目標が無いときの並び', () => {
+  it('目標が無いとき、ページ先頭の要素はカレンダー（今までの画面のまま）', () => {
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68 })])
+    const { container } = renderHomePage()
+    const page = container.firstElementChild as HTMLElement
+    expect(page.firstElementChild).toContainElement(screen.getByText('日'))
   })
 })

@@ -43,7 +43,29 @@ describe('GoalCard — 目標が無いとき', () => {
   })
 })
 
+describe('GoalCard — className', () => {
+  it('className を渡すと ul に付く（余白は呼び出し側が決める）', () => {
+    render(<GoalCard goals={[WEIGHT_DECREASE]} className="spacing" />)
+    expect(screen.getByRole('list', { name: '目標までの残り' })).toHaveClass('spacing')
+  })
+
+  it('className を渡さなくても描画できる', () => {
+    render(<GoalCard goals={[WEIGHT_DECREASE]} />)
+    expect(screen.getByRole('list', { name: '目標までの残り' })).toBeInTheDocument()
+  })
+
+  it('goals が空なら className があっても何も描画しない', () => {
+    const { container } = render(<GoalCard goals={[]} className="spacing" />)
+    expect(container).toBeEmptyDOMElement()
+  })
+})
+
 describe('GoalCard — リスト構造', () => {
+  it('role="list" を明示している（Safari は list-style: none でリストの役割を外すため）', () => {
+    render(<GoalCard goals={[WEIGHT_DECREASE]} />)
+    expect(screen.getByRole('list', { name: '目標までの残り' })).toHaveAttribute('role', 'list')
+  })
+
   it('「目標までの残り」という名前のリストが出る', () => {
     render(<GoalCard goals={[WEIGHT_DECREASE]} />)
     expect(screen.getByRole('list', { name: '目標までの残り' })).toBeInTheDocument()

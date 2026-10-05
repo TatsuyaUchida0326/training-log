@@ -166,7 +166,7 @@ describe('buildSampleData — 体組成記録', () => {
 describe('buildSampleData — 体組成の設定（目標）', () => {
   it('目標筋肉量（kg）が入っている', () => {
     const { bodySettings } = build()
-    expect(bodySettings.targetMuscleMass).toBeGreaterThan(0)
+    expect(bodySettings.targetMuscleMassKg).toBeGreaterThan(0)
   })
 
   it('目標体重・目標体脂肪率も入っている', () => {

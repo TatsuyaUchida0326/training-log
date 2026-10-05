@@ -200,7 +200,7 @@ describe('バックアップ — 目標筋肉量と目標の向き（bodySetting
     ...DEFAULT_BODY_SETTINGS,
     height: 172,
     targetWeight: 65,
-    targetMuscleMass: 45,
+    targetMuscleMassKg: 45,
     goalBaselines: { weight: 70, muscleMass: 40 },
   }
 
@@ -208,10 +208,10 @@ describe('バックアップ — 目標筋肉量と目標の向き（bodySetting
     localStorage.clear()
   })
 
-  it('書き出しに targetMuscleMass と goalBaselines が含まれる', () => {
+  it('書き出しに targetMuscleMassKg と goalBaselines が含まれる', () => {
     localStorage.setItem(BODY_SETTINGS_KEY, JSON.stringify(GOAL_SETTINGS))
     const { bodySettings } = buildBackup().data
-    expect(bodySettings.targetMuscleMass).toBe(45)
+    expect(bodySettings.targetMuscleMassKg).toBe(45)
     expect(bodySettings.goalBaselines).toEqual({ weight: 70, muscleMass: 40 })
   })
 
@@ -223,7 +223,7 @@ describe('バックアップ — 目標筋肉量と目標の向き（bodySetting
     restoreBackup(parseBackup(JSON.stringify(exported))!)
 
     const restored = JSON.parse(localStorage.getItem(BODY_SETTINGS_KEY)!)
-    expect(restored.targetMuscleMass).toBe(45)
+    expect(restored.targetMuscleMassKg).toBe(45)
     expect(restored.goalBaselines).toEqual({ weight: 70, muscleMass: 40 })
     expect(buildBackup().data.bodySettings).toEqual(GOAL_SETTINGS)
   })
@@ -246,12 +246,12 @@ describe('バックアップ — 目標筋肉量と目標の向き（bodySetting
 
     expect(buildBackup().data.bodySettings).toEqual({
       ...legacyBodySettings,
-      targetMuscleMass: 0,
+      targetMuscleMassKg: 0,
       goalBaselines: {},
     })
     const { result } = renderHook(() => useBodySettings())
     expect(result.current.settings.height).toBe(172)
-    expect(result.current.settings.targetMuscleMass).toBe(0)
+    expect(result.current.settings.targetMuscleMassKg).toBe(0)
     expect(result.current.settings.goalBaselines).toEqual({})
   })
 })

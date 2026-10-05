@@ -56,14 +56,14 @@ describe('useBodySettings — 目標筋肉量と baseline', () => {
     localStorage.clear()
   })
 
-  it('既定値は targetMuscleMass=0（未設定）, goalBaselines={}', () => {
-    expect(DEFAULT_BODY_SETTINGS.targetMuscleMass).toBe(0)
+  it('既定値は targetMuscleMassKg=0（未設定）, goalBaselines={}', () => {
+    expect(DEFAULT_BODY_SETTINGS.targetMuscleMassKg).toBe(0)
     expect(DEFAULT_BODY_SETTINGS.goalBaselines).toEqual({})
   })
 
   it('何も保存されていなければ新項目も既定値で読める', () => {
     const { result } = renderHook(() => useBodySettings())
-    expect(result.current.settings.targetMuscleMass).toBe(0)
+    expect(result.current.settings.targetMuscleMassKg).toBe(0)
     expect(result.current.settings.goalBaselines).toEqual({})
   })
 
@@ -78,18 +78,18 @@ describe('useBodySettings — 目標筋肉量と baseline', () => {
       targetWeight: 70,
       muscleMassUnit: 'kg',
       targetBodyFat: 15,
-      targetMuscleMass: 0,
+      targetMuscleMassKg: 0,
       goalBaselines: {},
     })
   })
 
-  it('updateSettings で targetMuscleMass と goalBaselines を更新・保存・復元できる', () => {
+  it('updateSettings で targetMuscleMassKg と goalBaselines を更新・保存・復元できる', () => {
     const { result: r1 } = renderHook(() => useBodySettings())
     act(() => {
-      r1.current.updateSettings({ targetMuscleMass: 42, goalBaselines: { weight: 70, muscleMass: 36 } })
+      r1.current.updateSettings({ targetMuscleMassKg: 42, goalBaselines: { weight: 70, muscleMass: 36 } })
     })
     const { result: r2 } = renderHook(() => useBodySettings())
-    expect(r2.current.settings.targetMuscleMass).toBe(42)
+    expect(r2.current.settings.targetMuscleMassKg).toBe(42)
     expect(r2.current.settings.goalBaselines).toEqual({ weight: 70, muscleMass: 36 })
   })
 
