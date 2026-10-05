@@ -185,7 +185,13 @@
   color: #1e3a6e;
   text-align: center;
   line-height: 1.2;
-  max-width: 100%;
+  /*
+   * 列の幅は中身の最小幅で決まる（1fr の最小は auto）ので、長い大会名があるとその列だけ広がる。
+   * width: 0 で「列の幅を決める計算」には 0 として数えさせ、min-width: 100% で実際の表示はセルの幅いっぱいにする。
+   * 列全体を minmax(0, 1fr) にすると祝日名まで省略されてしまうため、大会名だけに効かせる。
+   */
+  width: 0;
+  min-width: 100%;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
