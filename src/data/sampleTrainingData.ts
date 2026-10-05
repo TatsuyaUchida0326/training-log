@@ -1,5 +1,6 @@
 import { addDays, format, startOfDay, subDays } from 'date-fns'
 import type { BodyRecord, BodySettings, Exercise, TrainingRecord, TrainingSet } from '../types'
+import { roundToOneDecimal } from '../utils/number'
 
 /**
  * デモ用のサンプルデータを組み立てる。
@@ -44,6 +45,8 @@ const START_BODY_FAT_PERCENT = 22.4
 const BODY_FAT_CHANGE_PER_DAY_PERCENT = -0.055
 const START_MUSCLE_MASS_PERCENT = 33.2
 const MUSCLE_MASS_CHANGE_PER_DAY_PERCENT = 0.03
+// 期間の最初の筋肉量(kg)。目標筋肉量が kg なので、% の推移を最初の体重で換算した値を向きの基準にする
+const START_MUSCLE_MASS_KG = roundToOneDecimal((START_WEIGHT_KG * START_MUSCLE_MASS_PERCENT) / 100)
 const START_WAIST_CM = 82.5
 const WAIST_CHANGE_PER_DAY_CM = -0.05
 
@@ -101,10 +104,6 @@ function createSeededRandom(seed: number): () => number {
 
 function roundToStep(valueKg: number, stepKg: number): number {
   return Math.round(valueKg / stepKg) * stepKg
-}
-
-function roundToOneDecimal(value: number): number {
-  return Math.round(value * 10) / 10
 }
 
 /** -amplitude 〜 +amplitude のばらつき。直線的すぎるグラフを避けるために足す */
@@ -231,9 +230,9 @@ const SAMPLE_BODY_SETTINGS: BodySettings = {
   muscleMassUnit: '%',
   targetBodyFat: 18,
   // 筋肉量は kg で持つ。期間の最初は 74.8kg × 33.2% ≒ 24.8kg、最後は 73.3kg × 34.2% ≒ 25.1kg
-  targetMuscleMass: 27,
+  targetMuscleMassKg: 27,
   // 目標を入れた時点＝期間の最初の値。減らす目標（体重・体脂肪率）と増やす目標（筋肉量）が揃う
-  goalBaselines: { weight: START_WEIGHT_KG, bodyFat: START_BODY_FAT_PERCENT, muscleMass: 24.8 },
+  goalBaselines: { weight: START_WEIGHT_KG, bodyFat: START_BODY_FAT_PERCENT, muscleMass: START_MUSCLE_MASS_KG },
 }
 
 /**

@@ -32,13 +32,14 @@ export function calcBody(
       ? Math.round((weight - bodyFatMass) * 100) / 100
       : null
 
-  // 筋重量
+  // 筋重量。kg で記録している人は、体重が無くても筋肉量そのものが筋重量になる
   let muscleMassKg: number | null = null
-  if (muscleMass !== null && weight !== null) {
-    muscleMassKg =
-      muscleMassUnit === '%'
-        ? Math.round(weight * (muscleMass / 100) * 100) / 100
-        : Math.round(muscleMass * 100) / 100
+  if (muscleMass !== null) {
+    if (muscleMassUnit === 'kg') {
+      muscleMassKg = Math.round(muscleMass * 100) / 100
+    } else if (weight !== null) {
+      muscleMassKg = Math.round(weight * (muscleMass / 100) * 100) / 100
+    }
   }
 
   return { bmi, bodyFatMass, leanBodyMass, muscleMassKg }

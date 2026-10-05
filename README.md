@@ -35,7 +35,7 @@
 | グラフ | Recharts |
 | 日付 | date-fns / `@holiday-jp/holiday_jp` |
 | アイコン | lucide-react |
-| テスト | Vitest / Testing Library（719件） |
+| テスト | Vitest / Testing Library（796件） |
 | 外部API | 日本語 Wikipedia REST API（種目の解説文・画像） |
 | ホスティング | Vercel（`main` へのマージで自動デプロイ） |
 
@@ -72,7 +72,7 @@
 ```bash
 npm ci
 npm run dev      # 開発サーバー（http://localhost:5173）
-npm test         # テスト（719件）
+npm test         # テスト（796件）
 npm run build    # 型チェック + 本番ビルド
 ```
 

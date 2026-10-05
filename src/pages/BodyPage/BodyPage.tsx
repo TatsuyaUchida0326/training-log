@@ -1,25 +1,32 @@
 import { useState, useEffect, useId } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { format, addDays, subDays } from 'date-fns'
+import type { GoalMetric } from '../../types'
 import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import { calcBody } from '../../utils/body'
-import { latestGoalValues, withGoalBaseline } from '../../utils/goals'
-import type { GoalMetric } from '../../types'
+import {
+  GOAL_TARGET_FIELDS,
+  fillMissingGoalBaselines,
+  latestMeasuredValues,
+  withGoalBaseline,
+} from '../../utils/goals'
 import styles from './BodyPage.module.css'
 
-// 目標の設定項目と、それが対応する体組成の項目
-const GOAL_METRICS = {
-  targetWeight: 'weight',
-  targetBodyFat: 'bodyFat',
-  targetMuscleMass: 'muscleMass',
-} as const satisfies Record<string, GoalMetric>
-
-type GoalField = keyof typeof GOAL_METRICS
+/** 入力欄の文字を正の数にする。空欄・0 以下・数値でないものは 0（未設定・未入力）として扱う */
+function parsePositiveNumber(raw: string): number {
+  const val = parseFloat(raw)
+  return !isNaN(val) && val > 0 ? val : 0
+}
 
 function toDateStr(date: Date): string {
   return format(date, 'yyyy-MM-dd')
+}
+
+/** 0（未設定）は空欄として見せるため null にする */
+function positiveOrNull(value: number): number | null {
+  return value > 0 ? value : null
 }
 
 function formatDisplay(date: Date): string {
@@ -38,22 +45,27 @@ export default function BodyPage() {
   const calc = calcBody(record, settings)
   const muscleMassUnitLabel = settings.muscleMassUnit
 
-  const heightInputId = useId()
-  const targetWeightInputId = useId()
-  const targetBodyFatInputId = useId()
-  const targetMuscleMassInputId = useId()
   const memoInputId = useId()
 
   useEffect(() => {
     setHeader({ title: '体組成', centered: true })
   }, [setHeader])
 
+  // 目標はあるのに向きの基準（baseline）が無い項目を、記録が入ったときに埋める。
+  // 画面は上から「目標 → 計測値」の順なので、目標を先に入れる人が多い。この機能より前に目標を入れていた人も同じ。
+  // 埋めたあとは null になるので、設定の更新で再実行されても繰り返さない
+  useEffect(() => {
+    const filled = fillMissingGoalBaselines(settings, latestMeasuredValues(records, settings))
+    if (filled) updateSettings({ goalBaselines: filled })
+    // updateSettings は毎回作り直される関数なので依存に入れない（入れると毎回再実行される）
+  }, [records, settings])
+
   function handleNumBlur(
     field: 'weight' | 'bodyFat' | 'muscleMass' | 'waist',
     raw: string
   ) {
-    const val = parseFloat(raw)
-    if (!isNaN(val) && val > 0) updateField(dateStr, field, val)
+    const val = parsePositiveNumber(raw)
+    if (val > 0) updateField(dateStr, field, val)
   }
 
   function handleClear(field: 'weight' | 'bodyFat' | 'muscleMass' | 'waist') {
@@ -64,23 +76,18 @@ export default function BodyPage() {
     updateField(dateStr, 'memo', memo)
   }
 
-  function parseSettingValue(raw: string): number {
-    const val = parseFloat(raw)
-    return !isNaN(val) && val > 0 ? val : 0
-  }
-
   function handleHeightBlur(raw: string) {
-    updateSettings({ height: parseSettingValue(raw) })
+    updateSettings({ height: parsePositiveNumber(raw) })
   }
 
   // 目標を変えたときだけ、目標を入れた時点の値（baseline）も一緒に保存する。
   // 同じ値で blur し直しただけで baseline を上書きすると、減らす・増やすの向きが狂うため
-  function handleGoalBlur(field: GoalField, raw: string) {
-    const target = parseSettingValue(raw)
+  function handleGoalBlur(metric: GoalMetric, raw: string) {
+    const field = GOAL_TARGET_FIELDS[metric]
+    const target = parsePositiveNumber(raw)
     if (target === settings[field]) return
 
-    const metric = GOAL_METRICS[field]
-    const current = latestGoalValues(records, settings)[metric]
+    const current = latestMeasuredValues(records, settings)[metric]
     updateSettings({
       [field]: target,
       goalBaselines: withGoalBaseline(settings.goalBaselines, metric, target, current),
@@ -112,50 +119,14 @@ export default function BodyPage() {
         {/* 基本情報カード */}
         <div className={styles.card}>
           <div className={styles.cardLabel}>基本情報</div>
-          <div className={styles.inputRow}>
-            <label className={styles.inputLabel} htmlFor={heightInputId}>身長</label>
-            <div className={styles.inputRight}>
-              <input id={heightInputId} className={styles.numInput} type="number" min="0" step="0.1"
-                defaultValue={settings.height > 0 ? settings.height : ''}
-                placeholder="———"
-                onBlur={(e) => handleHeightBlur(e.target.value)}
-                key={`height-${settings.height}`} />
-              <span className={styles.unitLabel}>cm</span>
-            </div>
-          </div>
-          <div className={styles.inputRow}>
-            <label className={styles.inputLabel} htmlFor={targetWeightInputId}>目標体重</label>
-            <div className={styles.inputRight}>
-              <input id={targetWeightInputId} className={styles.numInput} type="number" min="0" step="0.1"
-                defaultValue={settings.targetWeight > 0 ? settings.targetWeight : ''}
-                placeholder="———"
-                onBlur={(e) => handleGoalBlur('targetWeight', e.target.value)}
-                key={`tw-${settings.targetWeight}`} />
-              <span className={styles.unitLabel}>kg</span>
-            </div>
-          </div>
-          <div className={styles.inputRow}>
-            <label className={styles.inputLabel} htmlFor={targetBodyFatInputId}>目標体脂肪率</label>
-            <div className={styles.inputRight}>
-              <input id={targetBodyFatInputId} className={styles.numInput} type="number" min="0" step="0.1"
-                defaultValue={settings.targetBodyFat > 0 ? settings.targetBodyFat : ''}
-                placeholder="———"
-                onBlur={(e) => handleGoalBlur('targetBodyFat', e.target.value)}
-                key={`tbf-${settings.targetBodyFat}`} />
-              <span className={styles.unitLabel}>%</span>
-            </div>
-          </div>
-          <div className={styles.inputRow}>
-            <label className={styles.inputLabel} htmlFor={targetMuscleMassInputId}>目標筋肉量</label>
-            <div className={styles.inputRight}>
-              <input id={targetMuscleMassInputId} className={styles.numInput} type="number" min="0" step="0.1"
-                defaultValue={settings.targetMuscleMass > 0 ? settings.targetMuscleMass : ''}
-                placeholder="———"
-                onBlur={(e) => handleGoalBlur('targetMuscleMass', e.target.value)}
-                key={`tmm-${settings.targetMuscleMass}`} />
-              <span className={styles.unitLabel}>kg</span>
-            </div>
-          </div>
+          <InputRow label="身長" unit="cm" value={positiveOrNull(settings.height)}
+            onBlur={handleHeightBlur} />
+          <InputRow label="目標体重" unit="kg" value={positiveOrNull(settings.targetWeight)}
+            onBlur={(v) => handleGoalBlur('weight', v)} />
+          <InputRow label="目標体脂肪率" unit="%" value={positiveOrNull(settings.targetBodyFat)}
+            onBlur={(v) => handleGoalBlur('bodyFat', v)} />
+          <InputRow label="目標筋肉量" unit="kg" value={positiveOrNull(settings.targetMuscleMassKg)}
+            onBlur={(v) => handleGoalBlur('muscleMass', v)} />
         </div>
 
         {/* 計測値入力カード */}
@@ -193,7 +164,8 @@ export default function BodyPage() {
 
 interface InputRowProps {
   label: string; unit: string; value: number | null
-  onBlur: (raw: string) => void; onClear: () => void
+  onBlur: (raw: string) => void
+  onClear?: () => void // 省略するとクリアボタンを描かない（基本情報の欄は空にして保存する）
 }
 
 function InputRow({ label, unit, value, onBlur, onClear }: InputRowProps) {
@@ -206,7 +178,9 @@ function InputRow({ label, unit, value, onBlur, onClear }: InputRowProps) {
           defaultValue={value !== null ? value : ''} placeholder="———"
           onBlur={(e) => onBlur(e.target.value)} key={`${label}-${value}`} />
         <span className={styles.unitLabel}>{unit}</span>
-        <button className={styles.clearButton} aria-label={`${label}をクリア`} onClick={onClear}><X size={13} /></button>
+        {onClear && (
+          <button className={styles.clearButton} aria-label={`${label}をクリア`} onClick={onClear}><X size={13} /></button>
+        )}
       </div>
     </div>
   )

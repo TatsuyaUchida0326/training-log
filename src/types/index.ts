@@ -51,15 +51,18 @@ export interface BodyRecord {
 /** 目標を持てる体組成の項目 */
 export type GoalMetric = 'weight' | 'bodyFat' | 'muscleMass'
 
+/** 項目ごとの値（体重 kg・体脂肪率 %・筋肉量 kg）。入っていない項目は持たない */
+export type GoalValues = Partial<Record<GoalMetric, number>>
+
 /** 目標を入れた時点の値（項目ごと）。減らす目標か増やす目標かの判定に使う */
-export type GoalBaselines = Partial<Record<GoalMetric, number>>
+export type GoalBaselines = GoalValues
 
 export interface BodySettings {
   height: number        // cm（0 = 未設定）
   targetWeight: number  // kg（0 = 未設定）
   muscleMassUnit: '%' | 'kg'
   targetBodyFat: number // %（0 = 未設定）
-  targetMuscleMass: number // kg（0 = 未設定）。記録の単位が % でも kg で持ち、筋重量 kg と比べる
+  targetMuscleMassKg: number // kg（0 = 未設定）。記録の単位が % でも kg で持ち、筋重量 kg と比べる
   goalBaselines: GoalBaselines
 }
 

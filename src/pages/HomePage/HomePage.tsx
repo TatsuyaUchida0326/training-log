@@ -110,11 +110,7 @@ export default function HomePage() {
 
   return (
     <div className={styles.page}>
-      {goals.length > 0 && (
-        <div className={styles.goalCell}>
-          <GoalCard goals={goals} />
-        </div>
-      )}
+      <GoalCard goals={goals} className={styles.goalCard} />
 
       <Calendar
         currentDate={currentDate}

@@ -9,7 +9,7 @@ export const DEFAULT_BODY_SETTINGS: BodySettings = {
   targetWeight: 0,
   muscleMassUnit: '%',
   targetBodyFat: 0,
-  targetMuscleMass: 0,
+  targetMuscleMassKg: 0,
   goalBaselines: {},
 }
 
