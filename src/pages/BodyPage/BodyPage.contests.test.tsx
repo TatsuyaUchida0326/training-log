@@ -37,8 +37,8 @@ describe('BodyPage — 大会・イベントのカード', () => {
 
   it('追加フォーム（名前・日付・ボタン）が出る', () => {
     renderBodyPage()
-    expect(screen.getByLabelText('大会の名前')).toBeInTheDocument()
-    expect(screen.getByLabelText('大会の日付')).toBeInTheDocument()
+    expect(screen.getByLabelText('追加する大会の名前')).toBeInTheDocument()
+    expect(screen.getByLabelText('追加する大会の日付')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '大会を追加' })).toBeInTheDocument()
   })
 

@@ -19,11 +19,11 @@ afterEach(() => {
 const ADD_BUTTON = { name: '大会を追加' }
 
 function nameInput(): HTMLInputElement {
-  return screen.getByLabelText('大会の名前') as HTMLInputElement
+  return screen.getByLabelText('追加する大会の名前') as HTMLInputElement
 }
 
 function dateInput(): HTMLInputElement {
-  return screen.getByLabelText('大会の日付') as HTMLInputElement
+  return screen.getByLabelText('追加する大会の日付') as HTMLInputElement
 }
 
 /** 追加フォームに入力する（日付欄は type="date" なので change イベントで値を入れる） */
@@ -32,9 +32,9 @@ function fillForm(name: string, date: string): void {
   if (date !== '') fireEvent.change(dateInput(), { target: { value: date } })
 }
 
-/** 登録済みの行の名前入力。追加フォームの「大会の名前」は除く */
+/** 登録済みの行の名前入力。追加フォームの「追加する大会の名前」は除く */
 function registeredNameInputs(): HTMLInputElement[] {
-  return screen.queryAllByLabelText(/^(?!大会の名前$).+の名前$/) as HTMLInputElement[]
+  return screen.queryAllByLabelText(/^(?!追加する大会の名前$).+の名前$/) as HTMLInputElement[]
 }
 
 describe('ContestEditor — 表示', () => {
@@ -273,6 +273,22 @@ describe('ContestEditor — 登録済みの行', () => {
 
     render(<ContestEditor />)
     expect(screen.getByLabelText('ボディコンテストの名前')).toHaveValue('ボディコンテスト')
+  })
+})
+
+describe('ContestEditor — 名前が「大会」の大会（追加フォームとのラベル衝突）', () => {
+  it('名前が「大会」の大会を登録しても、「大会の名前」は登録済みの行の入力1つだけを指す', () => {
+    seedContests([makeContest('大会', '2026-10-17')])
+    render(<ContestEditor />)
+
+    const row = screen.getByLabelText('大会の名前') as HTMLInputElement // 複数該当すれば例外になる
+    expect(row).toHaveValue('大会')
+    expect(screen.getByLabelText('大会の日付')).toHaveValue('2026-10-17')
+    expect(screen.getByRole('button', { name: '大会を削除' })).toBeInTheDocument()
+    // 追加フォームは別のラベルで取れ、空のまま
+    expect(nameInput()).toHaveValue('')
+    expect(nameInput()).not.toBe(row)
+    expect(registeredNameInputs()).toEqual([row])
   })
 })
 

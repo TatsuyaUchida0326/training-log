@@ -45,8 +45,8 @@ function visitHomePage() {
 /** 体組成画面で大会を追加し、画面を閉じる */
 async function addContestOnBodyPage(name: string, date: string): Promise<void> {
   const { unmount } = visitBodyPage()
-  fireEvent.change(screen.getByLabelText('大会の名前'), { target: { value: name } })
-  fireEvent.change(screen.getByLabelText('大会の日付'), { target: { value: date } })
+  fireEvent.change(screen.getByLabelText('追加する大会の名前'), { target: { value: name } })
+  fireEvent.change(screen.getByLabelText('追加する大会の日付'), { target: { value: date } })
   await userEvent.click(screen.getByRole('button', { name: '大会を追加' }))
   unmount()
 }
