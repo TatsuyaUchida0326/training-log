@@ -1,23 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { sanitizeContests } from './contests'
+import { deepFreeze } from '../test/deepFreeze'
 
 /**
- * 保存値の検査（sanitizeContests）のうち、大会の目標（targets・targetsSetOn）に関するもの。
+ * 保存値の検査（sanitizeContests）のうち、大会の目標（targets・targetOrigins）に関するもの。
  * 既存の contests.test.ts は targets の無い大会だけを見ている。
  */
 
 /** 保存データは型どおりとは限らない。検査前の値として任意の形を書けるようにする */
 function raw(extra: Record<string, unknown> = {}): Record<string, unknown> {
   return { id: 'c1', name: 'ボディコンテスト', date: '2026-10-17', ...extra }
-}
-
-/** 渡した値を書き換えようとすると例外になる凍結コピー（入力を書き換えないことの確認用） */
-function deepFreeze<T>(value: T): T {
-  if (typeof value === 'object' && value !== null) {
-    Object.values(value).forEach(deepFreeze)
-    Object.freeze(value)
-  }
-  return value
 }
 
 function sanitizeOne(extra: Record<string, unknown>) {
@@ -46,11 +38,11 @@ describe('sanitizeContests — targets', () => {
     })
   })
 
-  it('targets の無い既存の大会はそのまま通る（targets・targetsSetOn のキーも付かない）', () => {
+  it('targets の無い既存の大会はそのまま通る（targets・targetOrigins のキーも付かない）', () => {
     const contest = sanitizeOne({})
     expect(contest).toEqual({ id: 'c1', name: 'ボディコンテスト', date: '2026-10-17' })
     expect(contest).not.toHaveProperty('targets')
-    expect(contest).not.toHaveProperty('targetsSetOn')
+    expect(contest).not.toHaveProperty('targetOrigins')
   })
 
   it.each([
@@ -105,54 +97,63 @@ describe('sanitizeContests — targets', () => {
   })
 
   it('大会の id・name・date は、targets の有無・中身に影響されない', () => {
-    const [contest] = sanitizeContests([raw({ targets: { weight: 65 }, targetsSetOn: { weight: '2026-10-01' } })])
+    const [contest] = sanitizeContests([raw({ targets: { weight: 65 }, targetOrigins: { weight: { date: '2026-10-01', value: 68 } } })])
     expect(contest).toMatchObject({ id: 'c1', name: 'ボディコンテスト', date: '2026-10-17' })
   })
 })
 
-describe('sanitizeContests — targetsSetOn', () => {
-  it('対応する targets の項目があり、実在する日付なら残る', () => {
+describe('sanitizeContests — targetOrigins（向きを決める起点 { date, value? }）', () => {
+  it('対応する targets の項目があり、実在する日付なら残る（value つきも、date だけも）', () => {
     const contest = sanitizeOne({
       targets: { weight: 65, bodyFat: 12 },
-      targetsSetOn: { weight: '2026-10-01', bodyFat: '2026-10-03' },
+      targetOrigins: { weight: { date: '2026-10-01', value: 68.2 }, bodyFat: { date: '2026-10-03' } },
     })
-    expect(contest.targetsSetOn).toEqual({ weight: '2026-10-01', bodyFat: '2026-10-03' })
+    expect(contest.targetOrigins).toEqual({
+      weight: { date: '2026-10-01', value: 68.2 },
+      bodyFat: { date: '2026-10-03' },
+    })
   })
 
-  it('一部の項目だけ setOn があってもよい（targets の項目に setOn が無いのは許す）', () => {
+  it('一部の項目だけ origin があってもよい（targets の項目に origin が無いのは許す）', () => {
     const contest = sanitizeOne({
       targets: { weight: 65, bodyFat: 12 },
-      targetsSetOn: { weight: '2026-10-01' },
+      targetOrigins: { weight: { date: '2026-10-01', value: 68.2 } },
     })
     expect(contest.targets).toEqual({ weight: 65, bodyFat: 12 })
-    expect(contest.targetsSetOn).toEqual({ weight: '2026-10-01' })
+    expect(contest.targetOrigins).toEqual({ weight: { date: '2026-10-01', value: 68.2 } })
   })
 
-  it('対応する targets の項目が無い setOn は捨てる', () => {
+  it('対応する targets の項目が無い origin は捨てる', () => {
     const contest = sanitizeOne({
       targets: { weight: 65 },
-      targetsSetOn: { weight: '2026-10-01', bodyFat: '2026-10-03' },
+      targetOrigins: {
+        weight: { date: '2026-10-01', value: 68.2 },
+        bodyFat: { date: '2026-10-03', value: 20 },
+      },
     })
-    expect(contest.targetsSetOn).toEqual({ weight: '2026-10-01' })
+    expect(contest.targetOrigins).toEqual({ weight: { date: '2026-10-01', value: 68.2 } })
   })
 
-  it('targets の項目が壊れて捨てられたら、その項目の setOn も捨てる', () => {
+  it('targets の項目が壊れて捨てられたら、その項目の origin も捨てる', () => {
     const contest = sanitizeOne({
       targets: { weight: 0, bodyFat: 12 },
-      targetsSetOn: { weight: '2026-10-01', bodyFat: '2026-10-03' },
+      targetOrigins: {
+        weight: { date: '2026-10-01', value: 68.2 },
+        bodyFat: { date: '2026-10-03', value: 20 },
+      },
     })
     expect(contest.targets).toEqual({ bodyFat: 12 })
-    expect(contest.targetsSetOn).toEqual({ bodyFat: '2026-10-03' })
+    expect(contest.targetOrigins).toEqual({ bodyFat: { date: '2026-10-03', value: 20 } })
   })
 
-  it('targets が1つも残らなければ、setOn だけあっても付けない', () => {
-    const contest = sanitizeOne({ targets: {}, targetsSetOn: { weight: '2026-10-01' } })
+  it('targets が1つも残らなければ、origin だけあっても付けない', () => {
+    const contest = sanitizeOne({ targets: {}, targetOrigins: { weight: { date: '2026-10-01', value: 68.2 } } })
     expect(contest).not.toHaveProperty('targets')
-    expect(contest).not.toHaveProperty('targetsSetOn')
+    expect(contest).not.toHaveProperty('targetOrigins')
   })
 
-  it('targets が無く setOn だけの大会は、setOn を付けない', () => {
-    const contest = sanitizeOne({ targetsSetOn: { weight: '2026-10-01' } })
+  it('targets が無く origin だけの大会は、origin を付けない', () => {
+    const contest = sanitizeOne({ targetOrigins: { weight: { date: '2026-10-01', value: 68.2 } } })
     expect(contest).toEqual({ id: 'c1', name: 'ボディコンテスト', date: '2026-10-17' })
   })
 
@@ -173,42 +174,92 @@ describe('sanitizeContests — targetsSetOn', () => {
     ['null', null],
     ['真偽値', true],
     ['オブジェクト', {}],
-  ])('値が壊れている（%s）なら、その項目の setOn は捨て、targets は残る', (_label, broken) => {
+  ])('origin.date が壊れている（%s）なら、その項目の origin は捨て、targets は残る', (_label, broken) => {
     const contest = sanitizeOne({
       targets: { weight: 65, bodyFat: 12 },
-      targetsSetOn: { weight: broken, bodyFat: '2026-10-03' },
+      targetOrigins: {
+        weight: { date: broken, value: 68.2 },
+        bodyFat: { date: '2026-10-03', value: 20 },
+      },
     })
     expect(contest.targets).toEqual({ weight: 65, bodyFat: 12 })
-    expect(contest.targetsSetOn).toEqual({ bodyFat: '2026-10-03' })
+    expect(contest.targetOrigins).toEqual({ bodyFat: { date: '2026-10-03', value: 20 } })
+  })
+
+  it('date が無い origin（{ value } だけ）は捨てる', () => {
+    const contest = sanitizeOne({ targets: { weight: 65 }, targetOrigins: { weight: { value: 68.2 } } })
+    expect(contest.targets).toEqual({ weight: 65 })
+    expect(contest).not.toHaveProperty('targetOrigins')
+  })
+
+  it.each([
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+    ['-Infinity', Number.NEGATIVE_INFINITY],
+    ['数値の文字列', '68.2'],
+    ['null', null],
+    ['真偽値', true],
+    ['オブジェクト', { value: 68.2 }],
+  ])('origin.value が %s なら、value だけ捨てて { date } の origin は残す', (_label, broken) => {
+    const contest = sanitizeOne({
+      targets: { weight: 65 },
+      targetOrigins: { weight: { date: '2026-10-01', value: broken } },
+    })
+    expect(contest.targetOrigins).toEqual({ weight: { date: '2026-10-01' } })
+    expect(contest.targetOrigins?.weight?.value).toBeUndefined()
+  })
+
+  it('value は有限の数値なら 0 や負数でも残す（目標と違い「0 より大きい」とは限らない起点の値）', () => {
+    const contest = sanitizeOne({
+      targets: { weight: 65, bodyFat: 12 },
+      targetOrigins: { weight: { date: '2026-10-01', value: 0 }, bodyFat: { date: '2026-10-01', value: -1 } },
+    })
+    expect(contest.targetOrigins).toEqual({
+      weight: { date: '2026-10-01', value: 0 },
+      bodyFat: { date: '2026-10-01', value: -1 },
+    })
+  })
+
+  it('origin のそのほかのキーは捨てる（{ date, value } だけ残る）', () => {
+    const contest = sanitizeOne({
+      targets: { weight: 65 },
+      targetOrigins: { weight: { date: '2026-10-01', value: 68.2, memo: 'x' } },
+    })
+    expect(contest.targetOrigins).toEqual({ weight: { date: '2026-10-01', value: 68.2 } })
+    expect(Object.keys(contest.targetOrigins?.weight ?? {}).sort()).toEqual(['date', 'value'])
   })
 
   it('範囲の端（2000-01-01・2999-12-31・うるう日）は残る', () => {
     const contest = sanitizeOne({
       targets: { weight: 65, bodyFat: 12, muscleMass: 40 },
-      targetsSetOn: { weight: '2000-01-01', bodyFat: '2999-12-31', muscleMass: '2028-02-29' },
+      targetOrigins: {
+        weight: { date: '2000-01-01', value: 68 },
+        bodyFat: { date: '2999-12-31', value: 20 },
+        muscleMass: { date: '2028-02-29', value: 36 },
+      },
     })
-    expect(contest.targetsSetOn).toEqual({
-      weight: '2000-01-01',
-      bodyFat: '2999-12-31',
-      muscleMass: '2028-02-29',
+    expect(contest.targetOrigins).toEqual({
+      weight: { date: '2000-01-01', value: 68 },
+      bodyFat: { date: '2999-12-31', value: 20 },
+      muscleMass: { date: '2028-02-29', value: 36 },
     })
   })
 
-  it('1つも残らなければ targetsSetOn 自体を付けない（targets は残る）', () => {
+  it('1つも残らなければ targetOrigins 自体を付けない（targets は残る）', () => {
     const contest = sanitizeOne({
       targets: { weight: 65 },
-      targetsSetOn: { weight: '2026-02-30' },
+      targetOrigins: { weight: { date: '2026-02-30', value: 68 } },
     })
     expect(contest.targets).toEqual({ weight: 65 })
-    expect(contest).not.toHaveProperty('targetsSetOn')
+    expect(contest).not.toHaveProperty('targetOrigins')
   })
 
-  it('未知のキーの setOn は捨てる', () => {
+  it('未知のキーの origin は捨てる', () => {
     const contest = sanitizeOne({
       targets: { weight: 65 },
-      targetsSetOn: { weight: '2026-10-01', waist: '2026-10-01' },
+      targetOrigins: { weight: { date: '2026-10-01', value: 68 }, waist: { date: '2026-10-01', value: 80 } },
     })
-    expect(Object.keys(contest.targetsSetOn ?? {})).toEqual(['weight'])
+    expect(Object.keys(contest.targetOrigins ?? {})).toEqual(['weight'])
   })
 
   it.each([
@@ -216,16 +267,37 @@ describe('sanitizeContests — targetsSetOn', () => {
     ['文字列', '2026-10-01'],
     ['数値', 42],
     ['真偽値', true],
-    ['配列', ['2026-10-01']],
-  ])('targetsSetOn がオブジェクトでない（%s）なら付けず、targets と大会は残る', (_label, broken) => {
-    const contest = sanitizeOne({ targets: { weight: 65 }, targetsSetOn: broken })
+    ['配列', [{ date: '2026-10-01', value: 68 }]],
+  ])('targetOrigins がオブジェクトでない（%s）なら付けず、targets と大会は残る', (_label, broken) => {
+    const contest = sanitizeOne({ targets: { weight: 65 }, targetOrigins: broken })
     expect(contest).toEqual({
       id: 'c1',
       name: 'ボディコンテスト',
       date: '2026-10-17',
       targets: { weight: 65 },
     })
+    expect(contest).not.toHaveProperty('targetOrigins')
+  })
+
+  it.each([
+    ['null', null],
+    ['文字列', '2026-10-01'],
+    ['数値', 20261001],
+    ['配列', ['2026-10-01', 68]],
+  ])('origin の項目が日付と値のオブジェクトでない（%s）なら、その項目の origin は捨てる', (_label, broken) => {
+    const contest = sanitizeOne({ targets: { weight: 65 }, targetOrigins: { weight: broken } })
+    expect(contest.targets).toEqual({ weight: 65 })
+    expect(contest).not.toHaveProperty('targetOrigins')
+  })
+
+  it('旧形式の targetsSetOn は読まない（キーも付かない。あっても無視する）', () => {
+    const contest = sanitizeOne({
+      targets: { weight: 65 },
+      targetsSetOn: { weight: '2026-10-01' },
+    })
+    expect(contest).toEqual({ id: 'c1', name: 'ボディコンテスト', date: '2026-10-17', targets: { weight: 65 } })
     expect(contest).not.toHaveProperty('targetsSetOn')
+    expect(contest).not.toHaveProperty('targetOrigins')
   })
 })
 
@@ -233,7 +305,7 @@ describe('sanitizeContests — 目標があっても、これまでの規則は�
   it('大会ごとに独立して検査する（壊れた targets の大会の隣の大会に影響しない）', () => {
     const contests = sanitizeContests([
       raw({ id: 'a', targets: 'broken' }),
-      raw({ id: 'b', targets: { weight: 65 }, targetsSetOn: { weight: '2026-10-01' } }),
+      raw({ id: 'b', targets: { weight: 65 }, targetOrigins: { weight: { date: '2026-10-01', value: 68 } } }),
       raw({ id: 'c' }),
     ])
     expect(contests.map((contest) => contest.id)).toEqual(['a', 'b', 'c'])
@@ -265,17 +337,17 @@ describe('sanitizeContests — 目標があっても、これまでの規則は�
     const once = sanitizeContests([
       raw({
         targets: { weight: 65, bodyFat: 0, waist: 70 },
-        targetsSetOn: { weight: '2026-10-01', bodyFat: '2026-10-01' },
+        targetOrigins: { weight: { date: '2026-10-01', value: 68 }, bodyFat: { date: '2026-10-01', value: 20 } },
       }),
     ])
     expect(sanitizeContests(once)).toEqual(once)
     expect(once[0].targets).toEqual({ weight: 65 })
-    expect(once[0].targetsSetOn).toEqual({ weight: '2026-10-01' })
+    expect(once[0].targetOrigins).toEqual({ weight: { date: '2026-10-01', value: 68 } })
   })
 
   it('渡した配列・大会・targets を書き換えない', () => {
     const input = deepFreeze([
-      raw({ targets: { weight: 65, bodyFat: 0 }, targetsSetOn: { weight: '2026-10-01', bodyFat: 'x' } }),
+      raw({ targets: { weight: 65, bodyFat: 0 }, targetOrigins: { weight: { date: '2026-10-01', value: 68 }, bodyFat: 'x' } }),
     ])
     expect(() => sanitizeContests(input)).not.toThrow()
     expect(input[0].targets).toEqual({ weight: 65, bodyFat: 0 })

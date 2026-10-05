@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PageHeaderProvider } from '../contexts/PageHeaderContext'
 import BodyPage from './BodyPage/BodyPage'
 import HomePage from './HomePage/HomePage'
-import { nestedGoalRows, queryNestedGoalList, readStoredContests } from '../test/contests'
+import { bodyInput, nestedGoalRows, queryNestedGoalList, readStoredContests } from '../test/contests'
 import { setupFixedClock } from '../test/fixedClock'
 
 /**
@@ -48,7 +48,7 @@ function visitHomePage() {
 /** 体組成画面で入力欄に値を入れて blur し、画面を閉じる（今日の記録・ふだんの目標用） */
 function enterOnBodyPage(label: string, value: string): void {
   const { unmount } = visitBodyPage()
-  fireEvent.blur(screen.getByLabelText(label), { target: { value } })
+  fireEvent.blur(bodyInput(label), { target: { value } })
   unmount()
 }
 
@@ -64,7 +64,7 @@ async function addContestOnBodyPage(name: string, date: string): Promise<void> {
 /** 体組成画面で、その大会の目標欄を（閉じていれば）開いて、項目に値を入れ、画面を閉じる */
 async function enterContestTarget(name: string, field: '体重' | '体脂肪率' | '筋肉量', value: string): Promise<void> {
   const { unmount } = visitBodyPage()
-  const openButton = screen.queryByRole('button', { name: `${name}の目標を入れる` })
+  const openButton = screen.queryByRole('button', { name: `この大会の目標を入れる（${name}）` })
   if (openButton) await userEvent.click(openButton)
   fireEvent.blur(screen.getByLabelText(`${name}の目標${field}`), { target: { value } })
   unmount()
@@ -243,7 +243,7 @@ describe('大会が過ぎると、次の大会の目標に切り替わる', () =
   })
 })
 
-describe('目標を入れた日が向き（減らす・増やす）の基準になる', () => {
+describe('目標を入れたときの値が向き（減らす・増やす）の基準になる', () => {
   it('翌日に 64.5 kg を記録すると、減らす目標（65）は「達成」になる', async () => {
     enterOnBodyPage('体重', '68.2')
     await addContestOnBodyPage(NAME, '2026-10-17')
@@ -270,7 +270,7 @@ describe('目標を入れた日が向き（減らす・増やす）の基準に�
     expect(nestedGoalRows(NAME)[0]).toHaveTextContent(/あと\s*5\.0\s*kg\s*減/)
   })
 
-  it('同じ値のまま blur し直しても、目標を入れた日は変わらない（変わると 64.5 が基準になり「あと 0.5 増」になってしまう）', async () => {
+  it('同じ値のまま blur し直しても、起点（目標を入れた日と値）は変わらない（変わると 64.5 が基準になり「あと 0.5 増」になってしまう）', async () => {
     enterOnBodyPage('体重', '68.2')
     await addContestOnBodyPage(NAME, '2026-10-17')
     await enterContestTarget(NAME, '体重', '65')
@@ -278,13 +278,13 @@ describe('目標を入れた日が向き（減らす・増やす）の基準に�
     vi.setSystemTime(new Date(2026, 9, 6, 12))
     enterOnBodyPage('体重', '64.5')
     await enterContestTarget(NAME, '体重', '65') // 同じ値で blur し直す
-    expect(readStoredContests()[0].targetsSetOn).toEqual({ weight: '2026-10-05' })
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-05', value: 68.2 } })
 
     visitHomePage()
     expect(nestedGoalRows(NAME)[0]).toHaveTextContent('達成')
   })
 
-  it('目標の値を変えたら、変えた日が新しい基準になる（64.5 kg の日に 60 に変えると「あと 4.5 kg 減」）', async () => {
+  it('目標の値を変えたら、変えた日とそのときの値が新しい基準になる（64.5 kg の日に 60 に変えると「あと 4.5 kg 減」）', async () => {
     enterOnBodyPage('体重', '68.2')
     await addContestOnBodyPage(NAME, '2026-10-17')
     await enterContestTarget(NAME, '体重', '65')
@@ -292,9 +292,97 @@ describe('目標を入れた日が向き（減らす・増やす）の基準に�
     vi.setSystemTime(new Date(2026, 9, 6, 12))
     enterOnBodyPage('体重', '64.5')
     await enterContestTarget(NAME, '体重', '60')
-    expect(readStoredContests()[0].targetsSetOn).toEqual({ weight: '2026-10-06' })
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-06', value: 64.5 } })
 
     visitHomePage()
     expect(nestedGoalRows(NAME)[0]).toHaveTextContent(/あと\s*4\.5\s*kg\s*減/)
+  })
+})
+
+describe('目標を入れた日のうちに体重を記録し直しても、向きは変わらない（再現1）', () => {
+  it('68.3 kg で目標 68 を入れ、同じ日に体重を 67.9 に直すと「達成」（「あと 0.1 kg 増」にならない）。翌日に 67.5 でも「達成」', async () => {
+    enterOnBodyPage('体重', '68.3')
+    await addContestOnBodyPage(NAME, '2026-10-17')
+    await enterContestTarget(NAME, '体重', '68')
+    enterOnBodyPage('体重', '67.9') // 同じ日の記録を直す
+
+    const first = visitHomePage()
+    const [row] = nestedGoalRows(NAME)
+    expect(row).toHaveTextContent('達成')
+    expect(row).not.toHaveTextContent('あと')
+    first.unmount()
+
+    vi.setSystemTime(new Date(2026, 9, 6, 12))
+    enterOnBodyPage('体重', '67.5')
+    visitHomePage()
+    expect(nestedGoalRows(NAME)[0]).toHaveTextContent('達成')
+  })
+})
+
+describe('記録より先に目標を入れたとき、あとの記録で起点の値が埋まる', () => {
+  it('目標 65 を先に入れ、68.2 を記録すると「あと 3.2 kg 減」。翌日 64.5 kg で「達成」（起点が無いと「あと 0.5 kg 増」になる）', async () => {
+    await addContestOnBodyPage(NAME, '2026-10-17')
+    await enterContestTarget(NAME, '体重', '65')
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-05' } })
+
+    enterOnBodyPage('体重', '68.2')
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-05', value: 68.2 } })
+    const first = visitHomePage()
+    expect(nestedGoalRows(NAME)[0]).toHaveTextContent(/あと\s*3\.2\s*kg\s*減/)
+    first.unmount()
+
+    vi.setSystemTime(new Date(2026, 9, 6, 12))
+    enterOnBodyPage('体重', '64.5')
+    visitHomePage()
+    expect(nestedGoalRows(NAME)[0]).toHaveTextContent('達成')
+  })
+})
+
+describe('終わった大会を削除しても、次の大会の向きは変わらない（再現2）', () => {
+  /** 9/01 に 68 kg で 2 つの大会に目標を入れ、10/01 に 62 kg、10/05 に 62.5 kg を記録する（今日は 10/05） */
+  async function setUpAutumnAndWinter(): Promise<void> {
+    vi.setSystemTime(new Date(2026, 8, 1, 12))
+    enterOnBodyPage('体重', '68')
+    await addContestOnBodyPage('秋の大会', '2026-10-01')
+    await addContestOnBodyPage('冬の大会', '2026-12-01')
+    await enterContestTarget('秋の大会', '体重', '62')
+    await enterContestTarget('冬の大会', '体重', '66')
+
+    vi.setSystemTime(new Date(2026, 9, 1, 12))
+    enterOnBodyPage('体重', '62')
+    vi.setSystemTime(new Date(2026, 9, 5, 12))
+    enterOnBodyPage('体重', '62.5')
+  }
+
+  it('削除前: 一番近い冬の大会は「あと 3.5 kg 増」', async () => {
+    await setUpAutumnAndWinter()
+    visitHomePage()
+    expect(screen.getByRole('list', CONTEST_LIST)).not.toHaveTextContent('秋の大会')
+    expect(nestedGoalRows('冬の大会')[0]).toHaveTextContent('62.5 → 目標 66.0 kg')
+    expect(nestedGoalRows('冬の大会')[0]).toHaveTextContent(/あと\s*3\.5\s*kg\s*増/)
+  })
+
+  it('秋の大会を削除しても、冬の大会は「あと 3.5 kg 増」のまま（「達成」に変わらない）', async () => {
+    await setUpAutumnAndWinter()
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    const body = visitBodyPage()
+    await userEvent.click(screen.getByRole('button', { name: '秋の大会を削除' }))
+    body.unmount()
+
+    visitHomePage()
+    const [row] = nestedGoalRows('冬の大会')
+    expect(row).toHaveTextContent(/あと\s*3\.5\s*kg\s*増/)
+    expect(row).not.toHaveTextContent('達成')
+    expect(readStoredContests().map((contest) => contest.name)).toEqual(['冬の大会'])
+  })
+
+  it('削除をキャンセルしたら、起点は変わらない', async () => {
+    await setUpAutumnAndWinter()
+    const before = readStoredContests()
+    vi.spyOn(window, 'confirm').mockReturnValue(false)
+    const body = visitBodyPage()
+    await userEvent.click(screen.getByRole('button', { name: '秋の大会を削除' }))
+    body.unmount()
+    expect(readStoredContests()).toEqual(before)
   })
 })

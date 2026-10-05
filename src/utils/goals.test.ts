@@ -7,6 +7,7 @@ import {
 } from './goals'
 import { calcBody } from './body'
 import { makeBodyRecord } from '../test/seed'
+import { deepFreeze } from '../test/deepFreeze'
 import type { BodyRecord, BodySettings, GoalBaselines, GoalValues } from '../types'
 
 /** 既定値に頼らず全項目を明示する（goals.ts の仕様だけを見るため）。目標はすべて未設定 */
@@ -20,15 +21,6 @@ function makeSettings(overrides: Partial<BodySettings> = {}): BodySettings {
     goalBaselines: {},
     ...overrides,
   }
-}
-
-/** 渡した値を書き換えようとすると例外になる凍結コピー（純粋関数であることの確認用） */
-function deepFreeze<T>(value: T): T {
-  if (typeof value === 'object' && value !== null) {
-    Object.values(value).forEach(deepFreeze)
-    Object.freeze(value)
-  }
-  return value
 }
 
 describe('latestMeasuredValues', () => {

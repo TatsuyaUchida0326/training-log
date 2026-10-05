@@ -1,15 +1,13 @@
-import { render, screen, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { screen, within } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
-import GoalCard from './GoalCard'
-import { nestedGoalRows, queryNestedGoalList } from '../../test/contests'
+import { FIVE_COUNTDOWNS, countdown, nestedGoalRows, queryNestedGoalList } from '../../test/contests'
 import { setupFixedClock } from '../../test/fixedClock'
+import { renderGoalCard as renderCard } from '../../test/renderGoalCard'
 import type { GoalProgress } from '../../utils/goals'
-import type { ContestCountdown } from '../../types'
 
 /**
- * 大会の目標（source: 'contest'）があるとき、目標の行は一番近い大会の行の中に入れ子で出る。
- * それ以外は今までと完全に同じ DOM（独立した「目標までの残り」リスト）。
+ * 大会の目標（source: 'contest'）があるとき、目標の行は、その大会（contestId が一致する行）の中に入れ子で出る。
+ * 一致する行が表示されていないとき、それ以外（全部 'base'・countdowns が空）は今までと完全に同じ DOM（独立した「目標までの残り」リスト）。
  */
 
 setupFixedClock(new Date(2026, 9, 5, 12))
@@ -26,6 +24,7 @@ const WEIGHT_CONTEST: GoalProgress = {
   remaining: 3.2,
   status: 'decrease',
   source: 'contest',
+  contestId: 'c1',
 }
 
 const BODY_FAT_BASE: GoalProgress = {
@@ -44,24 +43,13 @@ const MUSCLE_CONTEST: GoalProgress = {
   remaining: 1,
   status: 'increase',
   source: 'contest',
+  contestId: 'c1',
 }
 
-const WEIGHT_BASE: GoalProgress = { ...WEIGHT_CONTEST, source: 'base' }
-
-function countdown(id: string, name: string, date: string, daysLeft: number): ContestCountdown {
-  return { contest: { id, name, date }, daysLeft }
-}
+const WEIGHT_BASE: GoalProgress = { ...WEIGHT_CONTEST, source: 'base', contestId: undefined }
 
 const BODY_CONTEST = countdown('c1', 'ボディコンテスト', '2026-10-17', 12)
 const AUTUMN_CONTEST = countdown('c2', '秋の大会', '2026-11-03', 29)
-
-function renderCard(props: Parameters<typeof GoalCard>[0]) {
-  return render(
-    <MemoryRouter>
-      <GoalCard {...props} />
-    </MemoryRouter>,
-  )
-}
 
 /** 大会のリストの直下の行だけ（入れ子の目標の行は含まない） */
 function topLevelContestRows(): HTMLElement[] {
@@ -125,7 +113,7 @@ describe('GoalCard — 大会の目標があるとき（入れ子）', () => {
   })
 
   it('増やす目標は「あと ◯ kg 増」、体脂肪率の単位は %', () => {
-    renderCard({ goals: [MUSCLE_CONTEST, { ...BODY_FAT_BASE, source: 'contest' }], countdowns: [BODY_CONTEST] })
+    renderCard({ goals: [MUSCLE_CONTEST, { ...BODY_FAT_BASE, source: 'contest', contestId: 'c1' }], countdowns: [BODY_CONTEST] })
     const rows = nestedGoalRows('ボディコンテスト')
     expect(rows[0]).toHaveTextContent('38.5 → 目標 39.5 kg')
     expect(rows[0]).toHaveTextContent(/あと\s*1\.0\s*kg\s*増/)
@@ -209,14 +197,63 @@ describe('GoalCard — 大会の目標があるとき（入れ子）', () => {
   })
 })
 
+describe('GoalCard — 入れ子の置き場所は contestId が一致する行（先頭という位置では決めない）', () => {
+  const SECOND_CONTEST_GOAL: GoalProgress = { ...WEIGHT_CONTEST, contestId: 'c2' }
+
+  it('contestId が2件目の大会と一致すれば、2件目の行の中に入れ子で出る（先頭の行には出ない）', () => {
+    renderCard({ goals: [SECOND_CONTEST_GOAL], countdowns: [BODY_CONTEST, AUTUMN_CONTEST] })
+    const [first, second] = topLevelContestRows()
+    const nested = screen.getByRole('list', { name: '秋の大会の目標までの残り' })
+    expect(second).toContainElement(nested)
+    expect(first).not.toContainElement(nested)
+    expect(queryNestedGoalList('ボディコンテスト')).not.toBeInTheDocument()
+    expect(screen.queryByRole('list', STANDALONE_GOAL_LIST)).not.toBeInTheDocument()
+  })
+
+  it('入れ子の中の行（ふだんの目標も同じ並び）は、置き場所が変わっても同じ文言', () => {
+    renderCard({ goals: [SECOND_CONTEST_GOAL, BODY_FAT_BASE], countdowns: [BODY_CONTEST, AUTUMN_CONTEST] })
+    const rows = nestedGoalRows('秋の大会')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toHaveTextContent('68.2 → 目標 65.0 kg')
+    expect(rows[1]).toHaveTextContent('体脂肪率')
+  })
+
+  it('contestId が countdowns のどの大会とも一致しなければ、独立した「目標までの残り」リストで出す', () => {
+    renderCard({ goals: [{ ...WEIGHT_CONTEST, contestId: 'unknown' }, BODY_FAT_BASE], countdowns: [BODY_CONTEST] })
+    expect(screen.queryByRole('list', ANY_NESTED_GOAL_LIST)).not.toBeInTheDocument()
+    const goalList = screen.getByRole('list', STANDALONE_GOAL_LIST)
+    expect(within(goalList).getAllByRole('listitem')).toHaveLength(2)
+    expect(screen.getByRole('list', CONTEST_LIST)).not.toContainElement(goalList)
+  })
+
+  it('contestId が無い contest の目標は、一致する行が無いので独立リスト', () => {
+    renderCard({ goals: [{ ...WEIGHT_CONTEST, contestId: undefined }], countdowns: [BODY_CONTEST] })
+    expect(screen.queryByRole('list', ANY_NESTED_GOAL_LIST)).not.toBeInTheDocument()
+    expect(screen.getByRole('list', STANDALONE_GOAL_LIST)).toBeInTheDocument()
+  })
+
+  it('contestId の大会が3件の外（4件目以降で行に出ていない）なら、独立リスト。「ほか N 件」も出る', () => {
+    renderCard({ goals: [{ ...WEIGHT_CONTEST, contestId: 'c4' }], countdowns: FIVE_COUNTDOWNS })
+    expect(topLevelContestRows()).toHaveLength(3)
+    expect(screen.queryByRole('list', ANY_NESTED_GOAL_LIST)).not.toBeInTheDocument()
+    expect(screen.getByRole('list', STANDALONE_GOAL_LIST)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /ほか\s*2\s*件/ })).toBeInTheDocument()
+  })
+
+  it('contestId の大会が3件目なら、3件目の行に入れ子で出る', () => {
+    renderCard({ goals: [{ ...WEIGHT_CONTEST, contestId: 'c3' }], countdowns: FIVE_COUNTDOWNS })
+    expect(screen.getByRole('list', { name: '大会さんの目標までの残り' })).toBeInTheDocument()
+    expect(topLevelContestRows()[2]).toContainElement(screen.getByRole('list', { name: '大会さんの目標までの残り' }))
+  })
+
+  it('入れ子は1か所だけ（大会の行の中の目標のリストは1つ）', () => {
+    renderCard({ goals: [SECOND_CONTEST_GOAL, BODY_FAT_BASE], countdowns: [BODY_CONTEST, AUTUMN_CONTEST] })
+    expect(screen.getAllByRole('list', ANY_NESTED_GOAL_LIST)).toHaveLength(1)
+  })
+})
+
 describe('GoalCard — 「ほか N 件」リンクは今までどおり', () => {
-  const FIVE = [
-    countdown('c1', '大会いち', '2026-10-06', 1),
-    countdown('c2', '大会に', '2026-10-07', 2),
-    countdown('c3', '大会さん', '2026-10-08', 3),
-    countdown('c4', '大会よん', '2026-10-09', 4),
-    countdown('c5', '大会ご', '2026-10-10', 5),
-  ]
+  const FIVE = FIVE_COUNTDOWNS
 
   it('5件のとき、先頭3件の行（先頭の行に入れ子）と、リストの外に「ほか 2 件」のリンク', () => {
     renderCard({ goals: [WEIGHT_CONTEST], countdowns: FIVE })

@@ -9,15 +9,7 @@ import {
   upcomingContests,
 } from './contests'
 import { makeContest } from '../test/contests'
-
-/** 渡した値を書き換えようとすると例外になる凍結コピー（入力を書き換えないことの確認用） */
-function deepFreeze<T>(value: T): T {
-  if (typeof value === 'object' && value !== null) {
-    Object.values(value).forEach(deepFreeze)
-    Object.freeze(value)
-  }
-  return value
-}
+import { deepFreeze } from '../test/deepFreeze'
 
 // 現地時刻の Date（month は 1 始まりで書く）
 function local(year: number, month: number, day: number, h = 12, m = 0, s = 0, ms = 0): Date {

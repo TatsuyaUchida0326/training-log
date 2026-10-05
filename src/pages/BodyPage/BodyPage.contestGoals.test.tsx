@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import BodyPage from './BodyPage'
-import { makeContest, readStoredContests, seedContests, withTargets } from '../../test/contests'
+import { bodyInput, makeContest, readStoredContests, seedContests, withTargets } from '../../test/contests'
+import { setupFixedClock } from '../../test/fixedClock'
 import { makeBodyRecord, readStoredBodySettings, seedBodyRecords, seedBodySettings } from '../../test/seed'
 
 function renderBodyPage() {
@@ -18,8 +19,15 @@ function isBefore(first: HTMLElement, second: HTMLElement): boolean {
   return Boolean(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING)
 }
 
+// 目標を入れた日（起点の date）が実時間に依存するため、今日を 2026-10-05（月）に固定する
+setupFixedClock(new Date(2026, 9, 5, 12))
+
 beforeEach(() => {
   localStorage.clear()
+})
+
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('BodyPage — 基本情報の「ふだんの目標」の見出し', () => {
@@ -94,7 +102,7 @@ describe('BodyPage — 大会の目標とふだんの目標は別々', () => {
     seedBodySettings({ targetWeight: 65 })
     seedContests([makeContest('ボディコンテスト', '2026-10-17', 'a')])
     renderBodyPage()
-    await userEvent.click(screen.getByRole('button', { name: 'ボディコンテストの目標を入れる' }))
+    await userEvent.click(screen.getByRole('button', { name: 'この大会の目標を入れる（ボディコンテスト）' }))
     fireEvent.blur(screen.getByLabelText('ボディコンテストの目標体重'), { target: { value: '60' } })
 
     expect(readStoredContests()[0].targets).toEqual({ weight: 60 })
@@ -102,7 +110,7 @@ describe('BodyPage — 大会の目標とふだんの目標は別々', () => {
   })
 
   it('ふだんの目標を変えても、大会の目標は変わらない', () => {
-    const saved = withTargets(makeContest('ボディコンテスト', '2026-10-17', 'a'), { weight: 60 }, { weight: '2026-10-01' })
+    const saved = withTargets(makeContest('ボディコンテスト', '2026-10-17', 'a'), { weight: 60 }, { weight: { date: '2026-10-01', value: 70 } })
     seedContests([saved])
     renderBodyPage()
     fireEvent.blur(screen.getByLabelText('目標体重'), { target: { value: '70' } })
@@ -122,6 +130,88 @@ describe('BodyPage — 大会の目標とふだんの目標は別々', () => {
     seedContests([makeContest('ボディコンテスト', '2026-10-17', 'a')])
     renderBodyPage()
     const contestCard = screen.getByText('大会・イベント').parentElement as HTMLElement
-    expect(contestCard).toContainElement(screen.getByRole('button', { name: 'ボディコンテストの目標を入れる' }))
+    expect(contestCard).toContainElement(screen.getByRole('button', { name: 'この大会の目標を入れる（ボディコンテスト）' }))
+  })
+})
+
+describe('BodyPage — 大会の目標の起点（targetOrigins）は、体組成の記録から決まる', () => {
+  const OPEN = { name: 'この大会の目標を入れる（ボディコンテスト）' }
+
+  async function setUpContestGoal(): Promise<void> {
+    seedContests([makeContest('ボディコンテスト', '2026-10-17', 'a')])
+    renderBodyPage()
+    await userEvent.click(screen.getByRole('button', OPEN))
+  }
+
+  it('すでに記録があるとき、目標を入れると、最新の値が起点の value に入る', async () => {
+    seedBodyRecords([makeBodyRecord('2026-10-03', { weight: 68.2 })])
+    await setUpContestGoal()
+    fireEvent.blur(screen.getByLabelText('ボディコンテストの目標体重'), { target: { value: '65' } })
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-05', value: 68.2 } })
+  })
+
+  it('記録の単位が % のとき、体重 × 筋肉量% / 100 の kg が起点の value に入る', async () => {
+    seedBodySettings({ muscleMassUnit: '%' })
+    seedBodyRecords([makeBodyRecord('2026-10-03', { weight: 70, muscleMass: 40 })])
+    await setUpContestGoal()
+    fireEvent.blur(screen.getByLabelText('ボディコンテストの目標筋肉量'), { target: { value: '30' } })
+    expect(readStoredContests()[0].targetOrigins?.muscleMass).toEqual({ date: '2026-10-05', value: 28 })
+  })
+
+  it('記録より先に目標を入れた場合、起点は { date } だけ', async () => {
+    await setUpContestGoal()
+    fireEvent.blur(screen.getByLabelText('ボディコンテストの目標体重'), { target: { value: '65' } })
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-05' } })
+  })
+
+  it('そのあと体組成画面で値を記録すると、起点の value が埋まる（date は目標を入れた日のまま）', async () => {
+    await setUpContestGoal()
+    fireEvent.blur(screen.getByLabelText('ボディコンテストの目標体重'), { target: { value: '65' } })
+    fireEvent.blur(bodyInput('体重'), { target: { value: '68.2' } })
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-05', value: 68.2 } })
+  })
+
+  it('埋めたあとに体重を記録し直しても、起点の value は最初の記録のまま', async () => {
+    await setUpContestGoal()
+    fireEvent.blur(screen.getByLabelText('ボディコンテストの目標体重'), { target: { value: '65' } })
+    fireEvent.blur(bodyInput('体重'), { target: { value: '68.2' } })
+    fireEvent.blur(bodyInput('体重'), { target: { value: '67.9' } })
+    expect(readStoredContests()[0].targetOrigins?.weight?.value).toBe(68.2)
+  })
+
+  it('値を埋めるのは、その項目に目標がある大会だけ（体脂肪率を記録しても体重だけの大会には起点が増えない）', async () => {
+    await setUpContestGoal()
+    fireEvent.blur(screen.getByLabelText('ボディコンテストの目標体重'), { target: { value: '65' } })
+    fireEvent.blur(bodyInput('体脂肪'), { target: { value: '20' } })
+    const origins = readStoredContests()[0].targetOrigins
+    expect(Object.keys(origins ?? {})).toEqual(['weight'])
+    expect(origins?.weight?.value).toBeUndefined()
+  })
+
+  it('ふだんの目標を変えても、大会の起点は変わらない', async () => {
+    seedBodyRecords([makeBodyRecord('2026-10-03', { weight: 68.2 })])
+    seedContests([
+      withTargets(makeContest('ボディコンテスト', '2026-10-17', 'a'), { weight: 60 }, { weight: { date: '2026-10-01', value: 70 } }),
+    ])
+    renderBodyPage()
+    fireEvent.blur(screen.getByLabelText('目標体重'), { target: { value: '65' } })
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-01', value: 70 } })
+  })
+
+  it('過ぎた大会を体組成画面で削除すると、次の大会の起点が引き継がれる（再現2）', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+    seedBodyRecords([
+      makeBodyRecord('2026-09-01', { weight: 68 }),
+      makeBodyRecord('2026-10-01', { weight: 62 }),
+      makeBodyRecord('2026-10-05', { weight: 62.5 }),
+    ])
+    seedContests([
+      withTargets(makeContest('秋の大会', '2026-10-01', 'autumn'), { weight: 62 }),
+      withTargets(makeContest('冬の大会', '2026-12-01', 'winter'), { weight: 66 }, { weight: { date: '2026-09-01', value: 68 } }),
+    ])
+    renderBodyPage()
+    await userEvent.click(screen.getByRole('button', { name: '秋の大会を削除' }))
+    expect(readStoredContests().map((contest) => contest.id)).toEqual(['winter'])
+    expect(readStoredContests()[0].targetOrigins).toEqual({ weight: { date: '2026-10-01', value: 62 } })
   })
 })
