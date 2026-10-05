@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Flag } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   format,
   startOfMonth,
@@ -15,6 +15,7 @@ import { between } from '@holiday-jp/holiday_jp'
 import { groupContestsByDate } from '../../utils/contests'
 import { WEEKDAYS, formatDateWithWeekday } from '../../utils/date'
 import type { CalendarProps } from '../../types'
+import CalendarCountdown from './CalendarCountdown'
 import styles from './Calendar.module.css'
 
 function isSameYearMonth(a: Date, b: Date): boolean {
@@ -74,25 +75,7 @@ export default function Calendar({
 
   return (
     <div className={styles.calendar}>
-      {/* 一番近い大会までの残り日数。月の見出しより上に、右寄せの1行で出す */}
-      {countdown && (
-        <div data-testid="calendar-countdown" className={styles.countdown}>
-          <Flag size={14} aria-hidden="true" className={styles.countdownIcon} />
-          {countdown.daysLeft === 0 ? (
-            <>
-              <span className={styles.countdownFixed}>今日は</span>
-              <span className={styles.countdownName}>{countdown.contest.name}</span>
-            </>
-          ) : (
-            <>
-              <span className={styles.countdownName}>{countdown.contest.name}</span>
-              <span className={styles.countdownFixed}>
-                まで あと <strong>{countdown.daysLeft}</strong> 日
-              </span>
-            </>
-          )}
-        </div>
-      )}
+      {countdown && <CalendarCountdown countdown={countdown} />}
 
       {/* ヘッダー */}
       <div className={styles.header}>
@@ -151,13 +134,14 @@ export default function Calendar({
           const isHoliday = !!holidayName
           const hasRecord = marked || achieved
           const dayContests = contestsByDate.get(format(date, 'yyyy-MM-dd')) ?? []
+          const hasContest = dayContests.length > 0
 
           // アクセシブルネームは表示物と独立に組み立てる（絵文字や祝日名を個別に読み上げさせないため）
           const ariaLabel =
             formatDateWithWeekday(date) +
             (holidayName ? `、${holidayName}` : '') +
             (hasRecord ? '、記録あり' : '') +
-            (dayContests.length > 0 ? `、大会: ${dayContests.map((c) => c.name).join('、')}` : '')
+            (hasContest ? `、大会: ${dayContests.map((contest) => contest.name).join('、')}` : '')
 
           return (
             <button
@@ -179,7 +163,7 @@ export default function Calendar({
                   styles.dayCircle,
                   isToday ? styles.today : '',
                   isSelected && !isToday ? styles.selected : '',
-                  dayContests.length > 0 ? styles.contestDay : '',
+                  hasContest ? styles.contestDay : '',
                   !isToday && (isSunday || isHoliday) ? styles.sunday : '',
                   !isToday && isSaturday && !isHoliday ? styles.saturday : '',
                 ]
@@ -191,7 +175,7 @@ export default function Calendar({
               {holidayName && (
                 <span className={styles.holidayName}>{holidayName}</span>
               )}
-              {dayContests.length > 0 && (
+              {hasContest && (
                 <>
                   <span data-testid="contest-name" className={styles.contestName}>
                     {dayContests[0].name}

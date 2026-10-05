@@ -7,8 +7,11 @@ import { STORAGE_KEY as RECORDS_KEY } from '../hooks/useTrainingRecords'
 import type { Contest, Exercise } from '../types'
 import { writeStoredValue } from './storage'
 
-/** サンプルの大会までの日数。ホームの「あと 42 日」とカレンダーの印が見える程度に先にする */
-const SAMPLE_CONTEST_DAYS_AHEAD = 42
+/**
+ * サンプルの大会までの日数。ホームに「あと ◯ 日」が出る。
+ * カレンダーの印は、当月に入る日と翌月になる日がある。遠いと当月には一度も出ないので、近くしてある。
+ */
+export const SAMPLE_CONTEST_DAYS_AHEAD = 14
 
 function buildSampleContests(today: Date): Contest[] {
   return [

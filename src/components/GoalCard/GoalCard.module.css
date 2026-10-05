@@ -80,12 +80,15 @@
   font-weight: 700;
 }
 
-.more {
-  display: block;
-  margin-top: 4px;
-  text-align: right;
+.moreContestsLink {
+  /* 文字の幅だけで右端に置く。タップ領域は縦 44px 以上にし、上下の負のマージンで文字の位置を元の近くに保つ */
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  margin: -8px 0 -10px auto;
   font-size: 12px;
-  color: #1e3a6e;
+  color: var(--color-navy);
   text-decoration: underline;
 }
 

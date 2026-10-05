@@ -70,7 +70,7 @@ export default function CalendarDayPopup({
   const displayDate = formatDateWithWeekday(parseISO(date))
   const grouped = groupByCategory(records, exercises)
   // 大会だけの日は種目の一覧が空になる。空の枠が余白として残らないよう、ボディごと出さない
-  const showBody = grouped.length > 0 || contests.length === 0
+  const shouldShowBody = grouped.length > 0 || contests.length === 0
   const titleId = useId()
   const dialogRef = useDialog<HTMLDivElement>(onClose)
 
@@ -109,7 +109,7 @@ export default function CalendarDayPopup({
         </div>
 
         {contests.length > 0 && (
-          <ul role="list" className={styles.contests}>
+          <ul role="list" aria-label="この日の大会" className={styles.contests}>
             {contests.map((contest) => (
               <li key={contest.id} className={styles.contest}>
                 <Flag size={14} aria-hidden="true" className={styles.contestIcon} />
@@ -120,7 +120,7 @@ export default function CalendarDayPopup({
         )}
 
         {/* ボディ */}
-        {showBody && (
+        {shouldShowBody && (
           <div className={styles.body}>
             {grouped.map((group, groupIndex) => (
               <div key={group.categoryId}>

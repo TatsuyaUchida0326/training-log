@@ -18,7 +18,7 @@ export const BACKUP_VERSION = 1
 
 /**
  * 記録は種目 ID を参照しているので、種目一覧を含めないと復元しても種目名が出ない。
- * 6種類すべてをひとまとめにして書き出す。
+ * すべてのデータをひとまとめにして書き出す。
  */
 export interface BackupData {
   records: TrainingRecord[]

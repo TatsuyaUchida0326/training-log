@@ -1,15 +1,30 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
-import { X } from 'lucide-react'
 import { useContests } from '../../hooks/useContests'
-import { daysUntil, isValidContestDate } from '../../utils/contests'
+import type { Contest } from '../../types'
+import {
+  MAX_CONTEST_DATE,
+  MAX_CONTEST_NAME_LENGTH,
+  MIN_CONTEST_DATE,
+  daysUntil,
+  isValidContestDate,
+  isValidContestName,
+} from '../../utils/contests'
+import ContestRow from './ContestRow'
 import styles from './ContestEditor.module.css'
 
-/** 大会・イベントの登録と編集。体組成画面のカードとして置く（保存はフックが受け持つ） */
+/**
+ * 大会・イベントの登録と編集（一覧と追加フォーム）。カードの枠と見出しは置く側が描く。
+ * 保存はフックが受け持つ。
+ */
 export default function ContestEditor() {
   const { contests, addContest, updateContest, removeContest } = useContests()
   const [newName, setNewName] = useState('')
   const [newDate, setNewDate] = useState('')
+  const [announcement, setAnnouncement] = useState('')
+  // 日付欄にフォーカスがある間の並び（id の配列）。無いときは null で、日付の昇順
+  const [pinnedIds, setPinnedIds] = useState<string[] | null>(null)
+  const newNameRef = useRef<HTMLInputElement>(null)
   const today = new Date()
 
   // 日付の昇順。同じ日は登録順（sort は安定ソート）
@@ -18,75 +33,58 @@ export default function ContestEditor() {
     [contests],
   )
 
-  // 年が5桁以上など、保存できない日付でボタンだけ押せる状態にしない
-  const canAdd = newName.trim() !== '' && isValidContestDate(newDate)
+  // 日付欄を触っている間は並びを固定する。保存のたびに行が入れ替わると、フォーカスが欄の先頭（年）に戻り、
+  // キーボードで月や日を続けて進められなくなるため。離れた（blur）あとで日付順に並べ直す。
+  // 固定中に削除された行は出さない
+  const visibleContests: Contest[] = pinnedIds
+    ? pinnedIds.flatMap((id) => contests.find((contest) => contest.id === id) ?? [])
+    : sortedContests
+
+  const canAdd = isValidContestName(newName) && isValidContestDate(newDate)
 
   function handleAdd(event: FormEvent) {
     event.preventDefault()
     if (!canAdd) return
     addContest(newName, newDate)
+    setAnnouncement(`「${newName.trim()}」を追加しました`)
     setNewName('')
     setNewDate('')
+    newNameRef.current?.focus()
   }
 
-  function handleRemove(id: string, name: string) {
-    if (window.confirm(`「${name}」を削除しますか？`)) removeContest(id)
+  function handleRemove(contest: Contest) {
+    if (!window.confirm(`「${contest.name}」を削除しますか？`)) return
+    removeContest(contest.id)
+    setAnnouncement(`「${contest.name}」を削除しました`)
+    // 押したボタンが消えるとフォーカスが失われるので、追加フォームの名前欄へ移す
+    newNameRef.current?.focus()
   }
 
   return (
-    <div className={styles.card}>
-      <div className={styles.cardLabel}>大会・イベント</div>
-
-      {sortedContests.length > 0 && (
-        // role="list" を明示するのは、Safari が list-style: none のリストを「リスト」として読み上げなくなるため
+    <>
+      {visibleContests.length > 0 && (
+        // role="list" を明示する理由は GoalCard.tsx を参照
         <ul role="list" className={styles.list}>
-          {sortedContests.map((contest) => (
-            <li key={contest.id} className={styles.row}>
-              {/* 名前は blur で保存する。空にされたら元に戻す。key に名前を含めるのは、保存で名前が変わったら入力欄を作り直すため */}
-              <input
-                key={`${contest.id}:${contest.name}`}
-                className={`${styles.input} ${styles.nameInput}`}
-                type="text"
-                maxLength={30}
-                aria-label={`${contest.name}の名前`}
-                defaultValue={contest.name}
-                onBlur={(event) => {
-                  const trimmed = event.currentTarget.value.trim()
-                  event.currentTarget.value = trimmed === '' ? contest.name : trimmed
-                  if (trimmed !== '') updateContest(contest.id, { name: trimmed })
-                }}
-              />
-              <div className={styles.rowMeta}>
-                {/* 日付は選んだ時点で保存する。空にされても state が変わらないので元の日付に戻る */}
-                <input
-                  className={`${styles.input} ${styles.dateInput}`}
-                  type="date"
-                  aria-label={`${contest.name}の日付`}
-                  value={contest.date}
-                  onChange={(event) => {
-                    if (event.target.value !== '') updateContest(contest.id, { date: event.target.value })
-                  }}
-                />
-                {daysUntil(contest.date, today) < 0 && <span className={styles.ended}>終了</span>}
-                <button
-                  type="button"
-                  className={styles.removeButton}
-                  aria-label={`${contest.name}を削除`}
-                  onClick={() => handleRemove(contest.id, contest.name)}
-                >
-                  <X size={16} aria-hidden="true" />
-                </button>
-              </div>
-            </li>
+          {visibleContests.map((contest) => (
+            <ContestRow
+              key={contest.id}
+              contest={contest}
+              isEnded={daysUntil(contest.date, today) < 0}
+              onUpdate={(changes) => updateContest(contest.id, changes)}
+              onRemove={() => handleRemove(contest)}
+              onDateFocus={() => setPinnedIds(sortedContests.map((item) => item.id))}
+              onDateBlur={() => setPinnedIds(null)}
+            />
           ))}
         </ul>
       )}
 
       <form className={styles.addForm} onSubmit={handleAdd}>
         <input
+          ref={newNameRef}
           className={`${styles.input} ${styles.nameInput}`}
           type="text"
-          maxLength={30}
+          maxLength={MAX_CONTEST_NAME_LENGTH}
           placeholder="例: ボディビル大会 2026"
           aria-label="追加する大会の名前"
           value={newName}
@@ -95,6 +93,8 @@ export default function ContestEditor() {
         <input
           className={`${styles.input} ${styles.dateInput}`}
           type="date"
+          min={MIN_CONTEST_DATE}
+          max={MAX_CONTEST_DATE}
           aria-label="追加する大会の日付"
           value={newDate}
           onChange={(event) => setNewDate(event.target.value)}
@@ -103,6 +103,11 @@ export default function ContestEditor() {
           大会を追加
         </button>
       </form>
-    </div>
+
+      {/* 追加・削除の結果を読み上げる領域。見た目には出さない。常に描くのは、あとから現れた領域は読み上げられないことがあるため */}
+      <div role="status" className={styles.visuallyHidden}>
+        {announcement}
+      </div>
+    </>
   )
 }

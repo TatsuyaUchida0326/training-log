@@ -131,7 +131,10 @@ export default function BodyPage() {
         </div>
 
         {/* 大会・イベントカード */}
-        <ContestEditor />
+        <div className={styles.card}>
+          <div className={styles.cardLabel}>大会・イベント</div>
+          <ContestEditor />
+        </div>
 
         {/* 計測値入力カード */}
         <div className={styles.card}>

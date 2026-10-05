@@ -1,18 +1,32 @@
 import { differenceInCalendarDays, isValid, parseISO } from 'date-fns'
-import type { Contest } from '../types'
+import type { Contest, ContestCountdown } from '../types'
 import { isPlainObject } from './storage'
 
-/** 「あと何日」を添えた、これからの大会 */
-export interface ContestCountdown {
-  contest: Contest
-  daysLeft: number // 0 = 今日
-}
+export const MAX_CONTEST_NAME_LENGTH = 30
+
+/**
+ * 大会の日付に認める年の範囲。日付欄をキーボードで打つ途中の値（0002 年など）を保存しないために絞る。
+ * 日付欄の min / max にも同じ値を使う。
+ */
+const MIN_CONTEST_YEAR = 2000
+const MAX_CONTEST_YEAR = 2999
+export const MIN_CONTEST_DATE = `${MIN_CONTEST_YEAR}-01-01`
+export const MAX_CONTEST_DATE = `${MAX_CONTEST_YEAR}-12-31`
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
-/** 'YYYY-MM-DD' の形で、暦に実在する日付か（2月30日・ゼロ埋めなしは false） */
+/** 空白以外の文字を含む名前か（空・空白だけは false） */
+export function isValidContestName(name: string): boolean {
+  return name.trim() !== ''
+}
+
+/** 'YYYY-MM-DD' の形で、暦に実在し、年が認める範囲の日付か（2月30日・ゼロ埋めなしは false） */
 export function isValidContestDate(value: string): boolean {
-  return DATE_PATTERN.test(value) && isValid(parseISO(value))
+  if (!DATE_PATTERN.test(value)) return false
+  const parsed = parseISO(value)
+  if (!isValid(parsed)) return false
+  const year = parsed.getFullYear()
+  return year >= MIN_CONTEST_YEAR && year <= MAX_CONTEST_YEAR
 }
 
 /**
@@ -36,7 +50,7 @@ export function sanitizeContests(value: unknown): Contest[] {
     if (!isPlainObject(item)) continue
     const { id, name, date } = item
     if (typeof id !== 'string' || id === '' || seenIds.has(id)) continue
-    if (typeof name !== 'string' || name.trim() === '') continue
+    if (typeof name !== 'string' || !isValidContestName(name)) continue
     if (typeof date !== 'string' || !isValidContestDate(date)) continue
     seenIds.add(id)
     contests.push({ id, name, date })

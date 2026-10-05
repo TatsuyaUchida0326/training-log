@@ -1,15 +1,14 @@
 import type { ReactNode } from 'react'
 import { format, parseISO } from 'date-fns'
 import { Link } from 'react-router-dom'
-import type { GoalMetric } from '../../types'
-import type { ContestCountdown } from '../../utils/contests'
+import type { ContestCountdown, GoalMetric } from '../../types'
 import { formatDateWithWeekday } from '../../utils/date'
 import type { GoalDirection, GoalProgress } from '../../utils/goals'
 import styles from './GoalCard.module.css'
 
 interface GoalCardProps {
   goals: GoalProgress[]
-  contests?: ContestCountdown[] // これからの大会（近い順）。無ければ大会の欄は出ない
+  countdowns?: ContestCountdown[] // これからの大会（近い順）。無ければ大会の欄は出ない
   className?: string // 余白など、置き場所に応じた見た目は呼び出し側が決める
 }
 
@@ -67,45 +66,46 @@ function Row({
 
 /**
  * ホームの一番上に出す、大会と目標の残りのカード。どちらも無ければ何も描画しない。
- * 上に大会（近い順に3件まで）、下に目標。どちらも同じ行の作りで、大会の先頭だけ数字を大きくする。
+ * 上に大会（近い順に上限の件数まで）、下に目標。どちらも同じ行の作りで、大会の先頭だけ数字を大きくする。
  */
-export default function GoalCard({ goals, contests = [], className }: GoalCardProps) {
-  if (goals.length === 0 && contests.length === 0) return null
+export default function GoalCard({ goals, countdowns = [], className }: GoalCardProps) {
+  if (goals.length === 0 && countdowns.length === 0) return null
 
-  const shownContests = contests.slice(0, MAX_CONTEST_ROWS)
-  const hiddenCount = contests.length - shownContests.length
+  const shownCountdowns = countdowns.slice(0, MAX_CONTEST_ROWS)
+  const hiddenCount = countdowns.length - shownCountdowns.length
 
   return (
     <div className={className ? `${styles.card} ${className}` : styles.card}>
-      {shownContests.length > 0 && (
+      {shownCountdowns.length > 0 && (
         // role="list" を明示するのは、Safari が list-style: none のリストを「リスト」として読み上げなくなるため
         <ul role="list" aria-label="大会までの残り日数" className={styles.list}>
-          {shownContests.map(({ contest, daysLeft }, index) => (
-            <Row
-              key={contest.id}
-              name={contest.name}
-              nameClassName={styles.contestName}
-              detail={formatContestDate(contest.date)}
-            >
-              <span className={styles.remaining}>
-                {daysLeft === 0 ? (
-                  <span className={index === 0 ? styles.leadValue : styles.remainingValue}>今日</span>
-                ) : (
-                  <>
-                    あと{' '}
-                    <span className={index === 0 ? styles.leadValue : styles.remainingValue}>
-                      {daysLeft}
-                    </span>{' '}
-                    日
-                  </>
-                )}
-              </span>
-            </Row>
-          ))}
+          {shownCountdowns.map(({ contest, daysLeft }, index) => {
+            const valueClassName = index === 0 ? styles.leadValue : styles.remainingValue
+            return (
+              <Row
+                key={contest.id}
+                name={contest.name}
+                nameClassName={styles.contestName}
+                detail={formatContestDate(contest.date)}
+              >
+                <span className={styles.remaining}>
+                  {daysLeft === 0 ? (
+                    <span className={valueClassName}>今日</span>
+                  ) : (
+                    <>
+                      あと{' '}
+                      <span className={valueClassName}>{daysLeft}</span>{' '}
+                      日
+                    </>
+                  )}
+                </span>
+              </Row>
+            )
+          })}
         </ul>
       )}
       {hiddenCount > 0 && (
-        <Link to="/body" className={styles.more}>
+        <Link to="/body" className={styles.moreContestsLink}>
           ほか {hiddenCount} 件
         </Link>
       )}

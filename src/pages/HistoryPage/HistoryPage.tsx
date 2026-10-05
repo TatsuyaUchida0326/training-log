@@ -58,8 +58,8 @@ export default function HistoryPage() {
   const { contests } = useContests()
   const unit = settings.weightUnit
 
-  // 一番近い大会までの残り日数はカレンダーの上に出す。大会が無ければ undefined（何も出さない）
-  const nearestContest = upcomingContests(contests, new Date())[0]
+  // 一番近い大会。大会が無ければ undefined（何も出さない）
+  const nearestCountdown = upcomingContests(contests, new Date())[0]
   const contestsByDate = useMemo(() => groupContestsByDate(contests), [contests])
 
   // 削除済み種目の記録はカレンダーの印にもグラフにも出さない
@@ -196,7 +196,7 @@ export default function HistoryPage() {
             achievedDates={stats.trainedDates}
             markIcon={<Dumbbell size={16} strokeWidth={2.5} />}
             contests={contests}
-            countdown={nearestContest}
+            countdown={nearestCountdown}
           />
         </div>
       )}

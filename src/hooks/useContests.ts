@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Contest } from '../types'
-import { isValidContestDate, sanitizeContests } from '../utils/contests'
+import { isValidContestDate, isValidContestName, sanitizeContests } from '../utils/contests'
 import { isArrayOf, loadStoredValue, writeStoredValue } from '../utils/storage'
 
 export const STORAGE_KEY = 'strength-log-contests'
@@ -16,17 +16,13 @@ function persist(contests: Contest[]): void {
   writeStoredValue(STORAGE_KEY, contests)
 }
 
-/** 既存の id（`set-…`、`custom-…`）と同じく時刻＋乱数。同じ瞬間に2件追加しても重ならない */
+/** 時刻＋乱数。同じミリ秒に2件追加されても、まず重ならない */
 function createId(): string {
   return `contest-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
-/** 読み込み時に捨てられる値（空白だけの名前）を保存しないための確認 */
-function isUsableName(name: string): boolean {
-  return name.trim() !== ''
-}
-
-function normalize(changes: ContestChanges): ContestChanges {
+/** 名前は前後の空白を取り除いて保存する */
+function trimName(changes: ContestChanges): ContestChanges {
   const normalized: ContestChanges = {}
   if (changes.name !== undefined) normalized.name = changes.name.trim()
   if (changes.date !== undefined) normalized.date = changes.date
@@ -37,7 +33,7 @@ export function useContests() {
   const [contests, setContests] = useState<Contest[]>(load)
 
   function addContest(name: string, date: string): void {
-    if (!isUsableName(name) || !isValidContestDate(date)) return
+    if (!isValidContestName(name) || !isValidContestDate(date)) return
     // id は更新関数の外で決める（更新関数が2回呼ばれても同じ id になる）
     const newContest: Contest = { id: createId(), name: name.trim(), date }
     setContests((prev) => {
@@ -48,9 +44,9 @@ export function useContests() {
   }
 
   function updateContest(id: string, changes: ContestChanges): void {
-    if (changes.name !== undefined && !isUsableName(changes.name)) return
+    if (changes.name !== undefined && !isValidContestName(changes.name)) return
     if (changes.date !== undefined && !isValidContestDate(changes.date)) return
-    const normalized = normalize(changes)
+    const normalized = trimName(changes)
     setContests((prev) => {
       if (!prev.some((contest) => contest.id === id)) return prev
       const next = prev.map((contest) => (contest.id === id ? { ...contest, ...normalized } : contest))
