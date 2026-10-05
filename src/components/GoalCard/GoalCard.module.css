@@ -1,5 +1,7 @@
-/* ホームの他のカードと同じ白地・角丸・影。外側の余白は置く側が className で付ける */
+/* ホームの他のカードと同じ白地・角丸・影。外側の余白は置く側が className で付ける。
+   --goal-column-gap は PC 幅で3列に並べるときの列の間隔（大会のリスト・目標のリスト・入れ子の目標で共有する） */
 .card {
+  --goal-column-gap: 32px;
   padding: 12px 16px;
   background: #fff;
   border-radius: 12px;
@@ -146,7 +148,7 @@
   .list {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 32px;
+    column-gap: var(--goal-column-gap);
   }
 
   .row,
@@ -160,18 +162,18 @@
   }
 
   /* 入れ子のある大会の行は横いっぱいにし、大会の行を上、目標を下に3列で並べる。
-     大会の行は他の大会と同じ幅（3列の1列分 = 全体から列の間 32px × 2 を引いて3等分）に収める */
+     大会の行は他の大会と同じ幅（3列の1列分 = 全体から列の間（--goal-column-gap）2つ分を引いて3等分）に収める */
   .rowWithNested {
     grid-column: 1 / -1;
   }
 
   .rowWithNested > .rowLine {
-    max-width: calc((100% - 64px) / 3);
+    max-width: calc((100% - 2 * var(--goal-column-gap)) / 3);
   }
 
   .nestedList {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 32px;
+    column-gap: var(--goal-column-gap);
   }
 }

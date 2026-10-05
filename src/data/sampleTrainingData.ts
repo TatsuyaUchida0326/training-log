@@ -1,5 +1,5 @@
 import { addDays, format, startOfDay, subDays } from 'date-fns'
-import type { BodyRecord, BodySettings, Exercise, TrainingRecord, TrainingSet } from '../types'
+import type { BodyRecord, BodySettings, Exercise, GoalValues, TrainingRecord, TrainingSet } from '../types'
 import { roundToOneDecimal } from '../utils/number'
 
 /**
@@ -47,6 +47,12 @@ const START_MUSCLE_MASS_PERCENT = 33.2
 const MUSCLE_MASS_CHANGE_PER_DAY_PERCENT = 0.03
 // 期間の最初の筋肉量(kg)。目標筋肉量が kg なので、% の推移を最初の体重で換算した値を向きの基準にする
 const START_MUSCLE_MASS_KG = roundToOneDecimal((START_WEIGHT_KG * START_MUSCLE_MASS_PERCENT) / 100)
+/** 期間の最初の体組成の値（体重 kg・体脂肪率 %・筋肉量 kg）。目標を入れた時点の値として、向きの基準に使う */
+export const SAMPLE_START_VALUES: GoalValues = {
+  weight: START_WEIGHT_KG,
+  bodyFat: START_BODY_FAT_PERCENT,
+  muscleMass: START_MUSCLE_MASS_KG,
+}
 const START_WAIST_CM = 82.5
 const WAIST_CHANGE_PER_DAY_CM = -0.05
 
@@ -232,10 +238,10 @@ const SAMPLE_BODY_SETTINGS: BodySettings = {
   // 筋肉量は kg で持つ。期間の最初は 74.8kg × 33.2% ≒ 24.8kg、最後は 73.3kg × 34.2% ≒ 25.1kg
   targetMuscleMassKg: 27,
   // 目標を入れた時点＝期間の最初の値。減らす目標（体重・体脂肪率）と増やす目標（筋肉量）が揃う
-  goalBaselines: { weight: START_WEIGHT_KG, bodyFat: START_BODY_FAT_PERCENT, muscleMass: START_MUSCLE_MASS_KG },
+  goalBaselines: SAMPLE_START_VALUES,
 }
 
-/** サンプル期間の最初の日（今日から数えて SAMPLE_PERIOD_DAYS 日前まで遡った日） */
+/** サンプル期間の最初の日。今日を含めて SAMPLE_PERIOD_DAYS 日ぶんの期間なので、今日の SAMPLE_PERIOD_DAYS - 1 日前 */
 export function samplePeriodStart(today: Date): Date {
   return subDays(startOfDay(today), SAMPLE_PERIOD_DAYS - 1)
 }

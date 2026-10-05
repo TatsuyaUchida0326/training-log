@@ -32,8 +32,8 @@ function formatContestDate(date: string): string {
 
 /**
  * 大会と目標で共有する行。左に名前と補足、右に残りを出す。
- * nested を渡すと、その行のすぐ下に入れ子で出す（一番近い大会の行の中に、その大会の目標を置くため）。
- * 入れ子が無い行の DOM は変えない。
+ * 入れ子が無い行は、名前と残りを行（li）の直下に並べる。
+ * nested を渡すと（その大会の目標を大会の行の下に置くため）、1行目の名前と残りだけを div で囲み、その下に入れ子を置く。
  */
 function Row({
   name,
@@ -104,7 +104,10 @@ export default function GoalCard({ goals, countdowns = [], className }: GoalCard
 
   const shownCountdowns = countdowns.slice(0, MAX_CONTEST_ROWS)
   const hiddenCount = countdowns.length - shownCountdowns.length
-  const nestsGoals = goals.some((goal) => goal.source === 'contest') && shownCountdowns.length > 0
+  // 目標が大会の目標のとき、その大会の行（contestId が一致する行）の中に入れ子で出す。位置（先頭）では決めない。
+  // 一致する行が表示されていなければ、独立したリストにする
+  const goalContestId = goals.find((goal) => goal.contestId !== undefined)?.contestId
+  const shouldNestGoals = shownCountdowns.some(({ contest }) => contest.id === goalContestId)
 
   return (
     <div className={className ? `${styles.card} ${className}` : styles.card}>
@@ -120,7 +123,7 @@ export default function GoalCard({ goals, countdowns = [], className }: GoalCard
                 nameClassName={styles.contestName}
                 detail={formatContestDate(contest.date)}
                 nested={
-                  nestsGoals && index === 0 ? (
+                  shouldNestGoals && contest.id === goalContestId ? (
                     <ul role="list" aria-label={`${contest.name}の目標までの残り`} className={styles.nestedList}>
                       <GoalRows goals={goals} />
                     </ul>
@@ -148,7 +151,7 @@ export default function GoalCard({ goals, countdowns = [], className }: GoalCard
           ほか {hiddenCount} 件
         </Link>
       )}
-      {goals.length > 0 && !nestsGoals && (
+      {goals.length > 0 && !shouldNestGoals && (
         <ul role="list" aria-label="目標までの残り" className={styles.list}>
           <GoalRows goals={goals} />
         </ul>

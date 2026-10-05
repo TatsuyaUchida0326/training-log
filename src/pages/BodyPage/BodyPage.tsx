@@ -7,7 +7,7 @@ import { useBodyRecords } from '../../hooks/useBodyRecords'
 import { useBodySettings } from '../../hooks/useBodySettings'
 import { usePageHeader } from '../../contexts/PageHeaderContext'
 import { calcBody } from '../../utils/body'
-import { GOAL_TARGET_FIELDS } from '../../utils/goalMetrics'
+import { GOAL_METRICS, GOAL_TARGET_FIELDS, METRIC_LABELS, METRIC_UNITS } from '../../utils/goalMetrics'
 import { parsePositiveNumber } from '../../utils/number'
 import {
   fillMissingGoalBaselines,
@@ -118,18 +118,17 @@ export default function BodyPage() {
           <InputRow label="身長" unit="cm" value={positiveOrNull(settings.height)}
             onBlur={handleHeightBlur} />
           <div className={styles.subLabel}>ふだんの目標</div>
-          <InputRow label="目標体重" unit="kg" value={positiveOrNull(settings.targetWeight)}
-            onBlur={(v) => handleGoalBlur('weight', v)} />
-          <InputRow label="目標体脂肪率" unit="%" value={positiveOrNull(settings.targetBodyFat)}
-            onBlur={(v) => handleGoalBlur('bodyFat', v)} />
-          <InputRow label="目標筋肉量" unit="kg" value={positiveOrNull(settings.targetMuscleMassKg)}
-            onBlur={(v) => handleGoalBlur('muscleMass', v)} />
+          {GOAL_METRICS.map((metric) => (
+            <InputRow key={metric} label={`目標${METRIC_LABELS[metric]}`} unit={METRIC_UNITS[metric]}
+              value={positiveOrNull(settings[GOAL_TARGET_FIELDS[metric]])}
+              onBlur={(v) => handleGoalBlur(metric, v)} />
+          ))}
         </div>
 
         {/* 大会・イベントカード */}
         <div className={styles.card}>
           <div className={styles.cardLabel}>大会・イベント</div>
-          <ContestEditor />
+          <ContestEditor bodyRecords={records} bodySettings={settings} />
         </div>
 
         {/* 計測値入力カード */}

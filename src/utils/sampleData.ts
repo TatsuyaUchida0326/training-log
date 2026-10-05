@@ -1,5 +1,5 @@
 import { addDays, format } from 'date-fns'
-import { buildSampleData, samplePeriodStart } from '../data/sampleTrainingData'
+import { SAMPLE_START_VALUES, buildSampleData, samplePeriodStart } from '../data/sampleTrainingData'
 import { STORAGE_KEY as BODY_RECORDS_KEY } from '../hooks/useBodyRecords'
 import { STORAGE_KEY as BODY_SETTINGS_KEY } from '../hooks/useBodySettings'
 import { STORAGE_KEY as CONTESTS_KEY } from '../hooks/useContests'
@@ -14,22 +14,26 @@ import { writeStoredValue } from './storage'
 export const SAMPLE_CONTEST_DAYS_AHEAD = 14
 
 /**
- * サンプルの大会の目標。ふだんの目標（72kg / 18% / 27kg）より少し手前の値にして、
- * サンプルの体組成の推移（体重・体脂肪率は減り、筋肉量は増える。終わりは 73.3kg / 20.5% / 25.1kg ほど）に対して
- * 3項目とも向きが合い、「達成」にならずに「あと ◯」が見えるようにしてある。
+ * サンプルの大会の目標。ふだんの目標（SAMPLE_BODY_SETTINGS）より少し手前の値にして、
+ * サンプルの体組成の推移（体重・体脂肪率は減り、筋肉量は増える）に対して3項目とも向きが合い、
+ * 「達成」にならずに「あと ◯」が見えるようにしてある。
  */
 const SAMPLE_CONTEST_TARGETS: GoalValues = { weight: 72.5, bodyFat: 19.0, muscleMass: 26.0 }
 
 function buildSampleContests(today: Date): Contest[] {
-  // 目標を入れた日は、サンプル期間の最初の日（体組成の記録が始まる日）。向きの起点がその日の値になる
-  const setOn = format(samplePeriodStart(today), 'yyyy-MM-dd')
+  // 目標を入れた・変えた日は、サンプル期間の最初の日（体組成の記録が始まる日）。値はその日の値（SAMPLE_START_VALUES）
+  const originDate = format(samplePeriodStart(today), 'yyyy-MM-dd')
   return [
     {
       id: 'sample-contest',
       name: '地区ボディコンテスト',
       date: format(addDays(today, SAMPLE_CONTEST_DAYS_AHEAD), 'yyyy-MM-dd'),
       targets: SAMPLE_CONTEST_TARGETS,
-      targetsSetOn: { weight: setOn, bodyFat: setOn, muscleMass: setOn },
+      targetOrigins: {
+        weight: { date: originDate, value: SAMPLE_START_VALUES.weight },
+        bodyFat: { date: originDate, value: SAMPLE_START_VALUES.bodyFat },
+        muscleMass: { date: originDate, value: SAMPLE_START_VALUES.muscleMass },
+      },
     },
   ]
 }

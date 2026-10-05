@@ -1,7 +1,7 @@
 import { differenceInCalendarDays, isValid, parseISO } from 'date-fns'
-import type { Contest, ContestCountdown } from '../types'
+import type { Contest, ContestCountdown, GoalOrigin } from '../types'
 import { GOAL_METRICS } from './goalMetrics'
-import { isUsableNumber } from './number'
+import { isPositiveNumber, isUsableNumber } from './number'
 import { isPlainObject } from './storage'
 
 export const MAX_CONTEST_NAME_LENGTH = 30
@@ -40,31 +40,39 @@ export function daysUntil(date: string, today: Date): number {
   return differenceInCalendarDays(parseISO(date), today)
 }
 
+/** 保存された起点（{ date, value? }）を、使える形にする。date が実在する日付でなければ起点ごと捨て、value は有限の数値だけ残す */
+function sanitizeGoalOrigin(value: unknown): GoalOrigin | undefined {
+  if (!isPlainObject(value)) return undefined
+  const { date, value: originValue } = value
+  if (typeof date !== 'string' || !isValidContestDate(date)) return undefined
+  return isUsableNumber(originValue) ? { date, value: originValue } : { date }
+}
+
 /**
- * 大会の目標と、目標を入れた日を、使える項目だけにする。保存前と読み込み後で同じ基準を使う。
- * 目標は有限で 0 より大きい数値の既知の項目だけ。入れた日は、対応する目標があり実在する日付のものだけ。
+ * 大会の目標と起点を、使える項目だけにする。保存前と読み込み後で同じ基準を使う。
+ * 目標は 0 より大きい有限の数値の既知の項目だけ。起点は、対応する目標があり、date が実在する日付のものだけ。
  * 何も残らなければ、そのキーは付けない（空オブジェクトを残さない）。
  */
 export function sanitizeContestTargets(
   targets: unknown,
-  targetsSetOn: unknown,
-): Pick<Contest, 'targets' | 'targetsSetOn'> {
+  targetOrigins: unknown,
+): Pick<Contest, 'targets' | 'targetOrigins'> {
   const validTargets: NonNullable<Contest['targets']> = {}
-  const validSetOn: NonNullable<Contest['targetsSetOn']> = {}
+  const validOrigins: NonNullable<Contest['targetOrigins']> = {}
   const targetSource = isPlainObject(targets) ? targets : {}
-  const setOnSource = isPlainObject(targetsSetOn) ? targetsSetOn : {}
+  const originSource = isPlainObject(targetOrigins) ? targetOrigins : {}
 
   for (const metric of GOAL_METRICS) {
     const target = targetSource[metric]
-    if (!isUsableNumber(target) || target <= 0) continue
+    if (!isPositiveNumber(target)) continue
     validTargets[metric] = target
-    const setOn = setOnSource[metric]
-    if (typeof setOn === 'string' && isValidContestDate(setOn)) validSetOn[metric] = setOn
+    const origin = sanitizeGoalOrigin(originSource[metric])
+    if (origin) validOrigins[metric] = origin
   }
 
-  const sanitized: Pick<Contest, 'targets' | 'targetsSetOn'> = {}
+  const sanitized: Pick<Contest, 'targets' | 'targetOrigins'> = {}
   if (Object.keys(validTargets).length > 0) sanitized.targets = validTargets
-  if (Object.keys(validSetOn).length > 0) sanitized.targetsSetOn = validSetOn
+  if (Object.keys(validOrigins).length > 0) sanitized.targetOrigins = validOrigins
   return sanitized
 }
 
@@ -73,7 +81,8 @@ export function hasContestTargets(contest: Contest): boolean {
   return sanitizeContestTargets(contest.targets, undefined).targets !== undefined
 }
 
-/** 保存データから読んだ大会を、使える要素だけにする。
+/**
+ * 保存データから読んだ大会を、使える要素だけにする。
  * 配列でなければ空。壊れた要素と、同じ id の2件目以降は捨てる。並びは保存された順のまま。
  */
 export function sanitizeContests(value: unknown): Contest[] {
@@ -87,7 +96,7 @@ export function sanitizeContests(value: unknown): Contest[] {
     if (typeof name !== 'string' || !isValidContestName(name)) continue
     if (typeof date !== 'string' || !isValidContestDate(date)) continue
     seenIds.add(id)
-    contests.push({ id, name, date, ...sanitizeContestTargets(item.targets, item.targetsSetOn) })
+    contests.push({ id, name, date, ...sanitizeContestTargets(item.targets, item.targetOrigins) })
   }
   return contests
 }

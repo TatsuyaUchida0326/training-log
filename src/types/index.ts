@@ -66,13 +66,22 @@ export interface BodySettings {
   goalBaselines: GoalBaselines
 }
 
+/**
+ * 大会の目標を入れた・変えた日と、そのときの値（体重 kg・体脂肪率 %・筋肉量 kg）。
+ * 減らす目標か増やす目標かを決める起点。記録より先に目標を入れたときは value が無い。
+ */
+export interface GoalOrigin {
+  date: string  // 'YYYY-MM-DD'
+  value?: number
+}
+
 /** 大会（コンテスト・受験など、日付の決まった予定） */
 export interface Contest {
   id: string
   name: string
   date: string  // 'YYYY-MM-DD'
   targets?: GoalValues  // この大会の目標。無い項目はふだんの目標（BodySettings）を使う
-  targetsSetOn?: Partial<Record<GoalMetric, string>>  // 項目ごとに目標を最後に変えた日（'YYYY-MM-DD'）。向き（減らす・増やす）の起点に使う
+  targetOrigins?: Partial<Record<GoalMetric, GoalOrigin>>  // 項目ごとの起点（目標を入れた・変えた日とそのときの値）。向き（減らす・増やす）を決める
 }
 
 /** 「あと何日」を添えた、これからの大会 */

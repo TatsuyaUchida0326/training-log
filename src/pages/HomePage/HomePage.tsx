@@ -23,7 +23,7 @@ import {
 } from '../../utils/training'
 import { calcContinuityStreak, getQualifyingDates } from '../../utils/continuity'
 import { upcomingContests } from '../../utils/contests'
-import { calcGoalProgress } from '../../utils/goals'
+import { calcGoalProgress, effectiveGoalTargets } from '../../utils/goals'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
@@ -109,7 +109,10 @@ export default function HomePage() {
   }))
 
   // 目標までの残り。目標を設定していなければ空で、画面には何も出ない
-  const goals = calcGoalProgress(bodyRecords, bodySettings, { contests, today })
+  const goalOptions = { contests, today }
+  const goals = calcGoalProgress(bodyRecords, bodySettings, goalOptions)
+  // グラフの目標線もカードと同じ目標（一番近い大会の目標があればそれ、無ければふだんの目標）
+  const goalTargets = effectiveGoalTargets(bodySettings, goalOptions)
   // これからの大会（近い順）。登録が無ければ空で、画面には何も出ない
   const upcomingCountdowns = upcomingContests(contests, today)
 
@@ -144,8 +147,8 @@ export default function HomePage() {
         <div className={styles.chartsCell}>
           <BodyTrendChart
             records={bodyRecords}
-            targetWeight={bodySettings.targetWeight}
-            targetBodyFat={bodySettings.targetBodyFat}
+            targetWeight={goalTargets.weight ?? 0}
+            targetBodyFat={goalTargets.bodyFat ?? 0}
           />
         </div>
         <div className={styles.trophyCell}>

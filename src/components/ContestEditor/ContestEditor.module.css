@@ -51,7 +51,14 @@
   font-family: inherit;
 }
 
-/* 大会ごとの目標。ボタンは名前・日付の行の下に出る。タップ領域は 44px 以上 */
+/* 大会ごとの目標の置き場。flex-basis 100% で、どの幅でも名前・日付・削除の行の下の段に出る
+   （広い画面でも、開くボタンが日付の右に並んで削除ボタンの位置が行ごとにずれることはない） */
+.below {
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
+/* 開くボタン。タップ領域は 44px 以上 */
 .targetsToggle {
   min-height: 44px;
   padding: 0 4px;
@@ -66,15 +73,8 @@
   outline: 2px solid var(--color-primary);
 }
 
-/* 目標の欄は 1 段目（名前・日付）の下に、横いっぱいで出す */
-.targets {
-  flex: 1 0 100%;
-  min-width: 0;
-  padding: 0 4px 8px;
-}
-
 .targetsHeading {
-  margin: 0 0 2px;
+  margin: 0 4px 2px;
   font-size: 12px;
   color: var(--color-gray);
 }
@@ -84,6 +84,7 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
+  padding: 0 4px 8px;
 }
 
 .targetField {

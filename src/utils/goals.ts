@@ -1,17 +1,23 @@
-import { format } from 'date-fns'
-import type {
-  BodyRecord,
-  BodySettings,
-  Contest,
-  GoalBaselines,
-  GoalMetric,
-  GoalValues,
-} from '../types'
-import { calcBody } from './body'
-import { isValidContestDate, sanitizeContestTargets, upcomingContests } from './contests'
+import type { BodyRecord, BodySettings, GoalBaselines, GoalMetric, GoalValues } from '../types'
+import {
+  contestBaseline,
+  nearestContestTargets,
+  type GoalContestOptions,
+  type NearestContestTargets,
+} from './contestGoals'
 import { GOAL_METRICS, GOAL_TARGET_FIELDS } from './goalMetrics'
-import { isUsableNumber, roundToOneDecimal } from './number'
+import { latestMeasuredValues } from './measuredValues'
+import { isPositiveNumber, isUsableNumber, roundToOneDecimal } from './number'
 import { isPlainObject } from './storage'
+
+// 記録から値を読む部分は measuredValues.ts、大会ごとの目標は contestGoals.ts にある。画面はここから import する
+export { latestMeasuredValues }
+export {
+  contestTargetChanges,
+  fillMissingContestOrigins,
+  removeContestCarryingOrigins,
+} from './contestGoals'
+export type { GoalContestOptions }
 
 export type GoalDirection = 'decrease' | 'increase'
 export type GoalStatus = GoalDirection | 'achieved'
@@ -23,67 +29,13 @@ export interface GoalProgress {
   remaining: number // 目標までの残り（0 以上）。current と target の差と一致する
   status: GoalStatus
   source: 'contest' | 'base' // 目標の出どころ。一番近い大会の目標か、基本情報のふだんの目標か
-}
-
-/** 一番近い大会を選ぶための、大会の一覧と今日 */
-export interface GoalContestOptions {
-  contests: Contest[]
-  today: Date
+  contestId?: string         // source が 'contest' のとき、その大会の id（カードが大会の行を探す手がかり）
 }
 
 /** 設定した目標。未設定（0）や数値でない値は 0 として返す */
 function targetOf(metric: GoalMetric, settings: BodySettings): number {
   const target = settings[GOAL_TARGET_FIELDS[metric]]
-  return isUsableNumber(target) && target > 0 ? target : 0
-}
-
-function usableOrNull(value: unknown): number | null {
-  return isUsableNumber(value) ? value : null
-}
-
-/** 1日の記録から、その項目の値（体重 kg・体脂肪率 %・筋肉量 kg）を読む。入っていなければ null。丸めない */
-type MetricReader = (record: BodyRecord) => number | null
-
-function metricReaders(settings: BodySettings): Record<GoalMetric, MetricReader> {
-  return {
-    weight: (record) => usableOrNull(record.weight),
-    bodyFat: (record) => usableOrNull(record.bodyFat),
-    muscleMass: (record) =>
-      calcBody(
-        { ...record, weight: usableOrNull(record.weight), muscleMass: usableOrNull(record.muscleMass) },
-        settings,
-      ).muscleMassKg,
-  }
-}
-
-/** 日付は 'YYYY-MM-DD' なので文字列比較で新しい順になる。元の配列は並べ替えない */
-function newestFirst(records: BodyRecord[]): BodyRecord[] {
-  return [...records].sort((a, b) => b.date.localeCompare(a.date))
-}
-
-/** 並びの先頭から探して、その項目が入っている最初の記録の値。無ければ null */
-function firstValue(records: BodyRecord[], read: MetricReader): number | null {
-  for (const record of records) {
-    const value = read(record)
-    if (value !== null) return value
-  }
-  return null
-}
-
-/**
- * 項目ごとの現在値。その項目が入っている一番新しい日付の記録から取る（配列の並びには依存しない）。
- * 一度も記録していない項目、数値でない値の日は「値なし」として古い日へ遡る。丸めない（baseline に生の値を残すため）。
- */
-export function latestMeasuredValues(records: BodyRecord[], settings: BodySettings): GoalValues {
-  const sorted = newestFirst(records)
-  const readers = metricReaders(settings)
-
-  const values: GoalValues = {}
-  for (const metric of GOAL_METRICS) {
-    const value = firstValue(sorted, readers[metric])
-    if (value !== null) values[metric] = value
-  }
-  return values
+  return isPositiveNumber(target) ? target : 0
 }
 
 /** 保存データが壊れていても落ちないよう、数値の baseline だけを取り出す */
@@ -109,70 +61,36 @@ function directionOf(current: number, target: number, baseline: number | undefin
   return reference > target ? 'decrease' : 'increase'
 }
 
-/** 大会の目標の向きを決める基準値つきの目標 */
-type ContestGoals = Partial<Record<GoalMetric, { target: number; baseline: number | undefined }>>
-
-/** 日付の遅いほう（'YYYY-MM-DD' は文字列比較で日付順になる）。両方無ければ undefined */
-function laterDate(a: string | undefined, b: string | undefined): string | undefined {
-  if (a === undefined) return b
-  if (b === undefined) return a
-  return a > b ? a : b
-}
-
-/** その大会より日付が前の大会のうち、一番遅い日。同じ日の大会は数えない。無ければ undefined */
-function previousContestDate(contest: Contest, contests: Contest[]): string | undefined {
-  let latest: string | undefined
-  for (const other of contests) {
-    if (!isValidContestDate(other.date) || other.date >= contest.date) continue
-    latest = laterDate(latest, other.date)
-  }
-  return latest
-}
-
 /**
- * 起点の日以前でその項目が入っている一番新しい記録の値。無ければ、起点より後で一番古い記録の値。それも無ければ undefined。
- * 目標を入れた日の翌日以降に初めて記録する人（目標が先・記録が後）でも、向きを決められるようにする。
+ * 項目ごとの、使う目標とその出どころ。一番近い大会にその項目の目標があれば大会、無ければふだんの目標。
+ * どちらにも無い項目は含めない。ホームのカードとグラフの目標線が同じ目標になるよう、決め方はここだけに置く。
  */
-function baselineAround(records: BodyRecord[], read: MetricReader, origin: string): number | undefined {
-  const sorted = newestFirst(records)
-  const onOrBefore = firstValue(sorted.filter((record) => record.date <= origin), read)
-  if (onOrBefore !== null) return onOrBefore
-  const after = firstValue(sorted.filter((record) => record.date > origin).reverse(), read)
-  return after ?? undefined
-}
-
-/**
- * 一番近いこれからの大会の目標（項目ごと）と、向きを決める baseline。対象の大会が無い・目標が無ければ空。
- *
- * 目標を入れた時点の値は保存せず、記録の履歴から起点の日の値を引く。起点の日は
- * 「その項目の目標を最後に変えた日」と「前の大会の日」の遅いほう。
- * 例: 68kg のとき、1つ目の大会に 62、2つ目に 66 の目標を入れると、2つ目は「68→66 で減」になる。
- * 1つ目を 62kg で終えたあとは「62→66 で増」が正しいのに「達成」と出てしまう。
- * 大会が切り替わった時点（前の大会の日）の値を起点にすれば正しくなり、履歴から計算できるので保存も補完も要らない。
- */
-function nearestContestGoals(
-  records: BodyRecord[],
+function chooseTargets(
   settings: BodySettings,
-  options: GoalContestOptions | undefined,
-): ContestGoals {
-  const nearest = options && upcomingContests(options.contests, options.today)[0]?.contest
-  if (!options || !nearest) return {}
-
-  const { targets, targetsSetOn } = sanitizeContestTargets(nearest.targets, nearest.targetsSetOn)
-  const readers = metricReaders(settings)
-  const previousDate = previousContestDate(nearest, options.contests)
-
-  const goals: ContestGoals = {}
+  nearest: NearestContestTargets | undefined,
+): Partial<Record<GoalMetric, { target: number; source: GoalProgress['source'] }>> {
+  const chosen: Partial<Record<GoalMetric, { target: number; source: GoalProgress['source'] }>> = {}
   for (const metric of GOAL_METRICS) {
-    const target = targets?.[metric]
-    if (target === undefined) continue
-    const origin = laterDate(targetsSetOn?.[metric], previousDate)
-    goals[metric] = {
-      target,
-      baseline: origin === undefined ? undefined : baselineAround(records, readers[metric], origin),
+    const contestTarget = nearest?.targets[metric]
+    if (contestTarget !== undefined) {
+      chosen[metric] = { target: contestTarget, source: 'contest' }
+    } else if (targetOf(metric, settings) > 0) {
+      chosen[metric] = { target: targetOf(metric, settings), source: 'base' }
     }
   }
-  return goals
+  return chosen
+}
+
+/**
+ * ホームのグラフの目標線に使う、項目ごとの目標（丸める前の値）。
+ * カードと同じく、一番近い大会にその項目の目標があればその値、無ければふだんの目標。どちらも無い項目は含めない。
+ */
+export function effectiveGoalTargets(settings: BodySettings, options?: GoalContestOptions): GoalValues {
+  const targets: GoalValues = {}
+  for (const [metric, chosen] of Object.entries(chooseTargets(settings, nearestContestTargets(options)))) {
+    targets[metric as GoalMetric] = chosen.target
+  }
+  return targets
 }
 
 /**
@@ -190,17 +108,24 @@ export function calcGoalProgress(
 ): GoalProgress[] {
   const measured = latestMeasuredValues(records, settings)
   const baselines = validBaselines(settings.goalBaselines)
-  const contestGoals = nearestContestGoals(records, settings, options)
+  const nearest = nearestContestTargets(options)
+  const chosen = chooseTargets(settings, nearest)
   const goals: GoalProgress[] = []
 
   for (const metric of GOAL_METRICS) {
-    const contestGoal = contestGoals[metric]
-    const rawTarget = contestGoal ? contestGoal.target : targetOf(metric, settings)
-    const baseline = contestGoal ? contestGoal.baseline : baselines[metric]
+    const choice = chosen[metric]
     const rawCurrent = measured[metric]
-    if (rawTarget === 0 || rawCurrent === undefined) continue
+    if (!choice || rawCurrent === undefined) continue
 
-    const target = roundToOneDecimal(rawTarget)
+    // 大会の目標の向きは起点（contestGoals.ts）から決める。
+    // ふだんの目標は保存済みの goalBaselines のまま。大会が過ぎてふだんの目標に戻ったときは、入れた時点の向きのまま。
+    // 大会の目標と同じ考え方に揃えるのは別の PR（保存の形を変える必要があるため）
+    const baseline =
+      choice.source === 'contest' && nearest
+        ? contestBaseline(nearest, metric, records, settings)
+        : baselines[metric]
+
+    const target = roundToOneDecimal(choice.target)
     const current = roundToOneDecimal(rawCurrent)
     const direction = directionOf(current, target, baseline)
     const achieved = direction === 'decrease' ? current <= target : current >= target
@@ -211,36 +136,11 @@ export function calcGoalProgress(
       target,
       remaining: achieved ? 0 : roundToOneDecimal(Math.abs(current - target)),
       status: achieved ? 'achieved' : direction,
-      source: contestGoal ? 'contest' : 'base',
+      source: choice.source,
+      ...(choice.source === 'contest' && nearest && { contestId: nearest.contest.id }),
     })
   }
   return goals
-}
-
-/**
- * 大会の目標を1項目変えたあとの targets・targetsSetOn。元の大会は書き換えない。
- * 目標を入れる（0 より大きい）と、その項目の入れた日を今日にする。0 なら両方からその項目を取り除き、
- * 空になったほうは undefined にする（空オブジェクトを残さない）。
- */
-export function withContestTarget(
-  contest: Contest,
-  metric: GoalMetric,
-  target: number,
-  today: Date,
-): Pick<Contest, 'targets' | 'targetsSetOn'> {
-  const targets = { ...contest.targets }
-  const setOn = { ...contest.targetsSetOn }
-  if (isUsableNumber(target) && target > 0) {
-    targets[metric] = target
-    setOn[metric] = format(today, 'yyyy-MM-dd')
-  } else {
-    delete targets[metric]
-    delete setOn[metric]
-  }
-  return {
-    targets: Object.keys(targets).length > 0 ? targets : undefined,
-    targetsSetOn: Object.keys(setOn).length > 0 ? setOn : undefined,
-  }
 }
 
 /**
