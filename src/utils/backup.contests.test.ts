@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { buildBackup, parseBackup, restoreBackup } from './backup'
-import { CONTESTS_KEY, makeContest, readStoredContests, seedContests } from '../test/contests'
-import { RECORDS_KEY, SETTINGS_KEY } from '../test/storageKeys'
+import { makeContest, readStoredContests, seedContests } from '../test/contests'
+import { CONTESTS_KEY, RECORDS_KEY, SETTINGS_KEY } from '../test/storageKeys'
 import type { TrainingRecord } from '../types'
 
 const BODYBUILDING = makeContest('ボディコンテスト', '2026-10-17', 'c1')

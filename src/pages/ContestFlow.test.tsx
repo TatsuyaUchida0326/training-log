@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -118,6 +118,45 @@ describe('大会の登録からホーム表示まで', () => {
     const list = screen.getByRole('list', CONTEST_LIST)
     expect(list).toHaveTextContent(/あと\s*30\s*日/)
     expect(list).toHaveTextContent('11月4日（水）')
+  })
+
+  it('年を打っている途中の値（0002 → 0020 → 0202）では保存されず、ホームの日数は元のまま。2027 まで打つと変わる', async () => {
+    await addContestOnBodyPage('ボディコンテスト', '2026-10-17')
+
+    const body = visitBodyPage()
+    const input = screen.getByLabelText('ボディコンテストの日付')
+    for (const partial of ['0002-10-17', '0020-10-17', '0202-10-17']) {
+      fireEvent.change(input, { target: { value: partial } })
+    }
+    body.unmount() // 途中の値のまま画面を離れる
+
+    const first = visitHomePage()
+    let list = screen.getByRole('list', CONTEST_LIST)
+    expect(list).toHaveTextContent(/あと\s*12\s*日/)
+    expect(list).toHaveTextContent('10月17日（土）')
+    first.unmount()
+
+    const second = visitBodyPage()
+    fireEvent.change(screen.getByLabelText('ボディコンテストの日付'), { target: { value: '2027-10-17' } })
+    second.unmount()
+
+    visitHomePage()
+    list = screen.getByRole('list', CONTEST_LIST)
+    expect(list).toHaveTextContent('2027年10月17日（日）')
+    expect(list).toHaveTextContent(/あと\s*377\s*日/)
+  })
+
+  it('途中の値のまま欄を離れても、体組成画面の日付は元に戻り、大会は「終了」にならない', async () => {
+    await addContestOnBodyPage('ボディコンテスト', '2026-10-17')
+
+    visitBodyPage()
+    const input = screen.getByLabelText('ボディコンテストの日付') as HTMLInputElement
+    act(() => { input.focus() })
+    fireEvent.change(input, { target: { value: '0002-10-17' } })
+    act(() => { input.blur() })
+
+    expect(screen.getByLabelText('ボディコンテストの日付')).toHaveValue('2026-10-17')
+    expect(screen.queryByText('終了')).not.toBeInTheDocument()
   })
 
   it('名前を変えると、ホームの名前も変わる', async () => {

@@ -1,12 +1,10 @@
-import type { Contest } from '../types'
-
 /**
  * 大会のテスト用ヘルパー。
- * キー名の定義は storageKeys.ts に集約し、ここからは再 export する。
+ * localStorage のキーは storageKeys.ts の CONTESTS_KEY を使う（ここからは再 export しない）。
  */
+import { screen, within } from '@testing-library/react'
+import type { Contest } from '../types'
 import { CONTESTS_KEY } from './storageKeys'
-
-export { CONTESTS_KEY }
 
 let sequence = 0
 
@@ -24,4 +22,9 @@ export function seedContests(contests: unknown[]): void {
 /** localStorage に保存されている大会を、検証せずそのまま読む（未保存なら空配列） */
 export function readStoredContests(): Contest[] {
   return JSON.parse(localStorage.getItem(CONTESTS_KEY) ?? '[]') as Contest[]
+}
+
+/** ホームのカード（GoalCard）の「大会までの残り日数」リストの行 */
+export function contestRows(): HTMLElement[] {
+  return within(screen.getByRole('list', { name: '大会までの残り日数' })).getAllByRole('listitem')
 }

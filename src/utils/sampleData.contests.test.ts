@@ -1,6 +1,6 @@
 import { addDays, format } from 'date-fns'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { applySampleData } from './sampleData'
+import { SAMPLE_CONTEST_DAYS_AHEAD, applySampleData } from './sampleData'
 import { isValidContestDate, upcomingContests } from './contests'
 import { DEFAULT_EXERCISES } from '../data/defaultExercises'
 import { makeContest, readStoredContests, seedContests } from '../test/contests'
@@ -27,19 +27,26 @@ describe('applySampleData — 大会', () => {
     expect(isValidContestDate(contest.date)).toBe(true)
   })
 
-  it('今日の42日後（upcomingContests に通すと daysLeft が 42）', () => {
+  it('日数の定数 SAMPLE_CONTEST_DAYS_AHEAD は正の整数として export されている', () => {
+    expect(Number.isInteger(SAMPLE_CONTEST_DAYS_AHEAD)).toBe(true)
+    expect(SAMPLE_CONTEST_DAYS_AHEAD).toBeGreaterThan(0)
+  })
+
+  it('今日の SAMPLE_CONTEST_DAYS_AHEAD 日後（upcomingContests に通すと daysLeft がその日数）', () => {
     applySampleData(DEFAULT_EXERCISES, TODAY)
     const upcoming = upcomingContests(readStoredContests(), TODAY)
     expect(upcoming).toHaveLength(1)
-    expect(upcoming[0].daysLeft).toBe(42)
-    expect(readStoredContests()[0].date).toBe(format(addDays(TODAY, 42), 'yyyy-MM-dd'))
+    expect(upcoming[0].daysLeft).toBe(SAMPLE_CONTEST_DAYS_AHEAD)
+    expect(readStoredContests()[0].date).toBe(
+      format(addDays(TODAY, SAMPLE_CONTEST_DAYS_AHEAD), 'yyyy-MM-dd'),
+    )
   })
 
-  it('今日がいつでも 42日後になる（年またぎ・うるう日をまたぐ日付でも）', () => {
-    for (const today of [new Date(2026, 11, 31), new Date(2028, 0, 20), new Date(2027, 11, 25, 23, 59)]) {
+  it('今日がいつでも SAMPLE_CONTEST_DAYS_AHEAD 日後になる（年またぎ・うるう日をまたぐ日付でも）', () => {
+    for (const today of [new Date(2026, 11, 31), new Date(2028, 1, 20), new Date(2027, 11, 25, 23, 59)]) {
       localStorage.clear()
       applySampleData(DEFAULT_EXERCISES, today)
-      expect(upcomingContests(readStoredContests(), today)[0].daysLeft).toBe(42)
+      expect(upcomingContests(readStoredContests(), today)[0].daysLeft).toBe(SAMPLE_CONTEST_DAYS_AHEAD)
     }
   })
 

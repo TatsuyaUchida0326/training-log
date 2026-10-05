@@ -1,7 +1,8 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { STORAGE_KEY, useContests } from './useContests'
-import { CONTESTS_KEY, makeContest, readStoredContests, seedContests } from '../test/contests'
+import { makeContest, readStoredContests, seedContests } from '../test/contests'
+import { CONTESTS_KEY } from '../test/storageKeys'
 
 beforeEach(() => {
   localStorage.clear()

@@ -1,16 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import {
+  MAX_CONTEST_NAME_LENGTH,
   daysUntil,
   groupContestsByDate,
   isValidContestDate,
+  isValidContestName,
   sanitizeContests,
   upcomingContests,
 } from './contests'
-import type { Contest } from '../types'
-
-function contest(id: string, date: string, name = `大会${id}`): Contest {
-  return { id, name, date }
-}
+import { makeContest } from '../test/contests'
 
 /** 渡した値を書き換えようとすると例外になる凍結コピー（入力を書き換えないことの確認用） */
 function deepFreeze<T>(value: T): T {
@@ -54,6 +52,63 @@ describe('isValidContestDate', () => {
     ['日付ではない文字', 'あした'],
   ])('%s（%j）は false', (_label, date) => {
     expect(isValidContestDate(date)).toBe(false)
+  })
+})
+
+describe('isValidContestDate — 年は 2000〜2999 だけ（入力途中の値を保存させない）', () => {
+  it.each(['2000-01-01', '2999-12-31', '2027-10-17'])('範囲内の %s は true', (date) => {
+    expect(isValidContestDate(date)).toBe(true)
+  })
+
+  it.each([
+    ['年が 1 桁相当（キーボードで 1 文字目だけ打った途中の値）', '0002-10-17'],
+    ['年が 2 桁相当', '0020-10-17'],
+    ['年が 3 桁相当', '0202-10-17'],
+    ['2000 年より前', '1999-12-31'],
+    ['2999 年より後', '3000-01-01'],
+    ['年 0000', '0000-10-17'],
+    ['5 桁の年', '20271-10-17'],
+  ])('%s（%s）は false', (_label, date) => {
+    expect(isValidContestDate(date)).toBe(false)
+  })
+
+  it('範囲の端でも暦に実在しなければ false（2000-02-30 / 2999-02-29）', () => {
+    expect(isValidContestDate('2000-02-30')).toBe(false)
+    expect(isValidContestDate('2999-02-29')).toBe(false)
+  })
+
+  it('年が範囲外の大会は sanitizeContests で捨てる', () => {
+    const valid = makeContest('正しい大会', '2027-10-17', 'ok')
+    const result = sanitizeContests([
+      makeContest('途中の値', '0002-10-17', 'a'),
+      makeContest('古すぎる', '1999-12-31', 'b'),
+      makeContest('先すぎる', '3000-01-01', 'c'),
+      valid,
+    ])
+    expect(result).toEqual([valid])
+  })
+})
+
+describe('isValidContestName / MAX_CONTEST_NAME_LENGTH', () => {
+  it('空白以外を含めば true（前後の空白があってもよい）', () => {
+    expect(isValidContestName('ボディコンテスト')).toBe(true)
+    expect(isValidContestName('  ボディコンテスト  ')).toBe(true)
+    expect(isValidContestName('a')).toBe(true)
+    expect(isValidContestName('全日本 ボディ')).toBe(true)
+  })
+
+  it.each([
+    ['空文字', ''],
+    ['半角空白だけ', '   '],
+    ['全角空白だけ', '　　'],
+    ['タブ・改行だけ', '\t\n'],
+    ['半角と全角の空白だけ', ' 　 '],
+  ])('%s は false', (_label, name) => {
+    expect(isValidContestName(name)).toBe(false)
+  })
+
+  it('名前の最大文字数は 30', () => {
+    expect(MAX_CONTEST_NAME_LENGTH).toBe(30)
   })
 })
 
@@ -155,30 +210,30 @@ describe('upcomingContests', () => {
   })
 
   it('当日の大会は daysLeft 0 で含む', () => {
-    const today = contest('a', '2026-10-05')
+    const today = makeContest('大会a', '2026-10-05', 'a')
     expect(upcomingContests([today], TODAY)).toEqual([{ contest: today, daysLeft: 0 }])
   })
 
   it('昨日の大会は含まない', () => {
-    expect(upcomingContests([contest('a', '2026-10-04')], TODAY)).toEqual([])
+    expect(upcomingContests([makeContest('大会a', '2026-10-04', 'a')], TODAY)).toEqual([])
   })
 
   it('明日の大会は daysLeft 1', () => {
-    const tomorrow = contest('a', '2026-10-06')
+    const tomorrow = makeContest('大会a', '2026-10-06', 'a')
     expect(upcomingContests([tomorrow], TODAY)).toEqual([{ contest: tomorrow, daysLeft: 1 }])
   })
 
   it('過ぎた大会だけなら空', () => {
     expect(
-      upcomingContests([contest('a', '2026-01-01'), contest('b', '2026-10-04')], TODAY),
+      upcomingContests([makeContest('大会a', '2026-01-01', 'a'), makeContest('大会b', '2026-10-04', 'b')], TODAY),
     ).toEqual([])
   })
 
   it('過ぎた大会は除き、これからの大会だけを近い順に並べる', () => {
-    const past = contest('past', '2026-09-01')
-    const near = contest('near', '2026-10-17')
-    const far = contest('far', '2027-01-10')
-    const mid = contest('mid', '2026-11-03')
+    const past = makeContest('大会past', '2026-09-01', 'past')
+    const near = makeContest('大会near', '2026-10-17', 'near')
+    const far = makeContest('大会far', '2027-01-10', 'far')
+    const mid = makeContest('大会mid', '2026-11-03', 'mid')
     expect(upcomingContests([far, past, near, mid], TODAY)).toEqual([
       { contest: near, daysLeft: 12 },
       { contest: mid, daysLeft: 29 },
@@ -187,31 +242,31 @@ describe('upcomingContests', () => {
   })
 
   it('同じ日の大会は配列の順（登録順）のまま', () => {
-    const first = contest('first', '2026-10-17')
-    const second = contest('second', '2026-10-17')
-    const third = contest('third', '2026-10-17')
-    const earlier = contest('earlier', '2026-10-10')
+    const first = makeContest('大会first', '2026-10-17', 'first')
+    const second = makeContest('大会second', '2026-10-17', 'second')
+    const third = makeContest('大会third', '2026-10-17', 'third')
+    const earlier = makeContest('大会earlier', '2026-10-10', 'earlier')
     const result = upcomingContests([first, second, earlier, third], TODAY)
     expect(result.map((item) => item.contest.id)).toEqual(['earlier', 'first', 'second', 'third'])
   })
 
   it('同じ日が何件あっても登録順が崩れない（件数を増やして並べ替えの不安定さを出す）', () => {
-    const many = Array.from({ length: 30 }, (_, index) => contest(`c${index}`, '2026-10-17'))
+    const many = Array.from({ length: 30 }, (_, index) => makeContest(`大会c${index}`, '2026-10-17', `c${index}`))
     const result = upcomingContests(many, TODAY)
     expect(result.map((item) => item.contest.id)).toEqual(many.map((item) => item.id))
   })
 
   it('入力の配列を書き換えない（並べ替えない・凍結されていても例外にならない）', () => {
-    const input = deepFreeze([contest('b', '2026-12-01'), contest('a', '2026-10-17')])
+    const input = deepFreeze([makeContest('大会b', '2026-12-01', 'b'), makeContest('大会a', '2026-10-17', 'a')])
     const snapshot = input.map((item) => item.id)
     expect(() => upcomingContests(input, TODAY)).not.toThrow()
     expect(input.map((item) => item.id)).toEqual(snapshot)
   })
 
   it('今日の時刻が 23:59:59 でも 00:00:01 でも同じ結果', () => {
-    const tomorrow = contest('a', '2026-10-06')
-    const today = contest('b', '2026-10-05')
-    const yesterday = contest('c', '2026-10-04')
+    const tomorrow = makeContest('大会a', '2026-10-06', 'a')
+    const today = makeContest('大会b', '2026-10-05', 'b')
+    const yesterday = makeContest('大会c', '2026-10-04', 'c')
     for (const time of [local(2026, 10, 5, 0, 0, 1), local(2026, 10, 5, 12), local(2026, 10, 5, 23, 59, 59)]) {
       expect(upcomingContests([yesterday, tomorrow, today], time)).toEqual([
         { contest: today, daysLeft: 0 },
@@ -221,8 +276,8 @@ describe('upcomingContests', () => {
   })
 
   it('年またぎ・うるう日をまたぐ大会の日数も正しい', () => {
-    const newYear = contest('a', '2027-01-01')
-    const leapDay = contest('b', '2028-02-29')
+    const newYear = makeContest('大会a', '2027-01-01', 'a')
+    const leapDay = makeContest('大会b', '2028-02-29', 'b')
     const result = upcomingContests([leapDay, newYear], local(2026, 12, 31))
     expect(result).toEqual([
       { contest: newYear, daysLeft: 1 },
@@ -239,8 +294,8 @@ describe('groupContestsByDate', () => {
   })
 
   it('日付ごとに大会をまとめる', () => {
-    const a = contest('a', '2026-10-17')
-    const b = contest('b', '2026-11-03')
+    const a = makeContest('大会a', '2026-10-17', 'a')
+    const b = makeContest('大会b', '2026-11-03', 'b')
     const grouped = groupContestsByDate([a, b])
     expect(grouped.size).toBe(2)
     expect(grouped.get('2026-10-17')).toEqual([a])
@@ -248,30 +303,30 @@ describe('groupContestsByDate', () => {
   })
 
   it('同じ日の大会は配列の順（登録順）で並ぶ', () => {
-    const a = contest('a', '2026-10-17')
-    const b = contest('b', '2026-11-03')
-    const c = contest('c', '2026-10-17')
+    const a = makeContest('大会a', '2026-10-17', 'a')
+    const b = makeContest('大会b', '2026-11-03', 'b')
+    const c = makeContest('大会c', '2026-10-17', 'c')
     expect(groupContestsByDate([a, b, c]).get('2026-10-17')).toEqual([a, c])
   })
 
   it('過ぎた大会も含む（カレンダーの印に使うため）', () => {
-    const past = contest('past', '2020-01-01')
+    const past = makeContest('大会past', '2020-01-01', 'past')
     expect(groupContestsByDate([past]).get('2020-01-01')).toEqual([past])
   })
 
   it('大会のない日は undefined', () => {
-    expect(groupContestsByDate([contest('a', '2026-10-17')]).get('2026-10-18')).toBeUndefined()
+    expect(groupContestsByDate([makeContest('大会a', '2026-10-17', 'a')]).get('2026-10-18')).toBeUndefined()
   })
 
   it('入力を書き換えない', () => {
-    const input = deepFreeze([contest('a', '2026-10-17'), contest('b', '2026-10-17')])
+    const input = deepFreeze([makeContest('大会a', '2026-10-17', 'a'), makeContest('大会b', '2026-10-17', 'b')])
     expect(() => groupContestsByDate(input)).not.toThrow()
     expect(input).toHaveLength(2)
   })
 })
 
 describe('sanitizeContests', () => {
-  const VALID = contest('a', '2026-10-17', 'ボディコンテスト')
+  const VALID = makeContest('ボディコンテスト', '2026-10-17', 'a')
 
   it('正しい大会はそのまま残す', () => {
     expect(sanitizeContests([VALID])).toEqual([VALID])
@@ -323,8 +378,8 @@ describe('sanitizeContests', () => {
   })
 
   it('壊れた要素が混ざっていても、正しい要素だけを元の順で残す', () => {
-    const first = contest('a', '2026-10-17', '一つ目')
-    const second = contest('b', '2026-11-03', '二つ目')
+    const first = makeContest('一つ目', '2026-10-17', 'a')
+    const second = makeContest('二つ目', '2026-11-03', 'b')
     const result = sanitizeContests([
       null,
       first,
@@ -338,31 +393,31 @@ describe('sanitizeContests', () => {
   })
 
   it('同じ id が2つあれば先の1つだけ残す', () => {
-    const first = contest('same', '2026-10-17', '先')
-    const second = contest('same', '2026-11-03', '後')
-    const other = contest('other', '2026-12-01', '別')
+    const first = makeContest('先', '2026-10-17', 'same')
+    const second = makeContest('後', '2026-11-03', 'same')
+    const other = makeContest('別', '2026-12-01', 'other')
     expect(sanitizeContests([first, other, second])).toEqual([first, other])
   })
 
   it('同じ id が3つあっても先の1つだけ', () => {
-    const items = [contest('x', '2026-10-01'), contest('x', '2026-10-02'), contest('x', '2026-10-03')]
+    const items = [makeContest('大会x', '2026-10-01', 'x'), makeContest('大会x', '2026-10-02', 'x'), makeContest('大会x', '2026-10-03', 'x')]
     expect(sanitizeContests(items)).toEqual([items[0]])
   })
 
   it('同じ名前・同じ日付でも id が違えば両方残す', () => {
-    const a = contest('a', '2026-10-17', '同じ')
-    const b = contest('b', '2026-10-17', '同じ')
+    const a = makeContest('同じ', '2026-10-17', 'a')
+    const b = makeContest('同じ', '2026-10-17', 'b')
     expect(sanitizeContests([a, b])).toEqual([a, b])
   })
 
   it('並びは日付順に直さない（保存された順のまま）', () => {
-    const later = contest('a', '2026-12-01')
-    const earlier = contest('b', '2026-10-01')
+    const later = makeContest('大会a', '2026-12-01', 'a')
+    const earlier = makeContest('大会b', '2026-10-01', 'b')
     expect(sanitizeContests([later, earlier]).map((item) => item.id)).toEqual(['a', 'b'])
   })
 
   it('入力を書き換えない（凍結されていても例外にならない）', () => {
-    const input = deepFreeze([contest('a', '2026-10-17'), null, contest('a', '2026-10-18')])
+    const input = deepFreeze([makeContest('大会a', '2026-10-17', 'a'), null, makeContest('大会a', '2026-10-18', 'a')])
     expect(() => sanitizeContests(input)).not.toThrow()
     expect(input).toHaveLength(3)
   })

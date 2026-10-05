@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import CalendarDayPopup from './CalendarDayPopup'
@@ -122,6 +122,45 @@ describe('CalendarDayPopup — その日の大会', () => {
     const { props } = renderPopup({ contests: [BODYBUILDING] })
     await user.click(screen.getByText('2026年ボディビル大会'))
     expect(props.onClose).not.toHaveBeenCalled()
+  })
+})
+
+describe('CalendarDayPopup — 大会の一覧のリスト構造', () => {
+  const LIST = { name: 'この日の大会' }
+
+  it('大会の一覧は role="list" で、名前は「この日の大会」', () => {
+    renderPopup({ contests: [BODYBUILDING] })
+    const list = screen.getByRole('list', LIST)
+    expect(list).toHaveAttribute('role', 'list')
+    expect(list).toHaveAttribute('aria-label', 'この日の大会')
+  })
+
+  it('1件につき1つの listitem で、名前が入る', () => {
+    renderPopup({
+      contests: [BODYBUILDING, { id: 'c2', name: '社内ベンチプレス大会', date: DATE }],
+    })
+    const items = within(screen.getByRole('list', LIST)).getAllByRole('listitem')
+    expect(items).toHaveLength(2)
+    expect(items[0]).toHaveTextContent('2026年ボディビル大会')
+    expect(items[1]).toHaveTextContent('社内ベンチプレス大会')
+  })
+
+  it('大会の名前はこのリストの中にある', () => {
+    renderPopup({ contests: [BODYBUILDING] })
+    expect(within(screen.getByRole('list', LIST)).getByText('2026年ボディビル大会')).toBeInTheDocument()
+  })
+
+  it('大会が無ければリストは出ない（渡さない・空配列）', () => {
+    const { unmount } = renderPopup()
+    expect(screen.queryByRole('list', LIST)).not.toBeInTheDocument()
+    unmount()
+    renderPopup({ contests: [] })
+    expect(screen.queryByRole('list', LIST)).not.toBeInTheDocument()
+  })
+
+  it('記録が無く大会だけの日でも、リストが出る', () => {
+    renderPopup({ records: [], contests: [BODYBUILDING] })
+    expect(screen.getByRole('list', LIST)).toBeInTheDocument()
   })
 })
 

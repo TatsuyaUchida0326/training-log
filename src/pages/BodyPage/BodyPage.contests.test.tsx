@@ -35,6 +35,20 @@ describe('BodyPage — 大会・イベントのカード', () => {
     expect(isBefore(contests, measurements)).toBe(true)
   })
 
+  it('カードの枠と見出しは BodyPage が描く：見出しと同じカードの中に追加フォームがあり、ほかのカードの見出しは入らない', () => {
+    renderBodyPage()
+    const card = screen.getByText('大会・イベント').parentElement as HTMLElement
+    expect(card).toContainElement(screen.getByLabelText('追加する大会の名前'))
+    expect(card).toContainElement(screen.getByRole('button', { name: '大会を追加' }))
+    expect(card).not.toContainElement(screen.getByText('基本情報'))
+    expect(card).not.toContainElement(screen.getByText('計測値'))
+  })
+
+  it('見出し「大会・イベント」は1つだけ（部品の中に重ねて描かない）', () => {
+    renderBodyPage()
+    expect(screen.getAllByText('大会・イベント')).toHaveLength(1)
+  })
+
   it('追加フォーム（名前・日付・ボタン）が出る', () => {
     renderBodyPage()
     expect(screen.getByLabelText('追加する大会の名前')).toBeInTheDocument()

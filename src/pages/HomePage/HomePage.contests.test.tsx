@@ -3,9 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import HomePage from './HomePage'
-import { CONTESTS_KEY, makeContest, seedContests } from '../../test/contests'
+import { contestRows, makeContest, seedContests } from '../../test/contests'
 import { setupFixedClock } from '../../test/fixedClock'
 import { makeBodyRecord, seedBodyRecords, seedBodySettings } from '../../test/seed'
+import { CONTESTS_KEY } from '../../test/storageKeys'
 
 // 今日を 2026-10-05（月）12:00 に固定する。2026-10-17 は「あと 12 日」
 setupFixedClock(new Date(2026, 9, 5, 12))
@@ -28,10 +29,6 @@ function renderHomePage() {
       </Routes>
     </MemoryRouter>,
   )
-}
-
-function contestRows(): HTMLElement[] {
-  return within(screen.getByRole('list', CONTEST_LIST)).getAllByRole('listitem')
 }
 
 describe('HomePage — 大会を登録していない人（今の画面のまま）', () => {

@@ -2,9 +2,9 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import Calendar from './Calendar'
+import { makeContest } from '../../test/contests'
 import { setupFixedClock } from '../../test/fixedClock'
-import type { CalendarProps, Contest } from '../../types'
-import type { ContestCountdown } from '../../utils/contests'
+import type { CalendarProps, ContestCountdown } from '../../types'
 
 // 2026年4月: 1日が水曜。表示は 3/29〜5/2（前月 3/29-31、翌月 5/1-2 のセルが付く）
 const TODAY = new Date(2026, 3, 16) // month は 0-indexed
@@ -24,11 +24,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-function contest(id: string, name: string, date: string): Contest {
-  return { id, name, date }
-}
-
-const BODY_CONTEST = contest('c1', 'ボディコンテスト', '2026-04-20') // 4月20日（月）
+const BODY_CONTEST = makeContest('ボディコンテスト', '2026-04-20', 'c1') // 4月20日（月）
 
 function cell(name: string | RegExp): HTMLElement {
   return screen.getByRole('button', { name })
@@ -44,7 +40,7 @@ describe('Calendar — 大会の印（アクセシブルネーム）', () => {
     render(
       <Calendar
         {...defaultProps}
-        contests={[contest('a', 'A大会', '2026-04-20'), contest('b', 'B大会', '2026-04-20')]}
+        contests={[makeContest('A大会', '2026-04-20', 'a'), makeContest('B大会', '2026-04-20', 'b')]}
       />,
     )
     expect(cell('4月20日（月）、大会: A大会、B大会')).toBeInTheDocument()
@@ -55,9 +51,9 @@ describe('Calendar — 大会の印（アクセシブルネーム）', () => {
       <Calendar
         {...defaultProps}
         contests={[
-          contest('a', 'A大会', '2026-04-20'),
-          contest('b', 'B大会', '2026-04-20'),
-          contest('c', 'C大会', '2026-04-20'),
+          makeContest('A大会', '2026-04-20', 'a'),
+          makeContest('B大会', '2026-04-20', 'b'),
+          makeContest('C大会', '2026-04-20', 'c'),
         ]}
       />,
     )
@@ -77,7 +73,7 @@ describe('Calendar — 大会の印（アクセシブルネーム）', () => {
         {...defaultProps}
         currentDate={new Date(2026, 8, 1)}
         markedDates={['2026-09-23']}
-        contests={[contest('c1', 'ボディコンテスト', '2026-09-23')]}
+        contests={[makeContest('ボディコンテスト', '2026-09-23', 'c1')]}
       />,
     )
     expect(cell('9月23日（水）、秋分の日、記録あり、大会: ボディコンテスト')).toBeInTheDocument()
@@ -87,7 +83,7 @@ describe('Calendar — 大会の印（アクセシブルネーム）', () => {
     render(
       <Calendar
         {...defaultProps}
-        contests={[contest('c1', 'ボディコンテスト', '2026-04-29')]} // 昭和の日
+        contests={[makeContest('ボディコンテスト', '2026-04-29', 'c1')]} // 昭和の日
       />,
     )
     expect(cell('4月29日（水）、昭和の日、大会: ボディコンテスト')).toBeInTheDocument()
@@ -99,23 +95,23 @@ describe('Calendar — 大会の印（アクセシブルネーム）', () => {
   })
 
   it('今日の日が大会でも aria-current は付いたまま', () => {
-    render(<Calendar {...defaultProps} contests={[contest('c1', '今日の大会', '2026-04-16')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('今日の大会', '2026-04-16', 'c1')]} />)
     expect(cell('4月16日（木）、大会: 今日の大会')).toHaveAttribute('aria-current', 'date')
   })
 
   it('過ぎた大会（今日より前）の日にも印が出る', () => {
-    render(<Calendar {...defaultProps} contests={[contest('c1', '終わった大会', '2026-04-01')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('終わった大会', '2026-04-01', 'c1')]} />)
     expect(cell('4月1日（水）、大会: 終わった大会')).toBeInTheDocument()
   })
 
   it('表示していない月の大会は、どのセルにも出ない', () => {
-    render(<Calendar {...defaultProps} contests={[contest('c1', '来月の大会', '2026-06-10')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('来月の大会', '2026-06-10', 'c1')]} />)
     expect(screen.queryByTestId('contest-name')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /大会:/ })).not.toBeInTheDocument()
   })
 
   it('同じ日付でも年が違えば印は出ない（2025-04-20 は 2026年4月に出ない）', () => {
-    render(<Calendar {...defaultProps} contests={[contest('c1', '去年の大会', '2025-04-20')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('去年の大会', '2025-04-20', 'c1')]} />)
     expect(screen.queryByTestId('contest-name')).not.toBeInTheDocument()
   })
 })
@@ -130,7 +126,7 @@ describe('Calendar — 大会の印（セルの中の名前）', () => {
   it('長い名前も DOM のテキストは全文（30文字）', () => {
     const longName = 'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほま'.slice(0, 30)
     expect(longName).toHaveLength(30)
-    render(<Calendar {...defaultProps} contests={[contest('c1', longName, '2026-04-20')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest(longName, '2026-04-20', 'c1')]} />)
     expect(within(cell(/^4月20日（月）/)).getByTestId('contest-name').textContent).toBe(longName)
   })
 
@@ -143,7 +139,7 @@ describe('Calendar — 大会の印（セルの中の名前）', () => {
     render(
       <Calendar
         {...defaultProps}
-        contests={[contest('a', 'A大会', '2026-04-20'), contest('b', 'B大会', '2026-04-20')]}
+        contests={[makeContest('A大会', '2026-04-20', 'a'), makeContest('B大会', '2026-04-20', 'b')]}
       />,
     )
     const target = cell(/^4月20日（月）/)
@@ -158,9 +154,9 @@ describe('Calendar — 大会の印（セルの中の名前）', () => {
       <Calendar
         {...defaultProps}
         contests={[
-          contest('a', 'A大会', '2026-04-20'),
-          contest('b', 'B大会', '2026-04-20'),
-          contest('c', 'C大会', '2026-04-20'),
+          makeContest('A大会', '2026-04-20', 'a'),
+          makeContest('B大会', '2026-04-20', 'b'),
+          makeContest('C大会', '2026-04-20', 'c'),
         ]}
       />,
     )
@@ -179,9 +175,9 @@ describe('Calendar — 大会の印（セルの中の名前）', () => {
       <Calendar
         {...defaultProps}
         contests={[
-          contest('a', 'A大会', '2026-04-20'),
-          contest('b', 'B大会', '2026-04-20'),
-          contest('c', 'C大会', '2026-04-25'),
+          makeContest('A大会', '2026-04-20', 'a'),
+          makeContest('B大会', '2026-04-20', 'b'),
+          makeContest('C大会', '2026-04-25', 'c'),
         ]}
       />,
     )
@@ -189,7 +185,7 @@ describe('Calendar — 大会の印（セルの中の名前）', () => {
   })
 
   it('大会の名前はテキストとして出す（HTML として解釈しない）', () => {
-    render(<Calendar {...defaultProps} contests={[contest('a', '<b>強調</b>', '2026-04-20')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('<b>強調</b>', '2026-04-20', 'a')]} />)
     const target = cell(/^4月20日（月）/)
     expect(within(target).getByTestId('contest-name')).toHaveTextContent('<b>強調</b>')
     expect(target.querySelector('b')).toBeNull()
@@ -209,13 +205,13 @@ describe('Calendar — 大会の印（セルの中の名前）', () => {
 
 describe('Calendar — 前後の月のセルでも大会の印を出す', () => {
   it('前月末（3月31日）のセルに印が出る', () => {
-    render(<Calendar {...defaultProps} contests={[contest('c1', '前月の大会', '2026-03-31')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('前月の大会', '2026-03-31', 'c1')]} />)
     const target = cell('3月31日（火）、大会: 前月の大会')
     expect(within(target).getByTestId('contest-name')).toHaveTextContent('前月の大会')
   })
 
   it('翌月頭（5月1日）のセルに印が出る', () => {
-    render(<Calendar {...defaultProps} contests={[contest('c1', '翌月の大会', '2026-05-01')]} />)
+    render(<Calendar {...defaultProps} contests={[makeContest('翌月の大会', '2026-05-01', 'c1')]} />)
     const target = cell('5月1日（金）、大会: 翌月の大会')
     expect(within(target).getByTestId('contest-name')).toHaveTextContent('翌月の大会')
   })
@@ -224,7 +220,7 @@ describe('Calendar — 前後の月のセルでも大会の印を出す', () => 
     render(
       <Calendar
         {...defaultProps}
-        contests={[contest('a', '遠い前月', '2026-03-28'), contest('b', '遠い翌月', '2026-05-03')]}
+        contests={[makeContest('遠い前月', '2026-03-28', 'a'), makeContest('遠い翌月', '2026-05-03', 'b')]}
       />,
     )
     expect(screen.queryByTestId('contest-name')).not.toBeInTheDocument()
@@ -236,7 +232,7 @@ describe('Calendar — 前後の月のセルでも大会の印を出す', () => 
       <Calendar
         {...defaultProps}
         currentDate={new Date(2027, 0, 1)}
-        contests={[contest('c1', '年末の大会', '2026-12-31')]}
+        contests={[makeContest('年末の大会', '2026-12-31', 'c1')]}
       />,
     )
     expect(cell('12月31日（木）、大会: 年末の大会')).toBeInTheDocument()
@@ -296,7 +292,7 @@ describe('Calendar — 大会を渡さないときは今と完全に同じ DOM',
 
 describe('Calendar — countdown（カレンダー上部の「あと ◯ 日」）', () => {
   function makeCountdown(name: string, date: string, daysLeft: number): ContestCountdown {
-    return { contest: contest('c1', name, date), daysLeft }
+    return { contest: makeContest(name, date, 'c1'), daysLeft }
   }
 
   it('渡さなければ出ない', () => {
