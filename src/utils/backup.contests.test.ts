@@ -149,12 +149,14 @@ describe('バックアップ — 大会（contests が壊れているバック�
     localStorage.setItem(RECORDS_KEY, JSON.stringify([RECORD]))
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ weightUnit: 'lbs' }))
     const exported = buildBackup()
+    const brokenText = backupTextWithContests('broken') // 保存データを消す前にバックアップの中身を作る
     localStorage.clear()
 
-    const parsed = parseBackup(backupTextWithContests('broken'))!
+    const parsed = parseBackup(brokenText)!
     restoreBackup(parsed)
 
     expect(parsed.data.records).toEqual(exported.data.records)
+    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)!).weightUnit).toBe('lbs')
     expect(readStoredRecordsRaw()).toEqual([RECORD])
     expect(storedContestsOrEmpty()).toEqual([])
   })

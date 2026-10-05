@@ -386,7 +386,7 @@ describe('SettingsPage — データの書き出し', () => {
     expect(downloadAttribute).toMatch(/^strength-log-backup-\d{4}-\d{2}-\d{2}\.json$/)
   })
 
-  it('書き出す JSON に5種類のデータがすべて入る', async () => {
+  it('書き出す JSON に6種類のデータがすべて入る', async () => {
     seedRecords([RECORD])
     renderSettingsPage()
     await userEvent.click(screen.getByRole('button', { name: '書き出す' }))
@@ -395,7 +395,7 @@ describe('SettingsPage — データの書き出し', () => {
     expect(exported.app).toBe('strength-log')
     expect(exported.data.records).toEqual([RECORD])
     expect(Object.keys(exported.data).sort()).toEqual(
-      ['bodyRecords', 'bodySettings', 'exercises', 'records', 'settings'].sort()
+      ['bodyRecords', 'bodySettings', 'contests', 'exercises', 'records', 'settings'].sort()
     )
   })
 
