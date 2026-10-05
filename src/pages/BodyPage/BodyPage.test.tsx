@@ -4,6 +4,13 @@ import { format, addDays } from 'date-fns'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { PageHeaderProvider } from '../../contexts/PageHeaderContext'
 import BodyPage from './BodyPage'
+import {
+  makeBodyRecord,
+  readStoredBodySettings,
+  seedBodyRecords,
+  seedBodySettings,
+} from '../../test/seed'
+import { BODY_SETTINGS_KEY } from '../../test/storageKeys'
 
 function renderBodyPage() {
   return render(
@@ -72,7 +79,7 @@ describe('BodyPage - 入力と自動計算', () => {
 
   it('体重のみ入力 → 体脂肪量・除脂肪体重は「———」のまま', () => {
     renderBodyPage()
-    const weightInput = screen.getAllByRole('spinbutton')[3] // 計測値側の体重入力
+    const weightInput = screen.getByLabelText('体重') // 計測値側の体重入力
     fireEvent.blur(weightInput, { target: { value: '70' } })
     // 体脂肪なしなので体脂肪量は計算不可
     const fatMassRow = screen.getByText('体脂肪量').closest('div')
@@ -126,9 +133,7 @@ describe('BodyPage - 日付ナビゲーション', () => {
 describe('BodyPage - localStorage 永続化', () => {
   it('体組成データが localStorage に保存される', () => {
     renderBodyPage()
-    const inputs = screen.getAllByRole('spinbutton')
-    // 計測値の体重入力（インデックス3: 身長・目標体重・目標体脂肪 の後）
-    fireEvent.blur(inputs[3], { target: { value: '72.5' } })
+    fireEvent.blur(screen.getByLabelText('体重'), { target: { value: '72.5' } })
     const stored = JSON.parse(localStorage.getItem('strength-log-body-records') ?? '[]')
     expect(stored.some((r: { weight: number }) => r.weight === 72.5)).toBe(true)
   })
@@ -200,7 +205,7 @@ describe('BodyPage - アクセシビリティ（ラベル関連付け）', () =>
   it('各入力欄のラベルは対応する input と関連付いている（同一要素であること）', () => {
     renderBodyPage()
     const byLabel = screen.getByLabelText('体重')
-    const byPlaceholder = screen.getAllByPlaceholderText('———')[3] // 身長・目標体重・目標体脂肪率の後の体重欄
+    const byPlaceholder = screen.getAllByPlaceholderText('———').at(-4) // 計測値の4欄（体重・体脂肪・筋肉量・ウエスト）の先頭
     expect(byLabel).toBe(byPlaceholder)
   })
 
@@ -222,5 +227,199 @@ describe('BodyPage - アクセシビリティ（ラベル関連付け）', () =>
     expect(
       stored.find((record: { weight: number | null }) => 'weight' in record)?.weight ?? null
     ).toBeNull()
+  })
+})
+
+/* ── 目標筋肉量の入力欄と、目標の向き（baseline）の保存 ── */
+
+/** 目標の入力欄に値を入れて blur する（保存のきっかけ）。blur のたびに入力欄は作り直されるので毎回取り直す */
+function blurGoalInput(label: string, value: string): void {
+  fireEvent.blur(screen.getByLabelText(label), { target: { value } })
+}
+
+describe('BodyPage - 目標筋肉量の入力欄', () => {
+  it('「目標筋肉量」の入力欄が getByLabelText で取得できる', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('目標筋肉量')).toBeInTheDocument()
+  })
+
+  it('単位は kg で表示される（記録の単位が % でも）', () => {
+    seedBodySettings({ muscleMassUnit: '%' })
+    renderBodyPage()
+    expect(screen.getByLabelText('目標筋肉量').parentElement).toHaveTextContent('kg')
+  })
+
+  it('「目標体脂肪率」の次、計測値の「体重」より前にある', () => {
+    renderBodyPage()
+    const bodyFatTarget = screen.getByLabelText('目標体脂肪率')
+    const muscleTarget = screen.getByLabelText('目標筋肉量')
+    const weight = screen.getByLabelText('体重')
+    expect(bodyFatTarget.compareDocumentPosition(muscleTarget) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(muscleTarget.compareDocumentPosition(weight) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('未設定のときは空欄', () => {
+    renderBodyPage()
+    expect(screen.getByLabelText('目標筋肉量')).toHaveValue(null)
+  })
+
+  it('保存済みの目標筋肉量が入力欄に入る', () => {
+    seedBodySettings({ targetMuscleMass: 45 })
+    renderBodyPage()
+    expect(screen.getByLabelText('目標筋肉量')).toHaveValue(45)
+  })
+
+  it('blur すると targetMuscleMass が localStorage に保存される', () => {
+    renderBodyPage()
+    blurGoalInput('目標筋肉量', '45.5')
+    expect(readStoredBodySettings().targetMuscleMass).toBe(45.5)
+  })
+
+  it('既存の目標（体重・体脂肪率）を保存しても目標筋肉量は変わらない', () => {
+    seedBodySettings({ targetMuscleMass: 45 })
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    expect(readStoredBodySettings().targetMuscleMass).toBe(45)
+    expect(readStoredBodySettings().targetWeight).toBe(65)
+  })
+})
+
+describe('BodyPage - 目標を変えたときの baseline 保存', () => {
+  it('目標体重を入れると、その時点の最新の体重が baseline になる', () => {
+    seedBodyRecords([
+      makeBodyRecord('2026-09-01', { weight: 70 }),
+      makeBodyRecord('2026-09-02', { weight: 68.2 }),
+    ])
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    const stored = readStoredBodySettings()
+    expect(stored.targetWeight).toBe(65)
+    expect(stored.goalBaselines).toEqual({ weight: 68.2 })
+  })
+
+  it('最新の体重が入っていない日があっても、体重が入っている直近の日の値を使う', () => {
+    seedBodyRecords([
+      makeBodyRecord('2026-09-01', { weight: 70 }),
+      makeBodyRecord('2026-09-02', { bodyFat: 19 }),
+    ])
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ weight: 70 })
+  })
+
+  it('目標体脂肪率を入れると、最新の体脂肪率が baseline になる', () => {
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 70, bodyFat: 22 })])
+    renderBodyPage()
+    blurGoalInput('目標体脂肪率', '15')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ bodyFat: 22 })
+  })
+
+  it('目標筋肉量を入れると、最新の筋肉量（kg）が baseline になる', () => {
+    seedBodySettings({ muscleMassUnit: 'kg' })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 70, muscleMass: 36 })])
+    renderBodyPage()
+    blurGoalInput('目標筋肉量', '40')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ muscleMass: 36 })
+  })
+
+  it('記録の単位が % のときは、体重 × 筋肉量% の kg が baseline になる', () => {
+    seedBodySettings({ muscleMassUnit: '%' })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 70, muscleMass: 40 })])
+    renderBodyPage()
+    blurGoalInput('目標筋肉量', '30')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ muscleMass: 28 })
+  })
+
+  it('目標を変えると baseline も新しい現在値に更新される', () => {
+    seedBodySettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68.2 })])
+    renderBodyPage()
+    blurGoalInput('目標体重', '63')
+    const stored = readStoredBodySettings()
+    expect(stored.targetWeight).toBe(63)
+    expect(stored.goalBaselines.weight).toBe(68.2)
+  })
+
+  it('同じ値で blur し直しても baseline は変えない', () => {
+    seedBodySettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68.2 })])
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ weight: 70 })
+  })
+
+  it('目標を入れたあと体重を記録し、同じ目標で blur し直しても baseline は初回の値のまま', () => {
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 70 })])
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    blurGoalInput('体重', '66') // 今日の体重として保存される（最新の体重は 66 になる）
+    blurGoalInput('目標体重', '65')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ weight: 70 })
+  })
+
+  it('空にすると target は 0 になり、その項目の baseline が消える', () => {
+    seedBodySettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68.2 })])
+    renderBodyPage()
+    blurGoalInput('目標体重', '')
+    const stored = readStoredBodySettings()
+    expect(stored.targetWeight).toBe(0)
+    expect(stored.goalBaselines).not.toHaveProperty('weight')
+  })
+
+  it('空にしたとき、他の項目の baseline は残る', () => {
+    seedBodySettings({
+      targetWeight: 65,
+      targetBodyFat: 15,
+      goalBaselines: { weight: 70, bodyFat: 22 },
+    })
+    renderBodyPage()
+    blurGoalInput('目標体重', '')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ bodyFat: 22 })
+  })
+
+  it('別の項目の目標を入れても、既にある baseline は変わらない', () => {
+    seedBodySettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 68.2, bodyFat: 22 })])
+    renderBodyPage()
+    blurGoalInput('目標体脂肪率', '15')
+    expect(readStoredBodySettings().goalBaselines).toEqual({ weight: 70, bodyFat: 22 })
+  })
+
+  it('記録が1件も無いときに目標を入れても baseline は作らない', () => {
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    const stored = readStoredBodySettings()
+    expect(stored.targetWeight).toBe(65)
+    expect(stored.goalBaselines).toEqual({})
+  })
+
+  it('記録が無い状態で目標を変えたとき、古い baseline は引きずらない', () => {
+    seedBodySettings({ targetWeight: 65, goalBaselines: { weight: 70 } })
+    renderBodyPage()
+    blurGoalInput('目標体重', '60')
+    expect(readStoredBodySettings().goalBaselines).not.toHaveProperty('weight')
+  })
+
+  it('身長を保存しても baseline は作られない', () => {
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 70 })])
+    renderBodyPage()
+    blurGoalInput('身長', '175')
+    const stored = readStoredBodySettings()
+    expect(stored.height).toBe(175)
+    expect(stored.goalBaselines).toEqual({})
+  })
+
+  it('goalBaselines の無い旧データでも、目標を入れると baseline が保存される', () => {
+    localStorage.setItem(
+      BODY_SETTINGS_KEY,
+      JSON.stringify({ height: 170, targetWeight: 0, muscleMassUnit: '%', targetBodyFat: 0 }),
+    )
+    seedBodyRecords([makeBodyRecord('2026-09-01', { weight: 70 })])
+    renderBodyPage()
+    blurGoalInput('目標体重', '65')
+    const stored = readStoredBodySettings()
+    expect(stored.height).toBe(170)
+    expect(stored.goalBaselines).toEqual({ weight: 70 })
   })
 })

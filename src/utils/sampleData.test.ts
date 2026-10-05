@@ -54,5 +54,6 @@ describe('applySampleData', () => {
     expect(stored.height).toBeGreaterThan(0)
     expect(stored.targetWeight).toBeGreaterThan(0)
     expect(stored.targetBodyFat).toBeGreaterThan(0)
+    expect(stored.targetMuscleMass).toBeGreaterThan(0)
   })
 })

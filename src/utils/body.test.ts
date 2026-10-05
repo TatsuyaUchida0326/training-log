@@ -16,6 +16,8 @@ const baseSettings: BodySettings = {
   targetWeight: 75,
   muscleMassUnit: '%',
   targetBodyFat: 0,
+  targetMuscleMass: 0,
+  goalBaselines: {},
 }
 
 describe('calcBody', () => {
