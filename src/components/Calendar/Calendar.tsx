@@ -12,8 +12,10 @@ import {
   addDays,
 } from 'date-fns'
 import { between } from '@holiday-jp/holiday_jp'
+import { groupContestsByDate } from '../../utils/contests'
 import { WEEKDAYS, formatDateWithWeekday } from '../../utils/date'
 import type { CalendarProps } from '../../types'
+import CalendarCountdown from './CalendarCountdown'
 import styles from './Calendar.module.css'
 
 function isSameYearMonth(a: Date, b: Date): boolean {
@@ -30,6 +32,8 @@ export default function Calendar({
   markedDates = [],
   achievedDates = [],
   markIcon,
+  contests = [],
+  countdown,
 }: CalendarProps) {
   const today = new Date()
   const isCurrentMonth = isSameYearMonth(currentDate, today)
@@ -56,6 +60,9 @@ export default function Calendar({
   const isMarked = (date: Date): boolean => markedSet.has(format(date, 'yyyy-MM-dd'))
   const isAchieved = (date: Date): boolean => achievedSet.has(format(date, 'yyyy-MM-dd'))
 
+  // 日付ごとの大会（前後の月のセルにも印を出すので、表示月では絞らない）
+  const contestsByDate = useMemo(() => groupContestsByDate(contests), [contests])
+
   // 当月の祝日をMapに変換（'yyyy-MM-dd' → 祝日名）
   const holidayMap = useMemo(() => {
     const holidays = between(monthStart, monthEnd)
@@ -68,6 +75,8 @@ export default function Calendar({
 
   return (
     <div className={styles.calendar}>
+      {countdown && <CalendarCountdown countdown={countdown} />}
+
       {/* ヘッダー */}
       <div className={styles.header}>
         <div className={styles.titleGroup}>
@@ -109,7 +118,7 @@ export default function Calendar({
       </div>
 
       {/* 日付グリッド */}
-      <div className={styles.grid}>
+      <div className={contests.length > 0 ? `${styles.grid} ${styles.gridWithContests}` : styles.grid}>
         {allDays.map((date) => {
           const isCurrentMonth = isSameMonth(date, currentDate)
           const isToday = isSameDay(date, today)
@@ -124,12 +133,15 @@ export default function Calendar({
             : undefined
           const isHoliday = !!holidayName
           const hasRecord = marked || achieved
+          const dayContests = contestsByDate.get(format(date, 'yyyy-MM-dd')) ?? []
+          const hasContest = dayContests.length > 0
 
           // アクセシブルネームは表示物と独立に組み立てる（絵文字や祝日名を個別に読み上げさせないため）
           const ariaLabel =
             formatDateWithWeekday(date) +
             (holidayName ? `、${holidayName}` : '') +
-            (hasRecord ? '、記録あり' : '')
+            (hasRecord ? '、記録あり' : '') +
+            (hasContest ? `、大会: ${dayContests.map((contest) => contest.name).join('、')}` : '')
 
           return (
             <button
@@ -151,6 +163,7 @@ export default function Calendar({
                   styles.dayCircle,
                   isToday ? styles.today : '',
                   isSelected && !isToday ? styles.selected : '',
+                  hasContest ? styles.contestDay : '',
                   !isToday && (isSunday || isHoliday) ? styles.sunday : '',
                   !isToday && isSaturday && !isHoliday ? styles.saturday : '',
                 ]
@@ -161,6 +174,16 @@ export default function Calendar({
               </span>
               {holidayName && (
                 <span className={styles.holidayName}>{holidayName}</span>
+              )}
+              {hasContest && (
+                <>
+                  <span data-testid="contest-name" className={styles.contestName}>
+                    {dayContests[0].name}
+                  </span>
+                  {dayContests.length > 1 && (
+                    <span className={styles.contestName}>他{dayContests.length - 1}件</span>
+                  )}
+                </>
               )}
               {hasRecord && (
                 <span

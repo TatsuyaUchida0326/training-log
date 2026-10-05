@@ -147,6 +147,21 @@
   color: var(--color-saturday);
 }
 
+/* 大会のある日は日付の丸に紺の輪を付ける */
+.contestDay {
+  box-shadow: 0 0 0 2px var(--color-navy);
+}
+
+/* 今日の緑の丸には、白の隙間を空けて外側に重ねる */
+.today.contestDay {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-navy);
+}
+
+/* 選択中の緑の輪とは、大会の輪を外側に重ねて両方見えるようにする */
+.selected.contestDay {
+  box-shadow: 0 0 0 2px var(--color-primary), 0 0 0 4px var(--color-navy);
+}
+
 /* 祝日名 */
 .holidayName {
   font-size: 0.5rem;
@@ -162,6 +177,34 @@
 
 .otherMonth .holidayName {
   display: none;
+}
+
+/* 大会名・「他N件」。祝日名と同じ大きさ・1行で、はみ出しは … で省略する */
+.contestName {
+  font-size: 0.5rem;
+  color: var(--color-navy);
+  text-align: center;
+  line-height: 1.2;
+  /*
+   * 列の幅は中身の最小幅で決まる（1fr の最小は auto）ので、長い大会名があるとその列だけ広がる。
+   * width: 0 で「列の幅を決める計算」には 0 として数えさせ、min-width: 100% で実際の表示はセルの幅いっぱいにする。
+   * 列全体を minmax(0, 1fr) にすると祝日名まで省略されてしまうため、大会名だけに効かせる。
+   */
+  width: 0;
+  min-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 2px;
+}
+
+/*
+ * 大会のある月では、セルの中身を上から詰める。
+ * 既定の中央寄せのままだと、大会名や祝日名で背が伸びたセルだけ日付の丸が上にずれ、同じ行の丸が揃わない。
+ * 大会を登録していない人のカレンダーは、今まで通りの中央寄せのまま。
+ */
+.gridWithContests .cell {
+  justify-content: flex-start;
 }
 
 .titleGroup {

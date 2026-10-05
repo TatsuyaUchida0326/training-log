@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef } from 'react'
 import type { ChangeEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useContests } from '../../hooks/useContests'
 import { useExercises } from '../../hooks/useExercises'
 import { useSettings } from '../../hooks/useSettings'
 import { useTrainingRecords } from '../../hooks/useTrainingRecords'
@@ -14,6 +15,7 @@ export default function SettingsPage() {
   const { settings, updateRequiredSets, updateDefaultSets, updateRequiredExercises, updateWeightUnit } = useSettings()
   const { exercises } = useExercises()
   const { records } = useTrainingRecords()
+  const { contests } = useContests()
   const { setHeader } = usePageHeader()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -25,8 +27,8 @@ export default function SettingsPage() {
     setHeader({ title: '設定', centered: true })
   }, [setHeader])
 
-  // 記録がある人にサンプルデータを見せない。軽く押しただけで自分の記録が置き換わるのを防ぐ
-  const hasRecords = records.length > 0
+  // 記録か大会がある人にサンプルデータを見せない。軽く押しただけで自分のデータが置き換わるのを防ぐ
+  const hasUserData = records.length > 0 || contests.length > 0
 
   function handleApplySampleData() {
     if (window.confirm('サンプルデータを入れますか？\n現在の記録は置き換わります。')) {
@@ -153,7 +155,7 @@ export default function SettingsPage() {
 
       <div className={`${styles.section} ${styles.dataSection}`}>
         <p className={styles.sectionTitle}>データ管理</p>
-        {!hasRecords && (
+        {!hasUserData && (
           <>
             <p className={styles.sectionNote}>
               アプリの動きを試すための約1か月分の記録を入れます。元に戻すには「全データをリセット」を使ってください。

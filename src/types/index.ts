@@ -66,6 +66,19 @@ export interface BodySettings {
   goalBaselines: GoalBaselines
 }
 
+/** 大会（コンテスト・受験など、日付の決まった予定） */
+export interface Contest {
+  id: string
+  name: string
+  date: string  // 'YYYY-MM-DD'
+}
+
+/** 「あと何日」を添えた、これからの大会 */
+export interface ContestCountdown {
+  contest: Contest
+  daysLeft: number // 0 = 今日
+}
+
 export interface CalendarProps {
   currentDate: Date
   onPrevMonth: () => void
@@ -76,6 +89,8 @@ export interface CalendarProps {
   markedDates?: string[]          // 記録あり日（条件未達含む）'YYYY-MM-DD' 形式
   achievedDates?: string[]        // 条件達成日（フルカラー表示）'YYYY-MM-DD' 形式
   markIcon?: React.ReactNode      // マークアイコンの上書き（デフォルト 💪）
+  contests?: Contest[]            // 大会のある日に印と名前を出す
+  countdown?: ContestCountdown    // 一番近い大会までの残り日数
 }
 
 export interface SidebarProps {

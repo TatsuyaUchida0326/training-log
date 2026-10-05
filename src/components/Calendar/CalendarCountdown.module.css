@@ -1,0 +1,32 @@
+/* 一番近い大会までの残り日数（カレンダーの一番上・右寄せ・1行） */
+.countdown {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 0.5rem;
+  font-size: 12px;
+  color: var(--color-navy);
+}
+
+.countdownIcon {
+  flex-shrink: 0;
+}
+
+/* 名前が長いときだけ … で省略し、「まで あと ◯ 日」は必ず見せる */
+.countdownName {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.countdownPrefix,
+.countdownSuffix {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.countdown strong {
+  font-weight: 700;
+}

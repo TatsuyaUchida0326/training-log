@@ -67,6 +67,37 @@
   color: #111827;
 }
 
+/* その日の大会。名前は長くても全文を折り返して出す */
+.contests {
+  list-style: none;
+  padding: 12px 16px;
+}
+
+.contest {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-navy);
+  overflow-wrap: anywhere;
+}
+
+.contest + .contest {
+  margin-top: 6px;
+}
+
+/* 1行目の文字の高さ（14px × 行の高さ）に合わせて、アイコンの位置を揃える */
+.contestIcon {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+/* 大会の下に種目が続くときは、大会の余白と二重にしない */
+.contests + .body {
+  padding-top: 0;
+}
+
 /* ボディ */
 .body {
   padding: 12px 16px;

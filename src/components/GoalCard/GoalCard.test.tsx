@@ -44,9 +44,9 @@ describe('GoalCard — 目標が無いとき', () => {
 })
 
 describe('GoalCard — className', () => {
-  it('className を渡すと ul に付く（余白は呼び出し側が決める）', () => {
-    render(<GoalCard goals={[WEIGHT_DECREASE]} className="spacing" />)
-    expect(screen.getByRole('list', { name: '目標までの残り' })).toHaveClass('spacing')
+  it('className を渡すとカードの外側の要素に付く（余白は呼び出し側が決める）', () => {
+    const { container } = render(<GoalCard goals={[WEIGHT_DECREASE]} className="spacing" />)
+    expect(container.firstElementChild).toHaveClass('spacing')
   })
 
   it('className を渡さなくても描画できる', () => {

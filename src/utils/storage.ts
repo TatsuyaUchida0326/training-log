@@ -61,7 +61,7 @@ export function writeStoredValue(key: string, value: unknown): void {
 /** 確認のうえ、このオリジンの保存データをすべて消して読み込み直す */
 export function confirmAndResetAllData(): void {
   if (!window.confirm('本当にすべてのデータを削除しますか？\nこの操作は元に戻せません。')) return
-  localStorage.clear() // 記録・種目・体組成・設定すべて
+  localStorage.clear() // 記録・種目・体組成・設定・大会すべて
   window.location.reload()
 }
 
